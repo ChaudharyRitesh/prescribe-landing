@@ -28,7 +28,7 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative min-h-screen pt-32 pb-20 overflow-hidden bg-white">
+    <section className="relative min-h-screen pt-32 pb-8 overflow-hidden bg-white">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-40 right-1/3 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-40"></div>
       </div>

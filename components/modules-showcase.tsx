@@ -36,7 +36,7 @@ const modules = [
 
 export function ModulesShowcase() {
   return (
-    <section className="section-padding bg-gray-50">
+    <section className="py-12 px-4 sm:px-6 md:px-8 lg:px-12 bg-gray-50">
       <div className="section-max-width">
         <ScrollReveal>
           <div className="text-center mb-20">
