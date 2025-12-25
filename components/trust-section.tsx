@@ -3,7 +3,37 @@
 import ScrollReveal from './scroll-reveal'
 import { Shield } from 'lucide-react'
 
-export function TrustSection() {
+interface TrustItem {
+  title: string;
+  description: string;
+}
+
+interface TrustSectionProps {
+  items: TrustItem[];
+}
+
+const defaultItems = [
+  {
+    title: 'Regulated Architecture',
+    description: 'Built from the ground up for healthcare compliance. HIPAA-ready foundations. Support for Indian healthcare regulations.',
+  },
+  {
+    title: 'Audit Trails',
+    description: 'Every transaction, every access, every change is logged and traceable. Complete compliance documentation.',
+  },
+  {
+    title: 'Data Security',
+    description: 'End-to-end encryption at rest and in transit. Regular security audits and penetration testing. Zero-trust architecture.',
+  },
+  {
+    title: 'Disaster Recovery',
+    description: 'Multi-region redundancy. Automated backups. RTO < 1 hour. RPO < 15 minutes. Peace of mind built in.',
+  },
+];
+
+export function TrustSection({ items }: TrustSectionProps) {
+  const displayItems = items.length > 0 ? items : defaultItems;
+
   return (
     <section className="section-padding bg-white">
       <div className="section-max-width">
@@ -17,24 +47,7 @@ export function TrustSection() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {[
-            {
-              title: 'Regulated Architecture',
-              description: 'Built from the ground up for healthcare compliance. HIPAA-ready foundations. Support for Indian healthcare regulations.',
-            },
-            {
-              title: 'Audit Trails',
-              description: 'Every transaction, every access, every change is logged and traceable. Complete compliance documentation.',
-            },
-            {
-              title: 'Data Security',
-              description: 'End-to-end encryption at rest and in transit. Regular security audits and penetration testing. Zero-trust architecture.',
-            },
-            {
-              title: 'Disaster Recovery',
-              description: 'Multi-region redundancy. Automated backups. RTO < 1 hour. RPO < 15 minutes. Peace of mind built in.',
-            },
-          ].map((item, i) => (
+          {displayItems.map((item, i) => (
             <ScrollReveal key={i} delay={i * 100}>
               <div className="p-8 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                 <Shield size={24} className="text-blue-600 mb-4" />

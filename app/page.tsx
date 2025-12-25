@@ -1,24 +1,24 @@
 import Header from '@/components/header';
-import { HeroSection } from '@/components/hero-section';
-import { ModulesShowcase } from '@/components/modules-showcase';
-import { FeaturesSection } from '@/components/features-section';
-import { ComparisonSection } from '@/components/comparison-section';
+import { HeroSectionWrapper } from '@/components/hero-section-wrapper';
+import { ModulesShowcaseWrapper } from '@/components/modules-showcase-wrapper';
+import { FeaturesSectionWrapper } from '@/components/features-section-wrapper';
+import { ComparisonSectionWrapper } from '@/components/comparison-section-wrapper';
 import { PricingSectionWrapper } from '@/components/pricing-section-wrapper';
-import { CTASection } from '@/components/cta-section';
-import { TrustSection } from '@/components/trust-section';
+import { CTASectionWrapper } from '@/components/cta-section-wrapper';
+import { TrustSectionWrapper } from '@/components/trust-section-wrapper';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <HeroSection />
-      <ModulesShowcase />
-      <FeaturesSection />
-      <ComparisonSection />
+      <HeroSectionWrapper />
+      <ModulesShowcaseWrapper />
+      <FeaturesSectionWrapper />
+      <ComparisonSectionWrapper />
       <PricingSectionWrapper />
-      <CTASection />
+      <CTASectionWrapper />
 
-      <TrustSection />
+      <TrustSectionWrapper />
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">

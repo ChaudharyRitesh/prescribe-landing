@@ -2,8 +2,26 @@
 
 import ScrollReveal from './scroll-reveal';
 import { Brain, TrendingUp, Lock, Zap, Activity, Shield } from 'lucide-react';
+import { urlFor } from '@/lib/sanity';
 
-const features = [
+interface Feature {
+  title: string;
+  description: string;
+  icon?: {
+    imageUpload?: any;
+    imageUrl?: string;
+  };
+}
+
+interface FeaturesSectionProps {
+  features: Feature[];
+}
+
+const iconMap: Record<string, any> = {
+  Brain, TrendingUp, Lock, Zap, Activity, Shield
+};
+
+const defaultFeatures = [
   {
     icon: Brain,
     title: 'Smart Prescriptions',
@@ -42,7 +60,9 @@ const features = [
   },
 ];
 
-export function FeaturesSection() {
+export function FeaturesSection({ features }: FeaturesSectionProps) {
+  const displayFeatures = features.length > 0 ? features : defaultFeatures;
+
   return (
     <section className="section-padding bg-white">
       <div className="section-max-width">
@@ -58,14 +78,18 @@ export function FeaturesSection() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
+          {displayFeatures.map((feature: any, idx) => {
+            const Icon = feature.icon || Brain;
+            const imageUrl = feature.icon?.imageUpload 
+              ? urlFor(feature.icon.imageUpload).width(400).height(300).url()
+              : feature.icon?.imageUrl || feature.image || 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop';
+
             return (
               <ScrollReveal key={idx} delay={idx * 80}>
                 <div className="group h-full">
                   <div className="relative mb-6 overflow-hidden rounded-lg aspect-video bg-gray-200 shadow-sm group-hover:shadow-md transition-shadow">
                     <img
-                      src={feature.image}
+                      src={imageUrl}
                       alt={feature.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       loading="lazy"

@@ -3,7 +3,17 @@
 import ScrollReveal from './scroll-reveal';
 import { Check, X } from 'lucide-react';
 
-const comparisons = [
+interface Comparison {
+  feature: string;
+  kaero: boolean;
+  traditional: boolean;
+}
+
+interface ComparisonSectionProps {
+  comparisons: Comparison[];
+}
+
+const defaultComparisons = [
   { feature: 'Modular Architecture', kaero: true, traditional: false },
   { feature: 'AI-Native Intelligence', kaero: true, traditional: false },
   { feature: 'Real-time Sync', kaero: true, traditional: false },
@@ -14,7 +24,9 @@ const comparisons = [
   { feature: 'Audit Trails', kaero: true, traditional: true },
 ];
 
-export function ComparisonSection() {
+export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
+  const displayComparisons = comparisons.length > 0 ? comparisons : defaultComparisons;
+
   return (
     <section className="section-padding bg-gray-50">
       <div className="section-max-width">
@@ -31,16 +43,14 @@ export function ComparisonSection() {
 
         <ScrollReveal>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            {/* Header */}
             <div className="grid grid-cols-3 gap-8 p-8 border-b border-gray-200 bg-gray-50">
               <div className="text-sm font-semibold text-gray-900">Feature</div>
               <div className="text-sm font-semibold text-blue-600 text-center">KaeroCare</div>
               <div className="text-sm font-semibold text-gray-600 text-center">Traditional</div>
             </div>
 
-            {/* Rows */}
             <div>
-              {comparisons.map((row, idx) => (
+              {displayComparisons.map((row, idx) => (
                 <div key={idx} className="grid grid-cols-3 gap-8 p-8 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
                   <div className="text-sm font-medium text-gray-900">{row.feature}</div>
                   <div className="flex justify-center">

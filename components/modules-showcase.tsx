@@ -2,39 +2,61 @@
 
 import ScrollReveal from './scroll-reveal';
 import { Zap, Users, Clock, BarChart3 } from 'lucide-react';
+import { urlFor } from '@/lib/sanity';
 
-const modules = [
+interface Module {
+  title: string;
+  description: string;
+  icon?: string;
+  image?: {
+    imageUpload?: any;
+    imageUrl?: string;
+  };
+  features?: string[];
+}
+
+interface ModulesShowcaseProps {
+  modules: Module[];
+}
+
+const iconMap: Record<string, any> = {
+  Zap, Users, Clock, BarChart3
+};
+
+const defaultModules = [
   {
     title: 'Pharmacy Admin',
     description: 'Inventory & Orders',
-    icon: Zap,
+    icon: 'Zap',
     image: 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
     features: ['Stock tracking', 'Auto-reorder', 'Supplier sync', 'Demand forecast'],
   },
   {
     title: 'Hospital Admin',
     description: 'Patient & Ward Management',
-    icon: Users,
+    icon: 'Users',
     image: 'https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
     features: ['Patient records', 'Bed management', 'Staff scheduling', 'Billing sync'],
   },
   {
     title: 'Reception & Ops',
     description: 'Queue & Appointments',
-    icon: Clock,
+    icon: 'Clock',
     image: 'https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
     features: ['Smart scheduling', 'Queue optimization', 'Patient flow', 'Wait time predict'],
   },
   {
     title: 'Lab Dashboard',
     description: 'Reports & Results',
-    icon: BarChart3,
+    icon: 'BarChart3',
     image: 'https://images.pexels.com/photos/3825517/pexels-photo-3825517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
     features: ['Test tracking', 'Auto reports', 'Quality assurance', 'Result delivery'],
   },
 ];
 
-export function ModulesShowcase() {
+export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
+  const displayModules = modules.length > 0 ? modules : defaultModules;
+
   return (
     <section className="py-12 px-4 sm:px-6 md:px-8 lg:px-12 bg-gray-50">
       <div className="section-max-width">
@@ -50,14 +72,18 @@ export function ModulesShowcase() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {modules.map((module, idx) => {
-            const Icon = module.icon;
+          {displayModules.map((module: any, idx) => {
+            const Icon = iconMap[module.icon] || Zap;
+            const imageUrl = module.image?.imageUpload 
+              ? urlFor(module.image.imageUpload).width(600).height(400).url()
+              : module.image?.imageUrl || module.image || 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop';
+
             return (
               <ScrollReveal key={idx} delay={idx * 100}>
                 <div className="group">
                   <div className="relative mb-6 overflow-hidden rounded-xl aspect-video bg-gray-200 shadow-md hover:shadow-lg transition-shadow">
                     <img
-                      src={module.image}
+                      src={imageUrl}
                       alt={module.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
@@ -75,14 +101,16 @@ export function ModulesShowcase() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-4">
-                      {module.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
+                    {module.features && module.features.length > 0 && (
+                      <div className="grid grid-cols-2 gap-3 pt-4">
+                        {module.features.map((feature: string, i: number) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </ScrollReveal>

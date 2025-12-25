@@ -93,3 +93,39 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
     return mockSiteSettings
   }
 }
+
+export async function getModules(): Promise<any[]> {
+  try {
+    const data = await client.fetch(`*[_type == "moduleSection" && isActive == true] | order(order asc)`)
+    return data
+  } catch {
+    return []
+  }
+}
+
+export async function getComparisons(): Promise<any[]> {
+  try {
+    const data = await client.fetch(`*[_type == "comparisonSection" && isActive == true] | order(order asc)`)
+    return data
+  } catch {
+    return []
+  }
+}
+
+export async function getTrustItems(): Promise<any[]> {
+  try {
+    const data = await client.fetch(`*[_type == "trustSection" && isActive == true] | order(order asc)`)
+    return data
+  } catch {
+    return []
+  }
+}
+
+export async function getCTASection(): Promise<any | null> {
+  try {
+    const data = await client.fetch(`*[_type == "ctaSection" && isActive == true][0]`)
+    return data
+  } catch {
+    return null
+  }
+}

@@ -2,8 +2,24 @@
 
 import { MacbookShowcase } from './macbook-showcase';
 import { ArrowRight } from 'lucide-react';
+import { urlFor } from '@/lib/sanity';
 
-export function HeroSection() {
+interface HeroData {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  ctaText?: string;
+  backgroundImage?: {
+    imageUpload?: any;
+    imageUrl?: string;
+  };
+}
+
+interface HeroSectionProps {
+  data: HeroData | null;
+}
+
+export function HeroSection({ data }: HeroSectionProps) {
   const slides = [
     {
       title: 'Pharmacy Dashboard',
@@ -27,6 +43,11 @@ export function HeroSection() {
     },
   ];
 
+  const title = data?.title || 'Real Healthcare Control.';
+  const subtitle = data?.subtitle || 'Real Time.';
+  const description = data?.description || 'Unified pharmacy and hospital management with native AI intelligence. See your entire operation in real-time dashboards. Built for Indian regulations, designed for global scale.';
+  const ctaText = data?.ctaText || 'Request Demo';
+
   return (
     <section className="relative min-h-screen pt-32 pb-8 overflow-hidden bg-white">
       <div className="absolute inset-0 -z-10">
@@ -42,18 +63,18 @@ export function HeroSection() {
               </div>
 
               <h1 className="text-6xl md:text-7xl font-bold text-gray-900 leading-tight mb-6">
-                Real Healthcare Control.{' '}
-                <span className="text-blue-600">Real Time.</span>
+                {title}{' '}
+                <span className="text-blue-600">{subtitle}</span>
               </h1>
 
               <p className="text-lg text-gray-600 leading-relaxed max-w-lg">
-                Unified pharmacy and hospital management with native AI intelligence. See your entire operation in real-time dashboards. Built for Indian regulations, designed for global scale.
+                {description}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 justify-center group">
-                Request Demo
+                {ctaText}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button className="px-8 py-3 rounded-lg border border-gray-300 text-gray-900 font-semibold hover:bg-gray-50 transition-colors">
