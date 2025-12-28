@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface MacbookShowcaseProps {
   slides: {
@@ -22,7 +22,8 @@ export function MacbookShowcase({ slides }: MacbookShowcaseProps) {
   }, [slides.length]);
 
   const next = () => setCurrent((prev) => (prev + 1) % slides.length);
-  const prev = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
+  const prev = () =>
+    setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
     <div className="w-full">
@@ -40,7 +41,7 @@ export function MacbookShowcase({ slides }: MacbookShowcaseProps) {
                 <div
                   key={idx}
                   className={`absolute inset-0 transition-opacity duration-1000 ${
-                    idx === current ? 'opacity-100' : 'opacity-0'
+                    idx === current ? "opacity-100" : "opacity-0"
                   }`}
                 >
                   <img
@@ -64,8 +65,12 @@ export function MacbookShowcase({ slides }: MacbookShowcaseProps) {
 
         {/* Info */}
         <div className="mt-12 text-center">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-2">{slides[current].title}</h3>
-          <p className="text-gray-600 max-w-2xl mx-auto">{slides[current].description}</p>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+            {slides[current].title}
+          </h3>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            {slides[current].description}
+          </p>
         </div>
 
         {/* Controls */}
@@ -83,7 +88,7 @@ export function MacbookShowcase({ slides }: MacbookShowcaseProps) {
                 key={idx}
                 onClick={() => setCurrent(idx)}
                 className={`h-2 rounded-full transition-all ${
-                  idx === current ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'
+                  idx === current ? "w-8 bg-blue-600" : "w-2 bg-gray-300"
                 }`}
               />
             ))}

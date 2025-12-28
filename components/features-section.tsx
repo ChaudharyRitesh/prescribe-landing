@@ -109,7 +109,7 @@ export function FeaturesSection({ features }: FeaturesSectionProps) {
               <ScrollReveal key={idx} delay={idx * 80}>
                 <div className="group h-full">
                   <div className="relative mb-6 overflow-hidden rounded-lg aspect-video bg-gray-200 shadow-sm group-hover:shadow-md transition-shadow">
-                    <Image
+                    <img
                       src={imageUrl}
                       alt={feature.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
