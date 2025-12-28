@@ -5,28 +5,28 @@ export default defineType({
   title: 'Trust Section',
   type: 'document',
   fields: [
-    defineField({
+    {
       name: 'title',
       title: 'Trust Item Title',
       type: 'string',
       validation: Rule => Rule.required()
-    }),
-    defineField({
+    },
+    {
       name: 'description',
       title: 'Description',
       type: 'text'
-    }),
-    defineField({
+    },
+    {
       name: 'order',
       title: 'Display Order',
       type: 'number'
-    }),
-    defineField({
+    },
+    {
       name: 'isActive',
       title: 'Active',
       type: 'boolean',
       initialValue: true
-    })
+    }
   ],
   orderings: [
     {
