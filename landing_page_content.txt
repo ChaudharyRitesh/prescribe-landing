@@ -1,0 +1,121 @@
+KAERO PRESCRIBE - LANDING PAGE CONTENT STRATEGY
+================================================
+
+[HERO SECTION]
+Headline: Intelligence. Integrated.
+Subtitle: The Future of Care.
+Description: 
+  Experience the seamless convergence of hospital, pharmacy, and clinical management. 
+  Kaero Prescribe unifies every operational layer of healthcare into a single, reliable ecosystem 
+  powered by adaptive intelligence. enhancing workflow precision from diagnosis to discharge.
+
+CTA Primary: Request Pilot Access
+CTA Secondary: Explore Architecture
+
+[HERO SLIDES - MACBOOK SHOWCASE]
+Slide 1:
+  Title: Hospital Command Center
+  Description: Centralized control over bed occupancy, resource allocation, and emergency response protocols in real-time.
+
+Slide 2:
+  Title: Pharmacy Supply Chain
+  Description: Automated inventory intelligence that predicts demand, manages expiry, and streamlines procurement.
+
+Slide 3:
+  Title: Clinical Precision
+  Description: AI-assisted diagnostic tools and patient history analytics for faster, more accurate medical decision-making.
+
+Slide 4:
+  Title: Laboratory Insight
+  Description: High-throughput result processing with automated quality assurance and instant patient notification systems.
+
+------------------------------------------------
+[MODULES SHOWCASE]
+Section Title: Six Powerful Engines. One Unified Core.
+Section Description: 
+  Designed as standalone powerhouses, perfected as a collective ecosystem. 
+  Each module brings specialized depth to its domain while maintaining fluid interoperability designed for scale.
+
+-- MODULE 1: HOSPITAL --
+Title: Hospital Core
+Description: The operational backbone for modern medical institutions.
+Features:
+  - Real-time Bed & Operating Theater Management
+  - Integrated Admission to Discharge Workflows
+  - Multi-departmental Staff & Roster Coordination
+  - Comprehensive Insurance & TPA Processing
+
+-- MODULE 2: PHARMACY --
+Title: Pharmacy Intelligence
+Description: Next-generation inventory and sales optimization.
+Features:
+  - Predictive Stock Reordering & Expiry Management
+  - Interaction-Checking Dispensing System
+  - Multi-location Inventory Sync
+  - Regulatory Compliance & Narcotic Tracking
+
+-- MODULE 3: CLINIC --
+Title: Clinic Orchestrator
+Description: Streamlining the ambulatory care experience.
+Features:
+  - Smart Queue Management & Patient Flow
+  - Electronic Medical Records (EMR) with Voice Entry
+  - Telemedicine & Virtual Consultation Suite
+  - Automated Billing & Insurance Claim Filing
+
+-- MODULE 4: LAB --
+Title: Laboratory Dynamics
+Description: Precision LIS for high-volume diagnostic centers.
+Features:
+  - Barcode Sample Tracking & Chain of Custody
+  - Machine Interfacing for Auto-Result Entry
+  - QC/QA Analytics & Abnormal Result Alerts
+  - Patient Portal for Direct Report Delivery
+
+-- MODULE 5: DOCTORS --
+Title: Physician’s Cockpit
+Description: Empowering practitioners with clinical clarity.
+Features:
+  - AI-Assisted Differential Diagnosis Support
+  - Longitudinal Patient Health Timelines
+  - Mobile-First Rounding & Prescription Interface
+  - Secure Peer-to-Peer Consultation Network
+
+-- MODULE 6: PATIENTS --
+Title: Kaero Care (Patient Portal)
+Description: Placing health ownership back in patient hands.
+Features:
+  - Unified Health Records across all Kaero Providers
+  - Self-Scheduling & Real-time Queue Status
+  - Medication Reminders & Refill Requests
+  - Secure Direct Messaging with Care Providers
+
+------------------------------------------------
+[PRICING SECTION]
+Section Title: Scalable Architecture. Flexible Investment.
+Section Description: 
+  Deploy individual modules to solve immediate challenges or implement the full suite for total enterprise transformation.
+
+-- INDIVIDUAL MODULES STRATEGY --
+(Positioning: Best for specialized centers or gradual digitization)
+
+Content Suggestion for Module Cards:
+  - "Focused Capability": Pay only for the specialized tools you need.
+  - "Seamless Upgrade": Unlock integrations instantly as you expand.
+  - "Cloud-Native Efficiency": Zero infrastructure overhead, maximum uptime.
+
+-- ENTERPRISE PACKAGE (THE SUITE) --
+Plan Name: Kaero Prescribe Infinite
+Description: 
+  The complete ecosystem. Unlimited integration for Hospitals, Chains, and Medical Cities. 
+  Designed for organizations that demand total operational visibility.
+
+Features:
+  - Full Access to All 6 Modules (Hospital, Pharmacy, Clinic, Lab, Doctor, Patient)
+  - Unified Data Lake & Cross-Module Analytics
+  - Dedicated Implementation Manager & 24/7 Priority Support
+  - Custom API Access for Third-party Integrations
+  - White-labeling & Custom Domain Options
+  - Multi-Facility Governance Dashboard
+
+CTA: Contact Enterprise Sales

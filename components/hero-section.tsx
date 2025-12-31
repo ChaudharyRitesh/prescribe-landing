@@ -96,7 +96,7 @@ export function HeroSection({ data }: HeroSectionProps) {
             <div>
               <div className="inline-block mb-6 px-4 py-2 rounded-full bg-blue-50 border border-blue-200">
                 <p className="text-sm font-semibold text-blue-700">
-                  AI-Native Healthcare Platform
+                  Unified Healthcare Intelligence Platform
                 </p>
               </div>
 
