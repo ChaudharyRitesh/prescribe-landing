@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface MacbookShowcaseProps {
   slides: {
     title: string;
-    description: string;
+    description?: string;
     image: string;
   }[];
 }
@@ -27,7 +27,7 @@ export function MacbookShowcase({ slides }: MacbookShowcaseProps) {
 
   return (
     <div className="w-full">
-      <div className="relative mx-auto max-w-4xl">
+      <div className="relative mx-auto w-full max-w-none">
         {/* MacBook Frame */}
         <div className="relative">
           {/* Top bezel */}
@@ -47,7 +47,7 @@ export function MacbookShowcase({ slides }: MacbookShowcaseProps) {
                   <img
                     src={slide.image}
                     alt={slide.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               ))}

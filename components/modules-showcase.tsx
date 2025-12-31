@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import ScrollReveal from './scroll-reveal';
-import { Zap, Users, Clock, BarChart3 } from 'lucide-react';
-import { urlFor } from '@/lib/sanity';
+import ScrollReveal from "./scroll-reveal";
+import { Zap, Users, Clock, BarChart3 } from "lucide-react";
+import { urlFor } from "@/lib/sanity";
 
 interface Module {
   title: string;
@@ -20,37 +20,64 @@ interface ModulesShowcaseProps {
 }
 
 const iconMap: Record<string, any> = {
-  Zap, Users, Clock, BarChart3
+  Zap,
+  Users,
+  Clock,
+  BarChart3,
 };
 
 const defaultModules = [
   {
-    title: 'Pharmacy Admin',
-    description: 'Inventory & Orders',
-    icon: 'Zap',
-    image: 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    features: ['Stock tracking', 'Auto-reorder', 'Supplier sync', 'Demand forecast'],
+    title: "Pharmacy Admin",
+    description: "Inventory & Orders",
+    icon: "Zap",
+    image:
+      "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    features: [
+      "Stock tracking",
+      "Auto-reorder",
+      "Supplier sync",
+      "Demand forecast",
+    ],
   },
   {
-    title: 'Hospital Admin',
-    description: 'Patient & Ward Management',
-    icon: 'Users',
-    image: 'https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    features: ['Patient records', 'Bed management', 'Staff scheduling', 'Billing sync'],
+    title: "Hospital Admin",
+    description: "Patient & Ward Management",
+    icon: "Users",
+    image:
+      "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    features: [
+      "Patient records",
+      "Bed management",
+      "Staff scheduling",
+      "Billing sync",
+    ],
   },
   {
-    title: 'Reception & Ops',
-    description: 'Queue & Appointments',
-    icon: 'Clock',
-    image: 'https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    features: ['Smart scheduling', 'Queue optimization', 'Patient flow', 'Wait time predict'],
+    title: "Reception & Ops",
+    description: "Queue & Appointments",
+    icon: "Clock",
+    image:
+      "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    features: [
+      "Smart scheduling",
+      "Queue optimization",
+      "Patient flow",
+      "Wait time predict",
+    ],
   },
   {
-    title: 'Lab Dashboard',
-    description: 'Reports & Results',
-    icon: 'BarChart3',
-    image: 'https://images.pexels.com/photos/3825517/pexels-photo-3825517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
-    features: ['Test tracking', 'Auto reports', 'Quality assurance', 'Result delivery'],
+    title: "Lab Dashboard",
+    description: "Reports & Results",
+    icon: "BarChart3",
+    image:
+      "https://images.pexels.com/photos/3825517/pexels-photo-3825517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    features: [
+      "Test tracking",
+      "Auto reports",
+      "Quality assurance",
+      "Result delivery",
+    ],
   },
 ];
 
@@ -63,10 +90,14 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
         <ScrollReveal>
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Four Modules. One System.
+              4+ Modules. One Unified Core
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Each module is powerful on its own. Together, they create a unified operating system for your entire healthcare operation.
+              Each Kaero Prescribe module functions as a complete standalone
+              solution while remaining deeply interconnected through a unified
+              data architecture. Organizations can deploy individual modules or
+              operate the full ecosystem without duplication, reimplementation,
+              or data fragmentation.
             </p>
           </div>
         </ScrollReveal>
@@ -74,9 +105,11 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {displayModules.map((module: any, idx) => {
             const Icon = iconMap[module.icon] || Zap;
-            const imageUrl = module.image?.imageUpload 
+            const imageUrl = module.image?.imageUpload
               ? urlFor(module.image.imageUpload).width(600).height(400).url()
-              : module.image?.imageUrl || module.image || 'https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop';
+              : module.image?.imageUrl ||
+                module.image ||
+                "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop";
 
             return (
               <ScrollReveal key={idx} delay={idx * 100}>
@@ -96,7 +129,9 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
                         <Icon size={24} />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">{module.title}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">
+                          {module.title}
+                        </h3>
                         <p className="text-gray-600">{module.description}</p>
                       </div>
                     </div>
@@ -104,7 +139,10 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
                     {module.features && module.features.length > 0 && (
                       <div className="grid grid-cols-2 gap-3 pt-4">
                         {module.features.map((feature: string, i: number) => (
-                          <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 text-sm text-gray-700"
+                          >
                             <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
                             {feature}
                           </div>

@@ -24,6 +24,7 @@ export interface HeroSection {
   description?: string;
   ctaButtons?: HeroCtaButton[];
   slides?: HeroSlide[];
+  tagline?:string;
 
   // Deprecated (kept for backward compatibility / migration)
   ctaText?: string;

@@ -47,6 +47,7 @@ export function HeroSection({ data }: HeroSectionProps) {
   ];
 
   const title = data?.title || "Real Healthcare Control.";
+  const tagline = data?.tagline || "AI-Native Healthcare Platform";
   const subtitle = data?.subtitle || "Real Time.";
   const description =
     data?.description ||
@@ -78,7 +79,7 @@ export function HeroSection({ data }: HeroSectionProps) {
 
           return {
             title: slide?.title || fallback.title,
-            description: slide?.description || fallback.description,
+            // description: slide?.description || fallback.description,
             image: slideImageUrl,
           };
         })
@@ -95,9 +96,7 @@ export function HeroSection({ data }: HeroSectionProps) {
           <div className="space-y-8">
             <div>
               <div className="inline-block mb-6 px-4 py-2 rounded-full bg-blue-50 border border-blue-200">
-                <p className="text-sm font-semibold text-blue-700">
-                  Unified Healthcare Intelligence Platform
-                </p>
+                <p className="text-sm font-semibold text-blue-700">{tagline}</p>
               </div>
 
               <h1 className="text-6xl md:text-7xl font-bold text-gray-900 leading-tight mb-6">
@@ -162,7 +161,7 @@ export function HeroSection({ data }: HeroSectionProps) {
 
             <div className="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">
               <div>
-                <p className="text-3xl font-bold text-gray-900">4</p>
+                <p className="text-3xl font-bold text-gray-900">4+</p>
                 <p className="text-sm text-gray-600 mt-1">Integrated Modules</p>
               </div>
               <div>
@@ -171,7 +170,7 @@ export function HeroSection({ data }: HeroSectionProps) {
               </div>
               <div>
                 <p className="text-3xl font-bold text-gray-900">24/7</p>
-                <p className="text-sm text-gray-600 mt-1">AI Operations</p>
+                <p className="text-sm text-gray-600 mt-1">Customer Support</p>
               </div>
             </div>
           </div>
