@@ -1,4 +1,4 @@
-# KaeroCare Landing Page - Quick Reference
+# KaeroPrescribe Landing Page - Quick Reference
 
 ## 🎨 Color Palette (Clean & Professional)
 
@@ -16,21 +16,26 @@ Green-600:  #16a34a (Success/Checkmarks)
 ## 📱 Components
 
 ### 1. MacbookShowcase
+
 **File**: `components/macbook-showcase.tsx`
+
 - Auto-rotating carousel (5s interval)
 - Manual navigation (prev/next)
 - Dot indicators
 - Responsive design
 
 **Usage**:
+
 ```tsx
-<MacbookShowcase slides={[
-  { title: "...", description: "...", image: "url" }
-]} />
+<MacbookShowcase
+  slides={[{ title: "...", description: "...", image: "url" }]}
+/>
 ```
 
 ### 2. HeroSection
+
 **File**: `components/hero-section.tsx`
+
 - Headline: "Real Healthcare Control. Real Time."
 - MacBook carousel with 4 slides
 - Left-aligned content
@@ -38,26 +43,32 @@ Green-600:  #16a34a (Success/Checkmarks)
 - Responsive layout
 
 ### 3. ModulesShowcase
+
 **File**: `components/modules-showcase.tsx`
+
 - 2x2 grid of modules
 - Image + Icon + Title + Features
 - Hover zoom effects
 - Scroll animations
 
 **Modules**:
+
 - Pharmacy Admin
 - Hospital Admin
 - Reception & Ops
 - Lab Dashboard
 
 ### 4. FeaturesSection
+
 **File**: `components/features-section.tsx`
+
 - 3-column grid (responsive)
 - 6 features with images
 - Icon + Title + Description
 - Hover effects
 
 **Features**:
+
 - Smart Prescriptions
 - Demand Forecasting
 - Queue Intelligence
@@ -66,21 +77,27 @@ Green-600:  #16a34a (Success/Checkmarks)
 - Compliance Ready
 
 ### 5. ComparisonSection
+
 **File**: `components/comparison-section.tsx`
-- KaeroCare vs Traditional table
+
+- KaeroPrescribe vs Traditional table
 - 8 feature comparisons
 - Check/X icons
 - Hover highlighting
 
 ### 6. PricingSection
+
 **File**: `components/pricing-section.tsx`
+
 - 3 pricing tiers
 - Starter, Pro (highlighted), Enterprise
 - Feature lists
 - Responsive cards
 
 ### 7. CTASection
+
 **File**: `components/cta-section.tsx`
+
 - Dark background
 - MacBook carousel (3 slides)
 - Bold headline
@@ -88,7 +105,9 @@ Green-600:  #16a34a (Success/Checkmarks)
 - Responsive
 
 ### 8. Trust Section
+
 **File**: `app/page.tsx` (inline)
+
 - 4 security features
 - Icon + Title + Description
 - Clean cards
@@ -142,26 +161,34 @@ Green-600:  #16a34a (Success/Checkmarks)
 ## 🔧 Customization
 
 ### Change Colors
+
 Update Tailwind classes:
+
 - `bg-blue-600` → your color
 - `text-gray-900` → your color
 - `border-gray-200` → your color
 
 ### Update Images
+
 Replace image URLs in each component:
+
 ```tsx
-image: 'https://images.unsplash.com/...'
+image: "https://images.unsplash.com/...";
 ```
 
 ### Modify Content
+
 Update text in each component:
+
 - Titles
 - Descriptions
 - Feature lists
 - Pricing
 
 ### Adjust Spacing
+
 Modify Tailwind classes:
+
 - `gap-8` → `gap-12`
 - `p-8` → `p-12`
 - `py-20` → `py-32`

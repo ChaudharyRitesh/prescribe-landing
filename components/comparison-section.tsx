@@ -19,7 +19,6 @@ const defaultComparisons = [
   { feature: "Real-time Sync", kaero: true, traditional: false },
   { feature: "Automated Compliance", kaero: true, traditional: false },
   { feature: "Scalable Pricing", kaero: true, traditional: false },
-  { feature: "Indian Regulations", kaero: true, traditional: false },
   { feature: "Cloud-Native", kaero: true, traditional: false },
   { feature: "Audit Trails", kaero: true, traditional: true },
 ];
@@ -48,7 +47,7 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
             <div className="grid grid-cols-3 gap-8 p-8 border-b border-gray-200 bg-gray-50">
               <div className="text-sm font-semibold text-gray-900">Feature</div>
               <div className="text-sm font-semibold text-blue-600 text-center">
-                KaeroCare
+                KaeroPrescribe
               </div>
               <div className="text-sm font-semibold text-gray-600 text-center">
                 Traditional

@@ -9,10 +9,10 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { label: "Product", href: "#product" },
+    { label: "Modules", href: "#modules" },
     { label: "Features", href: "#features" },
     { label: "Pricing", href: "#pricing" },
-    { label: "Compliance", href: "#compliance" },
+    { label: "Compliance", href: "/compliance" },
   ];
 
   return (
@@ -22,7 +22,7 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-2">
             <img
               src="/logo.png"
-              alt="KaeroCare Logo"
+              alt="KaeroPrescribe Logo"
               className="object-cover w-60 h-full"
             />
           </Link>

@@ -1,58 +1,58 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from "sanity";
 
 export default defineType({
-  name: 'comparisonSection',
-  title: 'Comparison Section',
-  type: 'document',
+  name: "comparisonSection",
+  title: "Comparison Section",
+  type: "document",
   fields: [
     {
-      name: 'feature',
-      title: 'Feature Name',
-      type: 'string',
-      validation: Rule => Rule.required()
+      name: "feature",
+      title: "Feature Name",
+      type: "string",
+      validation: (Rule) => Rule.required(),
     },
     {
-      name: 'kaero',
-      title: 'KaeroCare Has This',
-      type: 'boolean',
-      initialValue: true
+      name: "kaero",
+      title: "KaeroPrescribe Has This",
+      type: "boolean",
+      initialValue: true,
     },
     {
-      name: 'traditional',
-      title: 'Traditional Systems Have This',
-      type: 'boolean',
-      initialValue: false
+      name: "traditional",
+      title: "Traditional Systems Have This",
+      type: "boolean",
+      initialValue: false,
     },
     {
-      name: 'order',
-      title: 'Display Order',
-      type: 'number'
+      name: "order",
+      title: "Display Order",
+      type: "number",
     },
     {
-      name: 'isActive',
-      title: 'Active',
-      type: 'boolean',
-      initialValue: true
-    }
+      name: "isActive",
+      title: "Active",
+      type: "boolean",
+      initialValue: true,
+    },
   ],
   orderings: [
     {
-      title: 'Display Order',
-      name: 'orderAsc',
-      by: [{field: 'order', direction: 'asc'}]
-    }
+      title: "Display Order",
+      name: "orderAsc",
+      by: [{ field: "order", direction: "asc" }],
+    },
   ],
   preview: {
     select: {
-      title: 'feature',
-      kaero: 'kaero',
-      traditional: 'traditional'
+      title: "feature",
+      kaero: "kaero",
+      traditional: "traditional",
     },
-    prepare({title, kaero, traditional}) {
+    prepare({ title, kaero, traditional }) {
       return {
         title,
-        subtitle: `KaeroCare: ${kaero ? '✓' : '✗'} | Traditional: ${traditional ? '✓' : '✗'}`
-      }
-    }
-  }
-})
+        subtitle: `KaeroPrescribe: ${kaero ? "✓" : "✗"} | Traditional: ${traditional ? "✓" : "✗"}`,
+      };
+    },
+  },
+});

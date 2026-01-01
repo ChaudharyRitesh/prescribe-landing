@@ -21,28 +21,28 @@ export function HeroSection({ data }: HeroSectionProps) {
       description:
         "Real-time inventory tracking, automated reordering, and AI-powered demand forecasting",
       image:
-        "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=1200&h=675&fit=crop",
+        "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1200&h=675&q=80",
     },
     {
       title: "Hospital Management",
       description:
         "Unified patient records, bed management, and integrated billing across departments",
       image:
-        "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1200&h=675&fit=crop",
+        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&h=675&q=80",
     },
     {
-      title: "Reception & Queue",
+      title: "OPD & Patient Flow",
       description:
         "Smart appointment scheduling with AI-powered queue optimization and patient flow",
       image:
-        "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=1200&h=675&fit=crop",
+        "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?auto=format&fit=crop&w=1200&h=675&q=80",
     },
     {
       title: "Lab Analytics",
       description:
         "Automated test tracking, result processing, and quality assurance dashboards",
       image:
-        "https://images.pexels.com/photos/3825517/pexels-photo-3825517.jpeg?auto=compress&cs=tinysrgb&w=1200&h=675&fit=crop",
+        "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&h=675&q=80",
     },
   ];
 

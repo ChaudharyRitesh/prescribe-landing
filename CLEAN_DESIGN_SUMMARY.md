@@ -1,18 +1,20 @@
-# KaeroCare SaaS Landing Page - Clean Design Summary
+# KaeroPrescribe SaaS Landing Page - Clean Design Summary
 
 ## ✅ Completed
 
 ### Components Created
+
 1. **MacbookShowcase** - Clean MacBook frame with carousel
 2. **HeroSection** - Hero with MacBook carousel showcase
 3. **ModulesShowcase** - 4 modules with images and features
 4. **FeaturesSection** - 6 features with images and icons
-5. **ComparisonSection** - KaeroCare vs Traditional comparison table
+5. **ComparisonSection** - KaeroPrescribe vs Traditional comparison table
 6. **PricingSection** - 3 pricing tiers with clean cards
 7. **CTASection** - Final CTA with MacBook carousel
 8. **Trust Section** - Security & compliance features
 
 ### Design System
+
 - **Color Palette**: Blue (#2563eb), White, Gray scale only
 - **No Gradients**: Clean, professional look
 - **No Multiple Themes**: Consistent throughout
@@ -20,6 +22,7 @@
 - **Professional Typography**: Clear hierarchy
 
 ### Key Features
+
 ✓ MacBook carousel with auto-play (5s interval)
 ✓ Manual navigation (prev/next buttons)
 ✓ Dot indicators for slides
@@ -32,6 +35,7 @@
 ## Color Usage
 
 ### Primary: Blue-600 (#2563eb)
+
 - Main CTAs
 - Icon backgrounds
 - Active states
@@ -39,6 +43,7 @@
 - Highlights
 
 ### Secondary: Gray Scale
+
 - **Gray-900**: Headings, dark backgrounds
 - **Gray-700**: Body text
 - **Gray-600**: Secondary text
@@ -47,42 +52,49 @@
 - **White**: Main backgrounds
 
 ### Accent: Green-600
+
 - Checkmarks
 - Success states
 
 ## Sections Breakdown
 
 ### 1. Hero Section
+
 - Left: Headline + CTAs + Stats
 - Right: MacBook carousel (4 slides)
 - Subtle blue background blob
 - Responsive layout
 
 ### 2. Modules Showcase
+
 - 2x2 grid (responsive)
 - Image + Icon + Title + Features
 - Hover zoom effect on images
 - Scroll reveal animations
 
 ### 3. Features Section
+
 - 3-column grid (responsive)
 - 6 features with images
 - Icon + Title + Description
 - Hover effects
 
 ### 4. Comparison Section
+
 - Clean table layout
 - 8 feature comparisons
 - Check/X icons
 - Hover row highlighting
 
 ### 5. Pricing Section
+
 - 3 pricing tiers
 - Pro plan highlighted (scaled + blue border)
 - Feature lists with checkmarks
 - Responsive cards
 
 ### 6. CTA Section
+
 - Dark background (Gray-900)
 - MacBook carousel (3 slides)
 - Bold headline
@@ -90,12 +102,14 @@
 - Subtle background element
 
 ### 7. Trust Section
+
 - 4 security features
 - Icon + Title + Description
 - Clean card layout
 - Hover effects
 
 ### 8. Footer
+
 - 4-column layout
 - Links organized by category
 - Social links

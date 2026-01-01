@@ -1,8 +1,14 @@
 "use client";
 
+import Image, { StaticImageData } from "next/image";
 import ScrollReveal from "./scroll-reveal";
 import { Zap, Users, Clock, BarChart3 } from "lucide-react";
 import { urlFor } from "@/lib/sanity";
+
+import labImage from "@/assets/lab-section.jpeg";
+import pharmaImage from "@/assets/pharmacy.jpeg";
+import doctorImage from "@/assets/doctor.jpeg";
+import receptionImage from "@/assets/reception.jpeg";
 
 interface Module {
   title: string;
@@ -31,52 +37,53 @@ const defaultModules = [
     title: "Pharmacy Admin",
     description: "Inventory & Orders",
     icon: "Zap",
-    image:
-      "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    image: pharmaImage,
     features: [
-      "Stock tracking",
-      "Auto-reorder",
-      "Supplier sync",
-      "Demand forecast",
+      "Inventory management",
+      "Order processing",
+      "Supplier integration",
+      "Sales analytics",
+      "Integreted billing",
+      "Secure payments",
     ],
   },
   {
-    title: "Hospital Admin",
-    description: "Patient & Ward Management",
+    title: "Doctor's Portal",
+    description: "Patient Management",
     icon: "Users",
-    image:
-      "https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    image: doctorImage,
     features: [
-      "Patient records",
-      "Bed management",
-      "Staff scheduling",
-      "Billing sync",
+      "Patient history",
+      "E-prescriptions",
+      "Appointment scheduling",
+      "Telemedicine integration",
+      "Clinical decision support",
+      "Medicine Suggestions & Alerts",
     ],
   },
   {
     title: "Reception & Ops",
     description: "Queue & Appointments",
     icon: "Clock",
-    image:
-      "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    image: receptionImage,
     features: [
-      "Smart scheduling",
-      "Queue optimization",
-      "Patient flow",
-      "Wait time predict",
+      "Appointment scheduling",
+      "Patient check-in/out",
+      "Queue management",
+      "Notifications & reminders",
+      "Staff management",
+      "Reporting & analytics",
     ],
   },
   {
     title: "Lab Dashboard",
     description: "Reports & Results",
     icon: "BarChart3",
-    image:
-      "https://images.pexels.com/photos/3825517/pexels-photo-3825517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    image: labImage,
     features: [
-      "Test tracking",
-      "Auto reports",
-      "Quality assurance",
-      "Result delivery",
+      "Analyzer and machine interfacing",
+      "Quality control and abnormal result alerts",
+      "Secure digital report delivery to patients",
     ],
   },
 ];
@@ -105,21 +112,27 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {displayModules.map((module: any, idx) => {
             const Icon = iconMap[module.icon] || Zap;
-            const imageUrl = module.image?.imageUpload
+            const imageSrc = module.image?.imageUpload
               ? urlFor(module.image.imageUpload).width(600).height(400).url()
               : module.image?.imageUrl ||
                 module.image ||
-                "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop";
+                "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&h=400&q=80";
+
+            // Check if it's a static import (has src property) or a string URL
+            const isStaticImport =
+              typeof imageSrc === "object" && imageSrc?.src;
 
             return (
               <ScrollReveal key={idx} delay={idx * 100}>
                 <div className="group">
                   <div className="relative mb-6 overflow-hidden rounded-xl aspect-video bg-gray-200 shadow-md hover:shadow-lg transition-shadow">
-                    <img
-                      src={imageUrl}
+                    <Image
+                      src={imageSrc}
                       alt={module.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      {...(!isStaticImport && { unoptimized: true })}
                     />
                   </div>
 
