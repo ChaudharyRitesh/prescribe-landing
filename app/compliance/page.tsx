@@ -47,33 +47,44 @@ export default function Compliance() {
                 name: "HIPAA",
                 desc: "Compliant",
                 icon: Shield,
-                color: "green",
+                containerClass: "bg-green-50 border-green-200",
+                iconClass: "text-green-600",
+                textClass: "text-green-600",
               },
               {
                 name: "DPDP Act",
                 desc: "Compliant",
                 icon: FileCheck,
-                color: "blue",
+                containerClass: "bg-blue-50 border-blue-200",
+                iconClass: "text-blue-600",
+                textClass: "text-blue-600",
               },
               {
                 name: "ISO 27001",
                 desc: "Aligned",
                 icon: Lock,
-                color: "purple",
+                containerClass: "bg-purple-50 border-purple-200",
+                iconClass: "text-purple-600",
+                textClass: "text-purple-600",
               },
-              { name: "GDPR", desc: "Ready", icon: Globe, color: "indigo" },
+              {
+                name: "GDPR",
+                desc: "Ready",
+                icon: Globe,
+                containerClass: "bg-indigo-50 border-indigo-200",
+                iconClass: "text-indigo-600",
+                textClass: "text-indigo-600",
+              },
             ].map((badge) => (
               <div
                 key={badge.name}
-                className={`bg-${badge.color}-50 border border-${badge.color}-200 rounded-xl p-4 text-center`}
+                className={`${badge.containerClass} border rounded-xl p-4 text-center`}
               >
                 <badge.icon
-                  className={`w-8 h-8 text-${badge.color}-600 mx-auto mb-2`}
+                  className={`w-8 h-8 ${badge.iconClass} mx-auto mb-2`}
                 />
                 <p className="font-bold text-gray-900">{badge.name}</p>
-                <p className={`text-sm text-${badge.color}-600`}>
-                  {badge.desc}
-                </p>
+                <p className={`text-sm ${badge.textClass}`}>{badge.desc}</p>
               </div>
             ))}
           </div>
@@ -418,7 +429,7 @@ export default function Compliance() {
               </p>
             </section>
 
-            <section className="mb-12">
+            <section id="security-controls" className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
                 <Lock className="text-blue-600" size={28} />
                 5. Security Controls

@@ -11,6 +11,7 @@ import {
   Pill,
 } from "lucide-react";
 import type { PricingPlan } from "@/lib/sanity.types";
+import { EnterpriseInquiryDialog } from "@/components/enterprise-inquiry-dialog";
 
 interface PricingSectionProps {
   plans: PricingPlan[];
@@ -559,13 +560,17 @@ export function PricingSection({ plans, modules }: PricingSectionProps) {
                 Contact our sales team for tailored enterprise solutions with
                 dedicated support and custom integrations.
               </p>
-              <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-2 group">
-                Contact Sales
-                <ArrowRight
-                  size={18}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
-              </button>
+              <EnterpriseInquiryDialog
+                trigger={
+                  <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-2 group">
+                    Contact Sales
+                    <ArrowRight
+                      size={18}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </button>
+                }
+              />
             </div>
           </ScrollReveal>
         </div>

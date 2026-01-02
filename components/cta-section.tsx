@@ -2,7 +2,6 @@
 
 import ScrollReveal from "./scroll-reveal";
 import { MacbookShowcase } from "./macbook-showcase";
-import { ArrowRight } from "lucide-react";
 
 interface CTAData {
   title?: string;
@@ -45,11 +44,9 @@ export function CTASection({ data }: CTASectionProps) {
   const description =
     data?.description ||
     "Join forward-thinking healthcare organizations already using KaeroPrescribe to reduce costs, improve patient care, and scale with confidence.";
-  const primaryBtn = data?.primaryButtonText || "Book a Demo";
-  const secondaryBtn = data?.secondaryButtonText || "Start Free Trial";
   const footer =
     data?.footerText ||
-    "No credit card required. Get access to all Starter features for 30 days.";
+    "This section is a quick snapshot of what KaeroPrescribe is built to deliver across your core hospital workflows.";
 
   return (
     <section className="section-padding bg-gray-900 text-white relative overflow-hidden">
@@ -73,20 +70,14 @@ export function CTASection({ data }: CTASectionProps) {
                 {description}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <button className="px-8 py-3 rounded-lg bg-white text-gray-900 font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2 justify-center group">
-                  {primaryBtn}
-                  <ArrowRight
-                    size={20}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </button>
-                <button className="px-8 py-3 rounded-lg border-2 border-white text-white font-semibold hover:bg-white/10 transition-colors">
-                  {secondaryBtn}
-                </button>
+              <div className="max-w-3xl mx-auto">
+                <p className="text-sm text-gray-400">{footer}</p>
+                <p className="text-sm text-gray-400 mt-3">
+                  Designed for operational clarity: unified dashboards,
+                  compliant records, and reliable workflows across OPD, IPD,
+                  Lab, and Pharmacy.
+                </p>
               </div>
-
-              <p className="text-sm text-gray-400">{footer}</p>
             </div>
           </div>
         </ScrollReveal>

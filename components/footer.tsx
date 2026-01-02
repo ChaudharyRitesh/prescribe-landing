@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
+
 import {
   Mail,
   MapPin,
@@ -12,7 +15,7 @@ import {
   FlaskConical,
   Pill,
   Users,
-  HeartPulse,
+  Loader,
 } from "lucide-react";
 
 const productLinks = [
@@ -54,6 +57,48 @@ const legalLinks = [
 ];
 
 export function Footer() {
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
+  const [newsletterStatus, setNewsletterStatus] = useState<
+    { type: "success" | "error"; message: string } | undefined
+  >(undefined);
+
+  async function onNewsletterSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setNewsletterStatus(undefined);
+
+    const email = newsletterEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setNewsletterStatus({ type: "error", message: "Enter a valid email." });
+      return;
+    }
+
+    setNewsletterSubmitting(true);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setNewsletterStatus({
+          type: "error",
+          message: data?.message || "Could not subscribe. Try again.",
+        });
+        return;
+      }
+
+      setNewsletterStatus({ type: "success", message: "Subscribed." });
+      setNewsletterEmail("");
+    } catch {
+      setNewsletterStatus({ type: "error", message: "Network error." });
+    } finally {
+      setNewsletterSubmitting(false);
+    }
+  }
+
   return (
     <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-gray-400">
       {/* Newsletter Section */}
@@ -69,27 +114,45 @@ export function Footer() {
                 features.
               </p>
             </div>
-            <form
-              action="mailto:support@kaerogroup.com"
-              method="POST"
-              encType="text/plain"
-              className="flex w-full lg:w-auto gap-3"
-            >
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                className="flex-1 lg:w-80 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
-                required
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+            <div className="w-full lg:w-auto">
+              <form
+                onSubmit={onNewsletterSubmit}
+                className="flex w-full lg:w-auto gap-3"
               >
-                Subscribe
-                <ArrowRight size={18} />
-              </button>
-            </form>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  className="flex-1 lg:w-80 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={newsletterSubmitting}
+                  className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                >
+                  {newsletterSubmitting ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    "Subscribe"
+                  )}
+                  <ArrowRight size={18} />
+                </button>
+              </form>
+              {newsletterStatus && (
+                <p
+                  className={
+                    newsletterStatus.type === "success"
+                      ? "mt-2 text-xs text-green-400"
+                      : "mt-2 text-xs text-red-400"
+                  }
+                >
+                  {newsletterStatus.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -100,8 +163,15 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <HeartPulse className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="KaeroPrescribe"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain p-1"
+                  priority={false}
+                />
               </div>
               <div>
                 <span className="text-xl font-bold text-white">Kaero</span>
@@ -119,11 +189,11 @@ export function Footer() {
             {/* Contact Info */}
             <div className="space-y-3">
               <a
-                href="mailto:support@kaerogroup.com"
+                href="mailto:support@kaerpgroup.com"
                 className="flex items-center gap-3 text-sm hover:text-white transition-colors"
               >
                 <Mail size={16} className="text-blue-400" />
-                support@kaerogroup.com
+                support@kaerpgroup.com
               </a>
               <div className="flex items-start gap-3 text-sm">
                 <MapPin
