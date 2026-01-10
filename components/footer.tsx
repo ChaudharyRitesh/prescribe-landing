@@ -189,11 +189,11 @@ export function Footer() {
             {/* Contact Info */}
             <div className="space-y-3">
               <a
-                href="mailto:support@kaerpgroup.com"
+                href="mailto:support@kaerogroup.com"
                 className="flex items-center gap-3 text-sm hover:text-white transition-colors"
               >
                 <Mail size={16} className="text-blue-400" />
-                support@kaerpgroup.com
+                support@kaerogroup.com
               </a>
               <div className="flex items-start gap-3 text-sm">
                 <MapPin
