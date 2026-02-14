@@ -46,6 +46,8 @@ type InquiryPayload = {
   email: string;
   company?: string;
   role?: string;
+  phone?: string;
+  organizationName?: string;
   inquiryType: string;
   message: string;
 };
@@ -74,6 +76,8 @@ export async function POST(request: Request) {
     const email = (body.email || "").trim();
     const company = (body.company || "").trim();
     const role = (body.role || "").trim();
+    const phone = (body.phone || "").trim();
+    const organizationName = (body.organizationName || "").trim();
     const inquiryType = (body.inquiryType || "").trim();
     const message = (body.message || "").trim();
 
@@ -146,6 +150,8 @@ export async function POST(request: Request) {
     const safeEmail = escapeHtml(email);
     const safeCompany = escapeHtml(company);
     const safeRole = escapeHtml(role);
+    const safePhone = escapeHtml(phone);
+    const safeOrgName = escapeHtml(organizationName);
     const safeInquiryType = escapeHtml(inquiryType);
     const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
 
@@ -185,6 +191,8 @@ export async function POST(request: Request) {
                 <tr><td class="label">Name</td><td class="value">${safeName}</td></tr>
                 <tr><td class="label">Email</td><td class="value"><a href="mailto:${safeEmail}">${safeEmail}</a></td></tr>
                 ${company ? `<tr><td class="label">Company</td><td class="value">${safeCompany}</td></tr>` : ""}
+                ${organizationName ? `<tr><td class="label">Organization</td><td class="value">${safeOrgName}</td></tr>` : ""}
+                ${phone ? `<tr><td class="label">Phone</td><td class="value"><a href="tel:${safePhone}">${safePhone}</a></td></tr>` : ""}
                 ${role ? `<tr><td class="label">Role</td><td class="value">${safeRole}</td></tr>` : ""}
                 <tr><td class="label">Inquiry Type</td><td class="value">${safeInquiryType}</td></tr>
               </table>
