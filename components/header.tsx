@@ -41,7 +41,9 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
-          <button className="button-primary text-sm">Login</button>
+          <Link href="/onboarding" className="button-primary text-sm">
+            Create Account
+          </Link>
         </div>
 
         <button
@@ -66,7 +68,9 @@ export default function Header() {
               </a>
             ))}
             <div className="flex flex-col gap-2 pt-4">
-              <button className="button-secondary w-full text-sm">Login</button>
+              <Link href="/onboarding" className="button-primary w-full text-sm text-center">
+                Create Account
+              </Link>
             </div>
           </div>
         </div>
