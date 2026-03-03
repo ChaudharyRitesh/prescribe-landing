@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 const sora = Sora({ subsets: ["latin"], variable: "--font-sora" });
@@ -58,7 +59,9 @@ export default function RootLayout({
       <body
         className={`${inter.className} bg-white text-neutral-900 antialiased`}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

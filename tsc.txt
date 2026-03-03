@@ -1,0 +1,32 @@
+﻿
+> nextjs@0.1.0 typecheck
+> tsc --noEmit
+
+components/onboarding/steps/EmailInitiation.tsx(36,15): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(38,19): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(39,17): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(39,58): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(40,22): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(44,26): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(45,30): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/EmailInitiation.tsx(54,58): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/FinalReviewAndPayment.tsx(97,15): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/FinalReviewAndPayment.tsx(97,51): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/FinalReviewAndPayment.tsx(99,41): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/FinalReviewAndPayment.tsx(100,22): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/FinalReviewAndPayment.tsx(102,38): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/ModuleCatalogSelection.tsx(121,28): error TS7006: Parameter 'pkg' implicitly has an 'any' type.
+components/onboarding/steps/ModuleCatalogSelection.tsx(158,37): error TS7006: Parameter 'mSlug' implicitly has an 'any' type.
+components/onboarding/steps/ModuleCatalogSelection.tsx(159,47): error TS7006: Parameter 'm' implicitly has an 'any' type.
+components/onboarding/steps/ModuleCatalogSelection.tsx(173,27): error TS7006: Parameter 'mod' implicitly has an 'any' type.
+components/onboarding/steps/OrganizationDetails.tsx(56,13): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/OrganizationDetails.tsx(71,15): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/OrganizationDetails.tsx(76,20): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/OrganizationDetails.tsx(145,102): error TS2304: Cannot find name 'CheckCircle2'.
+components/onboarding/steps/OtpVerification.tsx(38,19): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/OtpVerification.tsx(52,15): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/OtpVerification.tsx(53,41): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/OtpVerification.tsx(57,26): error TS18046: 'res' is of type 'unknown'.
+components/onboarding/steps/temp.tsx(1,34): error TS2307: Cannot find module './OnboardingWizard' or its corresponding type declarations.
+hooks/queries/useOnboarding.ts(2,35): error TS2307: Cannot find module '../../api/services/onboarding.service' or its corresponding type declarations.
+hooks/queries/useOnboarding.ts(10,8): error TS2307: Cannot find module '../../api/types/onboarding.types' or its corresponding type declarations.
