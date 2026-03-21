@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InitiateSchema, InitiateFormValues } from "@/lib/validations/onboarding-schema";
 import { useInitiateMutation } from "@/hooks/queries/useOnboarding";
 import { InitiateResponse } from "@/lib/api/types/onboarding.types";
-import { Box, Typography, TextField, Button, InputAdornment } from "@mui/material";
+import { Box, Typography, TextField, Button, InputAdornment, Link } from "@mui/material";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { CircularProgress } from "@mui/material";
 import { OnboardingData } from "../OnboardingWizard";
+import { TermsAndConditionsModal } from "../TermsAndConditionsModal";
 
 interface Props {
   onNext: () => void;
@@ -28,6 +31,7 @@ export function EmailInitiation({ onNext, updateData, data }: Props) {
   });
 
   const { mutate, isPending, error } = useInitiateMutation();
+  const [showTerms, setShowTerms] = useState(false);
 
   const onSubmit = (values: InitiateFormValues) => {
     mutate(
@@ -103,9 +107,22 @@ export function EmailInitiation({ onNext, updateData, data }: Props) {
         </Button>
 
         <Typography variant="body2" align="center" color="text.disabled">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          By continuing, you agree to our{" "}
+          <Link 
+            component="button" 
+            type="button"
+            onClick={() => setShowTerms(true)}
+            sx={{ fontWeight: 600, color: 'primary.main', textDecoration: 'underline', verticalAlign: 'baseline' }}
+          >
+            Terms of Service and Privacy Policy
+          </Link>.
         </Typography>
       </form>
+
+      <TermsAndConditionsModal 
+        open={showTerms} 
+        onOpenChange={setShowTerms} 
+      />
     </Box>
   );
 }

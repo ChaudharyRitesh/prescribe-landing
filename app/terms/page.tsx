@@ -265,20 +265,20 @@ export default function TermsOfService() {
               <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
                 5.3 Refund Policy
               </h3>
+              <p className="text-gray-600 mb-4">
+                We maintain a strict tiered refund policy to ensure fair usage of our cloud resources:
+              </p>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
                 <li>
-                  Refund requests must be submitted within 7 days of initial
-                  subscription
+                  <strong>0–7 Days:</strong> Eligible for a Full (100%) Refund upon request.
                 </li>
                 <li>
-                  Pro-rata refunds may be considered for annual subscriptions
-                  cancelled after 7 days, at our discretion
+                  <strong>7–17 Days:</strong> Eligible for an 80% Refund (a 20% platform retention fee applies).
                 </li>
                 <li>
-                  No refunds for partial month usage or terminated accounts due
-                  to Terms violation
+                  <strong>&gt; 17 Days:</strong> No refunds are permitted under any circumstances due to the allocation of cloud infrastructure.
                 </li>
-                <li>Refunds will be processed within 15-30 business days</li>
+                <li>Refunds will be processed within 15-30 business days via the original payment method (Razorpay).</li>
               </ul>
 
               <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
@@ -456,13 +456,10 @@ export default function TermsOfService() {
               </h2>
 
               <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
-                9.1 Service Availability
+                9.1 Service Availability (SLA)
               </h3>
               <p className="text-gray-600">
-                The Platform is provided &quot;AS IS&quot; and &quot;AS
-                AVAILABLE.&quot; While we strive for 99.9% uptime, we do not
-                guarantee uninterrupted, error-free, or secure access. Scheduled
-                maintenance will be notified in advance when possible.
+                The Platform targets a <strong>99.9% uptime</strong> for all critical clinical modules. We strive to provide uninterrupted access, however, scheduled maintenance will be conducted during low-traffic windows (2 AM – 4 AM IST) and notified via the Super-Admin dashboard at least 48 hours in advance. This SLA excludes downtime caused by third-party infrastructure (ISP/CDN outages) or Force Majeure.
               </p>
 
               <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
@@ -700,11 +697,18 @@ export default function TermsOfService() {
               <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
                 13.6 Amendments
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-6">
                 We may modify these Terms at any time. Material changes will be
                 notified via email or platform notification at least 30 days
                 before taking effect. Continued use after changes constitutes
                 acceptance.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
+                13.7 Data Portability & Exit
+              </h3>
+              <p className="text-gray-600">
+                Upon termination of this agreement by either party, Kaero provides a 7-day window for you to export your patient records in standard JSON/CSV formats. After 30 days of inactivity following termination, all tenant data is securely purged from our active databases to ensure privacy compliance.
               </p>
             </section>
 

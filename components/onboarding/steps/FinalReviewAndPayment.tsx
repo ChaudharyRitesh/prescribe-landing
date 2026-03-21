@@ -10,6 +10,8 @@ import { OnboardingData } from "../OnboardingWizard";
 import { useRegisterOrgMutation } from "@/hooks/queries/useOnboarding";
 import { loadRazorpayScript } from "@/lib/services/razorpay.service";
 import { Address } from "@/lib/api/types/onboarding.types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TermsAndConditionsModal } from "../TermsAndConditionsModal";
 
 interface Props {
   onNext: () => void;
@@ -30,6 +32,8 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
   const [razorpayLoading, setRazorpayLoading] = useState(false);
   const [addressData, setAddressData] = useState<Address | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
 
   const { ref: autocompleteRef } = usePlacesWidget<HTMLInputElement>({
     apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -85,6 +89,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
       packageId: (data as any).packageId,
       selectedModules: (data as any).selectedModules,
       billingCycle: (data as any).billingCycle || "monthly",
+      termsAccepted: termsAccepted,
     };
 
     registerOrg(
@@ -257,12 +262,38 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           )}
         </Box>
 
+        <Box mb={4} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+          <div className="flex items-start gap-3">
+            <Checkbox 
+              id="terms" 
+              checked={termsAccepted}
+              onCheckedChange={(checked) => setTermsAccepted(!!checked)}
+              className="mt-1 border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <div className="flex flex-col gap-1">
+              <label 
+                htmlFor="terms" 
+                className="text-sm font-medium text-slate-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                I agree to the Software License and Terms of Service
+              </label>
+              <button
+                type="button"
+                onClick={() => setTermsModalOpen(true)}
+                className="text-[12px] text-blue-600 font-bold hover:text-blue-700 underline underline-offset-4 text-left w-fit transition-all hover:scale-105 active:scale-95"
+              >
+                Read detailed policies & refund terms
+              </button>
+            </div>
+          </div>
+        </Box>
+
         <Button
           type="submit"
           variant="contained"
           fullWidth
           size="large"
-          disabled={isProcessing}
+          disabled={isProcessing || !termsAccepted}
           endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <PaymentIcon />}
           sx={{
             mt: 2,
@@ -279,6 +310,11 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
             : "Pay & Complete Setup"}
         </Button>
       </form>
+
+      <TermsAndConditionsModal 
+        open={termsModalOpen} 
+        onOpenChange={setTermsModalOpen} 
+      />
     </Box>
   );
 }
