@@ -46,7 +46,7 @@ const companyLinks = [
   { name: "About Us", href: "#" },
   { name: "Careers", href: "#" },
   { name: "Contact", href: "#" },
-  { name: "Partners", href: "#" },
+  { name: "Partners Program", href: "/partner/register" },
 ];
 
 const legalLinks = [

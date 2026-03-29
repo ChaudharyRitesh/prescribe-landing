@@ -275,12 +275,11 @@ export default function PrivacyPolicy() {
                 5.1 Technical Safeguards
               </h3>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
-                <li>AES-256 encryption for data at rest</li>
-                <li>TLS 1.3 encryption for data in transit</li>
-                <li>Multi-factor authentication (MFA) for all accounts</li>
-                <li>Regular security audits and penetration testing</li>
-                <li>Intrusion detection and prevention systems</li>
-                <li>Automated backup with disaster recovery capabilities</li>
+                <li>AES-256 encryption for all medical data at rest</li>
+                <li>TLS 1.3 encryption for all data in transit</li>
+                <li>Multi-factor authentication (MFA) enabled for all accounts</li>
+                <li>Regular automated backups with failover and disaster recovery capabilities</li>
+                <li>Strict Role-Based Access Controls (RBAC) to limit data visibility</li>
               </ul>
 
               <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">
@@ -405,23 +404,14 @@ export default function PrivacyPolicy() {
                 8. International Data Transfers
               </h2>
               <p className="text-gray-600 mb-4">
-                Your data is primarily stored and processed in India. If we
-                transfer data internationally, we ensure adequate protection
-                through:
+                <strong>Data Residency:</strong> All patient-related health data is stored exclusively in secured Indian Data Centers (AWS/Azure Regions) to ensure compliance with the <strong>DPDP Act 2023</strong> data residency requirements. If we transfer non-sensitive administrative data internationally, we ensure protection through:
               </p>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
                 <li>
-                  Standard Contractual Clauses (SCCs) approved by the European
-                  Commission
+                  Standard Contractual Clauses (SCCs) for cross-border administration
                 </li>
-                <li>Binding Corporate Rules where applicable</li>
-                <li>
-                  Compliance with cross-border data transfer regulations under
-                  DPDP Act
-                </li>
-                <li>
-                  Ensuring recipient countries provide adequate data protection
-                </li>
+                <li>Compliance with Chapter III (Transfers of Data) of the DPDP Act 2023</li>
+                <li>Ensuring recipient countries provide adequate data protection protocols</li>
               </ul>
             </section>
 

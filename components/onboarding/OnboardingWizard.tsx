@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Stepper, Step, StepLabel, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { EmailInitiation } from "./steps/EmailInitiation";
 import { OtpVerification } from "./steps/OtpVerification";
@@ -29,8 +29,22 @@ const steps = [
 
 export function OnboardingWizard() {
   const [activeStep, setActiveStep] = useState(0);
-  const [data, setData] = useState<OnboardingData>({});
+  const [data, setData] = useState<OnboardingData>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kaero_onboarding_session");
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
+  
   const theme = useTheme();
+
+  // Sync with localStorage whenever data changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("kaero_onboarding_session", JSON.stringify(data));
+    }
+  }, [data]);
 
   const updateData = (newData: Partial<OnboardingData>) => {
     setData((prev) => ({ ...prev, ...newData }));

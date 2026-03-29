@@ -148,6 +148,7 @@ export interface RegisterResponse extends BaseResponse {
   sessionId: string;
   // If payment needed
   orderId?: string;
+  razorpayOrderId?: string;
   amount?: number;
   currency?: string;
   keyId?: string;

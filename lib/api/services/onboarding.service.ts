@@ -62,6 +62,6 @@ export const OnboardingService = {
   },
 
   pollProvisioningStatus: async (sessionId: string): Promise<StatusResponse> => {
-    return apiClient.get(`/onboarding/status/${sessionId}`);
+    return apiClient.get(`/onboarding/status/${sessionId}?t=${Date.now()}`);
   },
 };

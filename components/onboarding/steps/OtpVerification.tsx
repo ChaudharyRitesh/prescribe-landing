@@ -49,7 +49,7 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
       { sessionId: data.sessionId, otp: values.otp },
       {
         onSuccess: (res: VerifyOtpResponse) => {
-          if (res.verified) {
+          if (res.success || res.verified) {
             updateData({ verifiedToken: res.verifiedToken });
             onNext();
           } else {

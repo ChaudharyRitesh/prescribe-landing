@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useProvisioningStatusQuery } from "@/hooks/queries/useOnboarding";
 import { OnboardingData } from "../OnboardingWizard";
 import { Box, Typography, Button, CircularProgress } from "@mui/material";
@@ -13,14 +14,35 @@ interface Props {
 }
 
 export function ProvisioningStatus({ data }: Props) {
-  const { data: statusResp, isLoading, isError } = useProvisioningStatusQuery(data.sessionId || '', !!data.sessionId);
+  const [localSessionId, setLocalSessionId] = useState(data.sessionId);
 
-  if (!data.sessionId) {
-    return (
-      <Box p={4} textAlign="center">
-        <Typography color="error">No active session found.</Typography>
-      </Box>
-    );
+  // Sync / Fallback for sessionId
+  useEffect(() => {
+    if (data.sessionId) {
+      setLocalSessionId(data.sessionId);
+    } else if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kaero_onboarding_session");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.sessionId) {
+            setLocalSessionId(parsed.sessionId);
+          }
+        } catch (e) {
+          console.error("Failed to parse onboarding session from localStorage", e);
+        }
+      }
+    }
+  }, [data.sessionId]);
+
+  const { data: statusResp, isLoading, isError } = useProvisioningStatusQuery(
+    localSessionId || '', 
+    !!localSessionId
+  );
+
+  // Debug logging
+  if (statusResp) {
+    console.log(`[ProvisioningStatus] localSessionID: ${localSessionId}, status: ${statusResp.status}`);
   }
 
   if (isLoading) {
@@ -110,31 +132,52 @@ export function ProvisioningStatus({ data }: Props) {
              Go to my Dashboard
            </Button>
          </>
-       ) : isFailed ? (
-         <>
-           <ErrorOutlineIcon color="error" sx={{ fontSize: 80, mb: 3 }} />
-           <Typography variant="h4" fontWeight="bold" gutterBottom color="text.primary">
-             Provisioning Failed
-           </Typography>
-           <Typography variant="body1" color="text.secondary" mb={4} maxWidth="sm">
-             Something went wrong while setting up your tenant workspace. Our support team has been notified and we will fix this shortly.
-           </Typography>
-           <Button variant="outlined" color="primary" onClick={() => window.location.reload()} startIcon={<RefreshIcon />}>
-             Start over
-           </Button>
-         </>
-       ) : (
-         <>
-           {/* Still polling but not "provisioned" yet, maybe "provisioning" status */}
-           <CircularProgress size={60} sx={{ mb: 4 }} />
-           <Typography variant="h4" fontWeight="bold" gutterBottom color="text.primary">
-             Finalising...
-           </Typography>
-           <Typography variant="body1" color="text.secondary">
-             Creating your dashboard.
-           </Typography>
-         </>
-       )}
+        ) : isFailed ? (
+          <>
+            <ErrorOutlineIcon color="error" sx={{ fontSize: 80, mb: 3 }} />
+            <Typography variant="h4" fontWeight="bold" gutterBottom color="text.primary">
+              Provisioning Failed
+            </Typography>
+            <Typography variant="body1" color="text.secondary" mb={4} maxWidth="sm">
+              Something went wrong while setting up your tenant workspace. Our support team has been notified and we will fix this shortly.
+            </Typography>
+            <Button variant="outlined" color="primary" onClick={() => window.location.reload()} startIcon={<RefreshIcon />}>
+              Start over
+            </Button>
+          </>
+        ) : !localSessionId ? (
+          <>
+            <ErrorOutlineIcon color="warning" sx={{ fontSize: 80, mb: 3 }} />
+            <Typography variant="h4" fontWeight="bold" gutterBottom color="text.primary">
+              Session ID Missing
+            </Typography>
+            <Typography variant="body1" color="text.secondary" mb={4} maxWidth="sm">
+              We couldn't find your active session. Please contact support or try starting over.
+            </Typography>
+            <Button variant="outlined" color="primary" onClick={() => {
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem("kaero_onboarding_session");
+                }
+                window.location.reload();
+            }}>
+              Restart Onboarding
+            </Button>
+          </>
+        ) : (
+          <>
+            {/* Still polling but not "provisioned" yet, maybe "provisioning" status */}
+            <CircularProgress size={60} sx={{ mb: 4 }} />
+            <Typography variant="h4" fontWeight="bold" gutterBottom color="text.primary">
+              Finalising...
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              Session: {localSessionId?.substring(0, 8)}...
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Creating your dashboard.
+            </Typography>
+          </>
+        )}
     </Box>
   );
 }
