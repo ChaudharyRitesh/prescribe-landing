@@ -70,7 +70,7 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
     setSubdomainStatus("loading");
     checkSubdomain(debouncedSubdomain, {
       onSuccess: (res: CheckSubdomainResponse) => {
-        if (res.available) setSubdomainStatus("available");
+        if (res.success || res.available) setSubdomainStatus("available");
         else setSubdomainStatus("taken");
       },
       onError: () => setSubdomainStatus("invalid"),
@@ -79,22 +79,31 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
 
   const onSubmit = (values: IdentityFormValues) => {
     if (subdomainStatus !== "available") return;
-    if (!data.verifiedToken) return;
+    if (!data.verifiedToken) {
+      alert("Session expired. Please start over.");
+      window.location.reload();
+      return;
+    }
 
     reserveSubdomain(
       { subdomain: values.subdomain, token: data.verifiedToken },
       {
         onSuccess: (res: ReserveSubdomainResponse) => {
-          if (res.available) {
-            updateData({ orgName: values.orgName, subdomain: values.subdomain, contactName: values.contactName } as any);
+          if (res.success || res.available) {
+            updateData({ 
+              orgName: values.orgName, 
+              subdomain: values.subdomain, 
+              contactName: values.contactName 
+            } as any);
             onNext();
           } else {
              setSubdomainStatus("taken");
-             alert(res.message);
+             alert(res.message || "This URL is no longer available. Please choose another one.");
           }
         },
-        onError: (err) => {
-          alert(err.message || "Failed to reserve the workspace URL.");
+        onError: (err: any) => {
+          const msg = err?.response?.data?.message || err.message || "Failed to reserve the workspace URL.";
+          alert(msg);
         }
       }
     );

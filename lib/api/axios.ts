@@ -15,11 +15,12 @@ export const apiClient = axios.create({
 // Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    // We can add auth tokens here if needed, e.g.
-    // const token = localStorage.getItem('onboarding_token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('mr_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
     return config;
   },
   (error) => {
@@ -34,7 +35,13 @@ apiClient.interceptors.response.use(
   },
   (error: AxiosError<{ message?: string, error?: string }>) => {
     // Handle global errors here (e.g. logging out on 401, showing toasts)
-    const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
+    const serverMessage = error.response?.data?.message;
+    const serverError = error.response?.data?.error;
+    
+    // Prefer specific error message over generic "Server error"
+    const message = (serverMessage === "Server error" ? serverError : (serverMessage || serverError)) 
+      || error.message 
+      || 'An unexpected error occurred';
     
     // Convert to a standardized error 
     return Promise.reject(new Error(message));

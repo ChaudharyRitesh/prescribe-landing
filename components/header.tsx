@@ -1,17 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Header() {
+  const [isLogged, setIsLogged] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    // Check for cookie on mount
+    const hasToken = document.cookie.split(';').some((item) => item.trim().startsWith('mr_token='));
+    setIsLogged(hasToken);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      document.cookie = "mr_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      localStorage.removeItem("mr_token");
+      window.location.href = "/mr/login";
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   const navLinks = [
-    { label: "Modules", href: "#modules" },
-    { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "Modules", href: "/#modules" },
+    { label: "Features", href: "/#features" },
+    { label: "Pricing", href: "/#pricing" },
     { label: "Compliance", href: "/compliance" },
   ];
 
@@ -41,9 +59,36 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/onboarding" className="button-primary text-sm">
-            Create Account
-          </Link>
+          {isLogged ? (
+            <>
+              <Link
+                href="/mr/dashboard"
+                className="text-neutral-600 text-sm font-medium transition-colors hover:text-neutral-900 flex items-center gap-2"
+              >
+                <LayoutDashboard size={16} />
+                Dashboard
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="button-primary text-sm flex items-center gap-2"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/mr/register"
+                className="text-neutral-600 text-sm font-medium transition-colors hover:text-neutral-900 border border-neutral-200 px-4 py-2 rounded-full hidden lg:block"
+              >
+                For MRs
+              </Link>
+              <Link href="/onboarding" className="button-primary text-sm">
+                Create Account
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -68,9 +113,28 @@ export default function Header() {
               </a>
             ))}
             <div className="flex flex-col gap-2 pt-4">
-              <Link href="/onboarding" className="button-primary w-full text-sm text-center">
-                Create Account
-              </Link>
+              {isLogged ? (
+                <>
+                  <Link href="/mr/dashboard" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium flex items-center justify-center gap-2">
+                    <LayoutDashboard size={16} /> Dashboard
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="button-primary w-full text-sm text-center py-2 flex items-center justify-center gap-2"
+                  >
+                    <LogOut size={16} /> Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/mr/register" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium">
+                    For MRs
+                  </Link>
+                  <Link href="/onboarding" className="button-primary w-full text-sm text-center py-2">
+                    Create Account
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
