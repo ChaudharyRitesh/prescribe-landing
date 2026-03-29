@@ -1,6 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -61,6 +63,8 @@ export default function RootLayout({
       >
         <Providers>
           {children}
+          <Toaster />
+          <Sonner position="top-right" expand={true} richColors />
         </Providers>
       </body>
     </html>

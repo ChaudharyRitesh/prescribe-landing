@@ -11,16 +11,16 @@ export default function Header() {
 
   useEffect(() => {
     // Check for cookie on mount
-    const hasToken = document.cookie.split(';').some((item) => item.trim().startsWith('mr_token='));
+    const hasToken = document.cookie.split(';').some((item) => item.trim().startsWith('partner_token='));
     setIsLogged(hasToken);
   }, []);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      document.cookie = "mr_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      localStorage.removeItem("mr_token");
-      window.location.href = "/mr/login";
+      document.cookie = "partner_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      localStorage.removeItem("partner_token");
+      window.location.href = "/partner/login";
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -62,7 +62,7 @@ export default function Header() {
           {isLogged ? (
             <>
               <Link
-                href="/mr/dashboard"
+                href="/partner/dashboard"
                 className="text-neutral-600 text-sm font-medium transition-colors hover:text-neutral-900 flex items-center gap-2"
               >
                 <LayoutDashboard size={16} />
@@ -79,10 +79,10 @@ export default function Header() {
           ) : (
             <>
               <Link
-                href="/mr/register"
+                href="/partner/register"
                 className="text-neutral-600 text-sm font-medium transition-colors hover:text-neutral-900 border border-neutral-200 px-4 py-2 rounded-full hidden lg:block"
               >
-                For MRs
+                Partner Program
               </Link>
               <Link href="/onboarding" className="button-primary text-sm">
                 Create Account
@@ -115,7 +115,7 @@ export default function Header() {
             <div className="flex flex-col gap-2 pt-4">
               {isLogged ? (
                 <>
-                  <Link href="/mr/dashboard" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium flex items-center justify-center gap-2">
+                  <Link href="/partner/dashboard" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium flex items-center justify-center gap-2">
                     <LayoutDashboard size={16} /> Dashboard
                   </Link>
                   <button 
@@ -127,8 +127,8 @@ export default function Header() {
                 </>
               ) : (
                 <>
-                  <Link href="/mr/register" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium">
-                    For MRs
+                  <Link href="/partner/register" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium">
+                    Partner Program
                   </Link>
                   <Link href="/onboarding" className="button-primary w-full text-sm text-center py-2">
                     Create Account

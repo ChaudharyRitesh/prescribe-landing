@@ -10,15 +10,42 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true,
 });
 
 // Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('mr_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      let token = localStorage.getItem('partner_token');
+      
+      // Fallback: Check cookies for partner_token if localStorage is empty or out-of-sync
+      if (!token) {
+        const match = document.cookie.split('; ').find(row => row.startsWith('partner_token='));
+        if (match) token = match.split('=')[1];
+      }
+
+      // Routes that don't need a token
+      const isPublicRoute = config.url && (
+        config.url.includes('/login') || 
+        config.url.includes('/register') || 
+        config.url.includes('/forgot-password') ||
+        config.url.includes('/reset-password') ||
+        config.url.includes('/verify-otp') ||
+        config.url.includes('/verify-2fa') ||
+        config.url.includes('/resend-2fa-otp') ||
+        config.url.includes('/resend-verification-otp')
+      );
+
+      if (token && token !== 'undefined' && token !== 'null') {
+        if (config.headers.set) {
+          config.headers.set('Authorization', `Bearer ${token}`);
+        } else {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
+      } else if (!isPublicRoute) {
+        // Only warn if it's NOT a public route and we have no token
+        console.warn(`[Frontend Axios] No token found for protected route: ${config.url}`);
       }
     }
     return config;

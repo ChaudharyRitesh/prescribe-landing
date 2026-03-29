@@ -6,25 +6,25 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get("mr_token")?.value;
+  const token = request.cookies.get("partner_token")?.value;
   
   // Define protected routes
-  const isMrRoute = pathname.startsWith("/mr");
-  const isPublicMrRoute = pathname === "/mr/login" || pathname === "/mr/register" || pathname.startsWith("/mr/forgot-password");
+  const isPartnerRoute = pathname.startsWith("/partner");
+  const isPublicPartnerRoute = pathname === "/partner/login" || pathname === "/partner/register" || pathname.startsWith("/partner/forgot-password");
   
   // 1. If authenticated user tries to access home, login, or register - redirect to dashboard
-  if (token && (pathname === "/" || pathname === "/mr/login" || pathname === "/mr/register")) {
+  if (token && (pathname === "/" || pathname === "/partner/login" || pathname === "/partner/register")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/mr/dashboard";
+    url.pathname = "/partner/dashboard";
     return NextResponse.redirect(url);
   }
 
-  // 2. Protect MR routes
-  if (isMrRoute && !isPublicMrRoute) {
+  // 2. Protect Partner routes
+  if (isPartnerRoute && !isPublicPartnerRoute) {
     // If no token, redirect to login page
     if (!token) {
       const url = request.nextUrl.clone();
-      url.pathname = "/mr/login";
+      url.pathname = "/partner/login";
       return NextResponse.redirect(url);
     }
   }
@@ -43,5 +43,5 @@ export async function proxy(request: NextRequest) {
 
 // Optional: Configure matcher if needed, although proxy.ts usually handles everything
 // export const config = {
-//   matcher: ["/mr/:path*"],
+//   matcher: ["/partner/:path*"],
 // };
