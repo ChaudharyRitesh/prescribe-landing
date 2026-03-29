@@ -6,8 +6,8 @@ export async function POST() {
     { status: 200 }
   );
 
-  // Clear the mr_token cookie
-  response.cookies.set("mr_token", "", {
+  // Clear the partner_token cookie
+  response.cookies.set("partner_token", "", {
     path: "/",
     expires: new Date(0),
     httpOnly: true,

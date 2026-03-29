@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Lock, Eye, EyeOff, CheckCircle2, ShieldCheck } from "lucide-react";
 import { apiClient } from "@/lib/api/axios";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
-export default function PartnerResetPasswordPage() {
+function PartnerResetContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const { toast } = useToast();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -57,23 +56,18 @@ export default function PartnerResetPasswordPage() {
 
       if (response.success) {
         setIsSuccess(true);
-        toast({
-          title: "Password Reset Successfully",
+        toast.success("Password Reset Successfully", {
           description: "You can now login with your new password.",
         });
       } else {
-        toast({
-          title: "Reset Failed",
+        toast.error("Reset Failed", {
           description: response.message || "Unable to reset password. The link may be invalid.",
-          variant: "destructive",
         });
         setError(response.message || "Reset link may be invalid or expired.");
       }
     } catch (error: any) {
-      toast({
-        title: "Reset Error",
+      toast.error("Reset Error", {
         description: error.message || "Something went wrong. The link may have expired.",
-        variant: "destructive",
       });
       setError(error.message || "Reset link may be invalid or expired.");
     } finally {
@@ -83,7 +77,6 @@ export default function PartnerResetPasswordPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
-      {/* Left side - Decorative/Info */}
       <div className="hidden md:flex flex-col justify-between w-1/2 bg-[#051114] text-white p-12 lg:p-24 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-[#00DACC]/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -106,7 +99,6 @@ export default function PartnerResetPasswordPage() {
         </div>
       </div>
 
-      {/* Right side - Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 lg:p-24 relative bg-white">
         <div className="w-full max-w-md">
           {!isSuccess ? (
@@ -216,5 +208,17 @@ export default function PartnerResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PartnerResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#0D9488] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <PartnerResetContent />
+    </Suspense>
   );
 }

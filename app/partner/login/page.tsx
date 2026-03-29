@@ -5,11 +5,10 @@ import Link from "next/link";
 import { ArrowRight, Mail, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/axios";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export default function PartnerLoginPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,8 +31,7 @@ export default function PartnerLoginPage() {
       });
 
       if (response.requires2FA) {
-        toast({
-          title: "Verification Required",
+        toast.info("Verification Required", {
           description: `Verification code sent to your ${response.type || 'email'}.`,
         });
         router.push(`/partner/verify-otp?email=${formData.email}&type=${response.type}&tempToken=${response.tempToken}`);
@@ -48,24 +46,19 @@ export default function PartnerLoginPage() {
         // Set cookie for Next.js 16 proxy/middleware
         document.cookie = `partner_token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Strict`;
         
-        toast({
-          title: "Login Successful",
+        toast.success("Login Successful", {
           description: `Welcome back, ${response.user.name}`,
         });
         
         router.push("/partner/dashboard");
       } else if (!response.requires2FA) {
-        toast({
-          title: "Login Failed",
+        toast.error("Login Failed", {
           description: response.message || "Invalid credentials. Please try again.",
-          variant: "destructive",
         });
       }
     } catch (error: any) {
-      toast({
-        title: "Login Error",
+      toast.error("Login Error", {
         description: error.message || "Invalid credentials or account pending approval.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

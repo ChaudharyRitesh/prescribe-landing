@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, Mail, Smartphone } from "lucide-react";
 import { SixDigitOtp } from "@/components/ui/SixDigitOtp";
 import { apiClient } from "@/lib/api/axios";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-export default function PartnerVerifyOtpPage() {
+function PartnerVerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,12 +37,11 @@ export default function PartnerVerifyOtpPage() {
       if (response.success) {
         setSuccess(true);
         // Store final tokens
-        localStorage.setItem("mr_token", response.token);
-        localStorage.setItem("mr_user", JSON.stringify(response.user));
-        document.cookie = `mr_token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Strict`;
+        localStorage.setItem("partner_token", response.token);
+        localStorage.setItem("partner_user", JSON.stringify(response.user));
+        document.cookie = `partner_token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Strict`;
         
-        toast({
-          title: "Verification Successful",
+        toast.success("Verification Successful", {
           description: "Welcome to your partner portal.",
         });
 
@@ -53,18 +51,14 @@ export default function PartnerVerifyOtpPage() {
         }, 1500);
       } else {
         setError(response.message || "Invalid verification code. Please try again.");
-        toast({
-          title: "Verification Failed",
+        toast.error("Verification Failed", {
           description: response.message || "Invalid OTP",
-          variant: "destructive",
         });
       }
     } catch (error: any) {
       setError(error.message || "Invalid verification code. Please try again.");
-      toast({
-        title: "Verification Error",
+      toast.error("Verification Error", {
         description: error.message || "Something went wrong during verification.",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -74,22 +68,18 @@ export default function PartnerVerifyOtpPage() {
   const handleResend = async () => {
     try {
       await apiClient.post("/mr/send-verification-otp", { email, type, tempToken, isLogin: true });
-      toast({
-        title: "OTP Resent",
+      toast.success("OTP Resent", {
         description: `A new code has been sent to your ${type}.`,
       });
     } catch (error: any) {
-      toast({
-        title: "Resend Failed",
+      toast.error("Resend Failed", {
         description: error.message || "Unable to resend OTP.",
-        variant: "destructive",
       });
     }
   };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#0D9488]/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
@@ -136,5 +126,17 @@ export default function PartnerVerifyOtpPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function PartnerVerifyOtpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#0D9488] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <PartnerVerifyOtpContent />
+    </Suspense>
   );
 }

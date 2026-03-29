@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { apiClient } from "@/lib/api/axios";
 
+
 interface UserData {
   id: string;
   name: string;
@@ -11,6 +12,7 @@ interface UserData {
   companyName?: string;
   profileImage?: string;
   status: string;
+  partner_token?: string;
 }
 
 interface DashboardStats {
@@ -221,14 +223,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      localStorage.removeItem("mr_token");
+      localStorage.removeItem("partner_token");
       localStorage.removeItem("partner_user");
-      document.cookie = "mr_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "partner_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
       window.location.href = "/partner/login";
     }
   };
 
   useEffect(() => {
+    const isPublicRoute = window.location.pathname.includes("/login") || 
+                         window.location.pathname.includes("/register") || 
+                         window.location.pathname.includes("/verify-otp");
+    
+    // Check for token before initializing
+    const token = localStorage.getItem("partner_token");
+    if (!token && !isPublicRoute) {
+      // Redirect if no token is found on protected routes
+      // window.location.href = "/partner/login";
+    }
+
     const init = async () => {
       await refreshUserData();
       await Promise.all([

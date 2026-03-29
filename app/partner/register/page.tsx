@@ -5,13 +5,12 @@ import Link from "next/link";
 import { ArrowRight, BriefcaseMedical, Building2, CheckCircle2, ChevronRight, Mail, Phone, User, Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/axios";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
 export default function PartnerRegistrationPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,10 +34,8 @@ export default function PartnerRegistrationPage() {
       // Basic phone validation
       const digitsOnly = formData.phone.replace(/\D/g, '');
       if (digitsOnly.length < 8) {
-        toast({
-          title: "Registration Failed",
+        toast.error("Registration Failed", {
           description: "Phone number must be at least 8 digits with country code.",
-          variant: "destructive",
         });
         setIsSubmitting(false);
         return;
@@ -54,8 +51,7 @@ export default function PartnerRegistrationPage() {
       });
 
       if (response.success) {
-        toast({
-          title: "Registration Successful",
+        toast.success("Registration Successful", {
           description: "Your application has been submitted and is pending approval.",
         });
         // Redirect to login or show success state
@@ -63,17 +59,13 @@ export default function PartnerRegistrationPage() {
           router.push("/partner/login");
         }, 2000);
       } else {
-        toast({
-          title: "Registration Failed",
+        toast.error("Registration Failed", {
           description: response.message || "Please check your details and try again.",
-          variant: "destructive",
         });
       }
     } catch (error: any) {
-      toast({
-        title: "Registration Error",
+      toast.error("Registration Error", {
         description: error.message || "Something went wrong. Please try again later.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
