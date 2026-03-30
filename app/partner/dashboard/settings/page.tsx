@@ -23,7 +23,8 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
-  Chip
+  Chip,
+  Tooltip
 } from "@mui/material";
 import {
   CameraAlt,
@@ -35,7 +36,9 @@ import {
   Save,
   CloudUpload,
   VerifiedUser,
-  NavigateNext
+  NavigateNext,
+  ContentCopy,
+  Badge
 } from "@mui/icons-material";
 import { apiClient } from "@/lib/api/axios";
 import { useToast } from "@/hooks/use-toast";
@@ -473,7 +476,7 @@ export default function SettingsPage() {
                       </Button>
                     )}
                   </Stack>
-                  <Stack direction="row" spacing={2} sx={{ mt: 1.5 }} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+                  <Stack direction="row" spacing={2} sx={{ mt: 1.5 }} justifyContent={{ xs: 'center', sm: 'flex-start' }} flexWrap="wrap">
                     <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Account Status</Typography>
                       <Typography variant="caption" fontWeight="700" color="success.main">Active • Fully Verified</Typography>
@@ -483,6 +486,31 @@ export default function SettingsPage() {
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Member Since</Typography>
                       <Typography variant="caption" fontWeight="700">March 2024</Typography>
                     </Box>
+                    {(profile as any).employeeId && (
+                      <>
+                        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderStyle: 'dashed' }} />
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Referral Code</Typography>
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <Typography variant="caption" fontWeight="800" color="primary.main" sx={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                              {(profile as any).employeeId}
+                            </Typography>
+                            <Tooltip title="Copy referral code">
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  navigator.clipboard.writeText((profile as any).employeeId);
+                                  sonnerToast.success('Referral code copied!');
+                                }}
+                                sx={{ p: 0.25 }}
+                              >
+                                <ContentCopy sx={{ fontSize: 12, color: 'primary.main' }} />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </Box>
+                      </>
+                    )}
                   </Stack>
                 </Box>
 
@@ -550,6 +578,37 @@ export default function SettingsPage() {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth size="small" id="specialization" label="Clinical Focus" value={profile.specialization} onChange={handleChange} placeholder="e.g., Cardiology" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            id="employeeId"
+                            label="Referral Code / EMP ID"
+                            value={(profile as any).employeeId || ''}
+                            onChange={handleChange}
+                            placeholder="KRP-XXXX"
+                            InputProps={{
+                              startAdornment: (
+                                <Badge sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />
+                              ),
+                              endAdornment: (profile as any).employeeId ? (
+                                <Tooltip title="Copy referral code">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText((profile as any).employeeId);
+                                      sonnerToast.success('Referral code copied!');
+                                    }}
+                                  >
+                                    <ContentCopy sx={{ fontSize: 14 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : undefined
+                            }}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'rgba(13, 148, 136, 0.02)' } }}
+                            helperText="Share this code with hospitals during onboarding"
+                          />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 8 }}>
                           <TextField fullWidth size="small" id="address.street" label="Operational Address" value={profile.address.street} onChange={handleChange} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
