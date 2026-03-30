@@ -16,11 +16,10 @@ import {
   Slider,
   InputAdornment,
 } from "@mui/material";
-import { 
-  Close as CloseIcon, 
-  LocalHospital, 
-  AttachMoney, 
-  Person, 
+import {
+  Close as CloseIcon,
+  LocalHospital,
+  Person,
   Notes,
   Event as EventIcon,
   Category,
@@ -55,10 +54,9 @@ const visitTypeOptions = [
 ];
 
 const mockProducts = [
-  "Kaero OS",
-  "HealthConnect Mobile",
-  "AI Diagnostics Suite",
-  "Patient Portal Elite",
+  "Kaero Prescribe",
+  "AI Scribe",
+  "Pharmacy Module",
 ];
 
 const toLocalDateString = (date: Date) => {
@@ -86,6 +84,42 @@ export default function NewPitchModal() {
     notes: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.hospitalName.trim()) {
+      newErrors.hospitalName = "Hospital name is required";
+    }
+
+    if (formData.contactEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.contactEmail)) {
+        newErrors.contactEmail = "Invalid email format";
+      }
+    }
+
+    if (formData.contactPhone) {
+      // Basic Indian phone validation (10 digits, optional +91)
+      const phoneRegex = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/;
+      if (!phoneRegex.test(formData.contactPhone.replace(/\s/g, ""))) {
+        newErrors.contactPhone = "Invalid Indian phone number (10 digits)";
+      }
+    }
+
+    if (formData.potentialValue && Number(formData.potentialValue) < 0) {
+      newErrors.potentialValue = "Potential value cannot be negative";
+    }
+
+    if (!formData.visitDate) {
+      newErrors.visitDate = "Visit date is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -97,6 +131,12 @@ export default function NewPitchModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -108,11 +148,11 @@ export default function NewPitchModal() {
       };
 
       const response: any = await api.post("/mr/pitches", payload);
-      
+
       if (response.success) {
         toast.success("New pitch logged successfully!");
         closeNewPitchModal();
-        
+
         // Reset form
         setFormData({
           hospitalName: "",
@@ -130,9 +170,7 @@ export default function NewPitchModal() {
           products: [],
           notes: "",
         });
-        
-        // Refresh dashboard stats if context supports it
-        // fetchDashboardStats() should be called here
+        setErrors({});
       }
     } catch (error: any) {
       console.error("Pitch logging error:", error);
@@ -152,8 +190,8 @@ export default function NewPitchModal() {
   };
 
   return (
-    <Dialog 
-      open={isNewPitchModalOpen} 
+    <Dialog
+      open={isNewPitchModalOpen}
       onClose={closeNewPitchModal}
       maxWidth="sm"
       fullWidth
@@ -163,11 +201,11 @@ export default function NewPitchModal() {
     >
       <DialogTitle sx={{ m: 0, p: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box 
-            sx={{ 
-              p: 1, 
-              bgcolor: "rgba(13, 148, 136, 0.1)", 
-              color: "primary.main", 
+          <Box
+            sx={{
+              p: 1,
+              bgcolor: "rgba(13, 148, 136, 0.1)",
+              color: "primary.main",
               borderRadius: 2,
               display: "flex"
             }}
@@ -188,10 +226,13 @@ export default function NewPitchModal() {
               <TextField
                 required
                 fullWidth
+                id="pitch-hospital-name"
                 label="Hospital / Clinic Name"
                 name="hospitalName"
                 value={formData.hospitalName}
                 onChange={handleChange}
+                error={!!errors.hospitalName}
+                helperText={errors.hospitalName}
                 placeholder="e.g. City General Hospital"
                 InputProps={{
                   startAdornment: (
@@ -206,6 +247,7 @@ export default function NewPitchModal() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
+                id="pitch-contact-person"
                 label="Contact Person"
                 name="contactPerson"
                 value={formData.contactPerson}
@@ -224,6 +266,7 @@ export default function NewPitchModal() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
+                id="pitch-department"
                 label="Department"
                 name="department"
                 value={formData.department}
@@ -242,11 +285,14 @@ export default function NewPitchModal() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
+                id="pitch-contact-email"
                 label="Contact Email"
                 name="contactEmail"
                 type="email"
                 value={formData.contactEmail}
                 onChange={handleChange}
+                error={!!errors.contactEmail}
+                helperText={errors.contactEmail}
                 placeholder="doctor@hospital.com"
               />
             </Grid>
@@ -254,10 +300,13 @@ export default function NewPitchModal() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
+                id="pitch-contact-phone"
                 label="Contact Phone"
                 name="contactPhone"
                 value={formData.contactPhone}
                 onChange={handleChange}
+                error={!!errors.contactPhone}
+                helperText={errors.contactPhone}
                 placeholder="+91..."
               />
             </Grid>
@@ -266,6 +315,7 @@ export default function NewPitchModal() {
               <TextField
                 select
                 fullWidth
+                id="pitch-priority"
                 size="small"
                 label="Lead Priority"
                 name="priority"
@@ -284,6 +334,7 @@ export default function NewPitchModal() {
               <TextField
                 select
                 fullWidth
+                id="pitch-status"
                 size="small"
                 label="Pitch Status"
                 name="status"
@@ -302,6 +353,7 @@ export default function NewPitchModal() {
               <TextField
                 select
                 fullWidth
+                id="pitch-visit-type"
                 size="small"
                 label="Visit Type"
                 name="visitType"
@@ -320,12 +372,15 @@ export default function NewPitchModal() {
               <TextField
                 required
                 fullWidth
+                id="pitch-visit-date"
                 size="small"
                 label="Visit Date"
                 name="visitDate"
                 type="date"
                 value={formData.visitDate}
                 onChange={handleChange}
+                error={!!errors.visitDate}
+                helperText={errors.visitDate}
                 inputProps={{ min: toLocalDateString(new Date()) }}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
@@ -341,6 +396,7 @@ export default function NewPitchModal() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
+                id="pitch-follow-up-date"
                 size="small"
                 label="Next Follow-up"
                 name="followUpDate"
@@ -362,17 +418,20 @@ export default function NewPitchModal() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
+                id="pitch-potential-value"
                 size="small"
                 label="Potential Value"
                 name="potentialValue"
                 type="number"
                 value={formData.potentialValue}
                 onChange={handleChange}
+                error={!!errors.potentialValue}
+                helperText={errors.potentialValue}
                 placeholder="₹"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <AttachMoney sx={{ color: "text.secondary", fontSize: 18 }} />
+                      <Typography sx={{ color: "text.secondary", fontSize: 18, mr: 1 }}>₹</Typography>
                     </InputAdornment>
                   ),
                 }}
@@ -431,6 +490,7 @@ export default function NewPitchModal() {
               <TextField
                 fullWidth
                 multiline
+                id="pitch-notes"
                 rows={3}
                 label="Notes & Next Steps"
                 name="notes"
@@ -452,9 +512,9 @@ export default function NewPitchModal() {
           <Button onClick={closeNewPitchModal} color="inherit">
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
+          <Button
+            type="submit"
+            variant="contained"
             disabled={loading}
             sx={{ px: 4, py: 1 }}
           >

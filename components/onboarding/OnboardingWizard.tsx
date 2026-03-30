@@ -15,6 +15,7 @@ export type OnboardingData = {
   email?: string;
   subdomain?: string;
   orgName?: string;
+  referralCode?: string;
   // more properties can be added here
 };
 

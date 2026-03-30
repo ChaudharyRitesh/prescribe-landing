@@ -14,6 +14,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { CircularProgress } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import BadgeIcon from "@mui/icons-material/Badge";
 import { OnboardingData } from "../OnboardingWizard";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -26,6 +27,7 @@ const ExtendedIdentitySchema = z.object({
     .max(30, "Subdomain must be under 30 characters")
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed"),
   contactName: z.string().min(2, "Admin name is required to setup the profile"),
+  referralCode: z.string().optional(),
 });
 
 type IdentityFormValues = z.infer<typeof ExtendedIdentitySchema>;
@@ -46,7 +48,12 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
   } = useForm<IdentityFormValues>({
     resolver: zodResolver(ExtendedIdentitySchema),
     mode: "onChange",
-    defaultValues: { orgName: data.orgName || "", subdomain: data.subdomain || "", contactName: (data as any).contactName || "" },
+    defaultValues: { 
+      orgName: data.orgName || "", 
+      subdomain: data.subdomain || "", 
+      contactName: (data as any).contactName || "",
+      referralCode: data.referralCode || ""
+    },
   });
 
   const subdomainValue = watch("subdomain");
@@ -93,7 +100,8 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
             updateData({ 
               orgName: values.orgName, 
               subdomain: values.subdomain, 
-              contactName: values.contactName 
+              contactName: values.contactName,
+              referralCode: values.referralCode
             } as any);
             onNext();
           } else {
@@ -145,6 +153,26 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
               startAdornment: (
                 <InputAdornment position="start">
                   <PersonOutlineIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        
+        {/* EMP ID / Referral Code */}
+        <Box mb={3}>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
+            EMP ID (Optional)
+          </Typography>
+          <TextField
+            fullWidth
+            id="referralCode"
+            placeholder="KRP-XXXX"
+            {...register("referralCode")}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <BadgeIcon color="action" />
                 </InputAdornment>
               ),
             }}

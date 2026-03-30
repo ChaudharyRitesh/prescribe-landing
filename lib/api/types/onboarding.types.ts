@@ -141,6 +141,7 @@ export interface RegisterPayload {
   selectedModules?: string[]; // array of _ids or slugs depending on selectionType
   billingCycle?: BillingCycle;
   subscriptionPlan?: string; 
+  referralCode?: string;
 }
 
 export interface RegisterResponse extends BaseResponse {
