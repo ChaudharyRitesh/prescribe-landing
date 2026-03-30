@@ -123,6 +123,7 @@ export default function SettingsPage() {
     profileImage: "",
     specialization: "",
     employeeId: "",
+    referralCode: "",
     address: {
       street: "",
       city: "",
@@ -486,20 +487,20 @@ export default function SettingsPage() {
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Member Since</Typography>
                       <Typography variant="caption" fontWeight="700">March 2024</Typography>
                     </Box>
-                    {(profile as any).employeeId && (
+                    {(profile as any).referralCode && (
                       <>
                         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderStyle: 'dashed' }} />
                         <Box>
                           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1 }}>Referral Code</Typography>
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Typography variant="caption" fontWeight="800" color="primary.main" sx={{ fontFamily: 'monospace', letterSpacing: '0.5px' }}>
-                              {(profile as any).employeeId}
+                              {(profile as any).referralCode}
                             </Typography>
                             <Tooltip title="Copy referral code">
                               <IconButton
                                 size="small"
                                 onClick={() => {
-                                  navigator.clipboard.writeText((profile as any).employeeId);
+                                  navigator.clipboard.writeText((profile as any).referralCode);
                                   sonnerToast.success('Referral code copied!');
                                 }}
                                 sx={{ p: 0.25 }}
@@ -514,9 +515,35 @@ export default function SettingsPage() {
                   </Stack>
                 </Box>
 
-                <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                  <Button variant="outlined" size="small" sx={{ borderRadius: 2, borderColor: 'rgba(0,0,0,0.1)', color: 'text.secondary' }}>View Public Profile</Button>
-                </Box>
+                {(profile as any).referralCode && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>EMP ID</Typography>
+                    <Box
+                      onClick={() => {
+                        navigator.clipboard.writeText((profile as any).referralCode);
+                        sonnerToast.success('Referral code copied!');
+                      }}
+                      sx={{
+                        px: 2,
+                        py: 0.75,
+                        bgcolor: 'rgba(13, 148, 136, 0.08)',
+                        border: '1.5px dashed rgba(13, 148, 136, 0.3)',
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        transition: 'all 0.2s',
+                        '&:hover': { bgcolor: 'rgba(13, 148, 136, 0.15)', borderColor: 'primary.main' }
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight="800" color="primary.main" sx={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+                        {(profile as any).referralCode}
+                      </Typography>
+                      <ContentCopy sx={{ fontSize: 14, color: 'primary.main' }} />
+                    </Box>
+                  </Box>
+                )}
               </Box>
 
               {/* Form Sections */}
@@ -583,21 +610,20 @@ export default function SettingsPage() {
                           <TextField
                             fullWidth
                             size="small"
-                            id="employeeId"
-                            label="Referral Code / EMP ID"
-                            value={(profile as any).employeeId || ''}
-                            onChange={handleChange}
-                            placeholder="KRP-XXXX"
+                            id="referralCode"
+                            label="Referral Code"
+                            value={(profile as any).referralCode || ''}
                             InputProps={{
+                              readOnly: true,
                               startAdornment: (
                                 <Badge sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />
                               ),
-                              endAdornment: (profile as any).employeeId ? (
+                              endAdornment: (profile as any).referralCode ? (
                                 <Tooltip title="Copy referral code">
                                   <IconButton
                                     size="small"
                                     onClick={() => {
-                                      navigator.clipboard.writeText((profile as any).employeeId);
+                                      navigator.clipboard.writeText((profile as any).referralCode);
                                       sonnerToast.success('Referral code copied!');
                                     }}
                                   >
@@ -606,7 +632,7 @@ export default function SettingsPage() {
                                 </Tooltip>
                               ) : undefined
                             }}
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'rgba(13, 148, 136, 0.02)' } }}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'rgba(13, 148, 136, 0.04)' } }}
                             helperText="Share this code with hospitals during onboarding"
                           />
                         </Grid>
