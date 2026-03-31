@@ -60,6 +60,38 @@ const mrDashboardTheme = createTheme({
   },
 });
 
+import { Alert, AlertTitle } from "@mui/material";
+import { useDashboard } from "./context/DashboardContext";
+
+function StatusBanner() {
+  const { userData } = useDashboard();
+  if (userData?.status === 'pending') {
+    return (
+      <Alert severity="warning" sx={{ mb: 3, borderRadius: '8px', border: '1px solid #FDE68A' }}>
+        <AlertTitle sx={{ fontWeight: 600 }}>Account Under Review</AlertTitle>
+        Your registration is currently being reviewed by our administrative team. You will have full access to create pitches and manage expenses once your account is activated.
+      </Alert>
+    );
+  }
+  if (userData?.status === 'frozen') {
+    return (
+      <Alert severity="error" sx={{ mb: 3, borderRadius: '8px' }}>
+        <AlertTitle sx={{ fontWeight: 600 }}>Account Frozen</AlertTitle>
+        Your partner account has been frozen. Please contact Kaero support for assistance.
+      </Alert>
+    );
+  }
+  if (userData?.status === 'rejected') {
+    return (
+      <Alert severity="error" sx={{ mb: 3, borderRadius: '8px' }}>
+        <AlertTitle sx={{ fontWeight: 600 }}>Application Rejected</AlertTitle>
+        Unfortunately, your partner application was not approved.
+      </Alert>
+    );
+  }
+  return null;
+}
+
 export default function MRDashboardLayout({
   children,
 }: {
@@ -91,6 +123,7 @@ export default function MRDashboardLayout({
             <TopBar handleDrawerToggle={handleDrawerToggle} />
             
             <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, display: "flex", flexDirection: "column" }}>
+              <StatusBanner />
               {children}
             </Box>
           </Box>
