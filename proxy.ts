@@ -10,7 +10,12 @@ export async function proxy(request: NextRequest) {
   
   // Define protected routes
   const isPartnerRoute = pathname.startsWith("/partner");
-  const isPublicPartnerRoute = pathname === "/partner/login" || pathname === "/partner/register" || pathname.startsWith("/partner/forgot-password");
+  const isPublicPartnerRoute = 
+    pathname === "/partner/login" || 
+    pathname === "/partner/register" || 
+    pathname.startsWith("/partner/forgot-password") ||
+    pathname.startsWith("/partner/reset-password") ||
+    pathname.startsWith("/partner/verify-otp");
   
   // 1. If authenticated user tries to access home, login, or register - redirect to dashboard
   if (token && (pathname === "/" || pathname === "/partner/login" || pathname === "/partner/register")) {
