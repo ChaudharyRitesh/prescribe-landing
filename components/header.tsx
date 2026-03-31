@@ -84,7 +84,10 @@ export default function Header() {
               >
                 Partner Program
               </Link>
-              <Link href="/onboarding" className="button-primary text-sm">
+              {/* <Link href="/onboarding" className="button-primary text-sm">
+                Create Account
+              </Link> */}
+              <Link href="#" className="button-primary text-sm">
                 Create Account
               </Link>
             </>
@@ -118,7 +121,7 @@ export default function Header() {
                   <Link href="/partner/dashboard" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium flex items-center justify-center gap-2">
                     <LayoutDashboard size={16} /> Dashboard
                   </Link>
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="button-primary w-full text-sm text-center py-2 flex items-center justify-center gap-2"
                   >
