@@ -72,15 +72,15 @@ export default function TopBar({
           >
             <MenuIcon />
           </IconButton>
-          
+
           <Typography
             variant="h6"
             noWrap
             component="div"
-            sx={{ 
-              fontWeight: 700, 
+            sx={{
+              fontWeight: 700,
               display: { xs: "none", md: "block" },
-              color: "#111827" 
+              color: "#111827"
             }}
           >
             {loading ? "Loading..." : `Welcome back, ${userData?.name?.split(' ')[0] || 'Partner'} 👋`}
@@ -108,7 +108,7 @@ export default function TopBar({
             New Pitch
           </Button>
 
-          <IconButton 
+          <IconButton
             sx={{ display: { xs: "flex", sm: "none" }, backgroundColor: "rgba(13, 148, 136, 0.1)", color: "primary.main" }}
             onClick={openNewPitchModal}
           >
@@ -137,7 +137,7 @@ export default function TopBar({
             }}
             onClick={handleProfileClick}
           >
-            <Avatar 
+            <Avatar
               src={userData?.profileImage}
               sx={{ width: 32, height: 32, bgcolor: "#051114", fontSize: "0.875rem" }}
             >
@@ -148,7 +148,7 @@ export default function TopBar({
                 {loading ? "..." : userData?.name}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {userData?.companyName || "Field Force"}
+                {userData?.name || "Field Force"}
               </Typography>
             </Box>
             <ArrowDownIcon sx={{ fontSize: 20, color: "text.secondary", display: { xs: "none", sm: "block" } }} />
