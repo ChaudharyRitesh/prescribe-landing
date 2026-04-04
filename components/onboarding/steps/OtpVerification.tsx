@@ -89,9 +89,14 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
             id="otp"
             placeholder="123456"
             disabled={verifying}
+            autoFocus
             error={!!errors.otp || !!verifyError}
             helperText={errors.otp?.message || verifyError?.message || " "}
-            inputProps={{ maxLength: 6, style: { textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem', fontFamily: 'monospace' } }}
+            inputProps={{ 
+              maxLength: 6, 
+              inputMode: "numeric",
+              style: { textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem', fontFamily: 'monospace' } 
+            }}
             {...register("otp")}
           />
         </Box>

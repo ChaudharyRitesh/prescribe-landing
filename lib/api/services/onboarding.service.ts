@@ -15,15 +15,31 @@ import {
   RegisterPayload,
   RegisterResponse,
   StatusResponse,
+  SpecializedDeptResponse,
+  VerifyMRResponse,
+  VerifyGstResponse,
 } from '../types/onboarding.types';
 
 export const OnboardingService = {
-  fetchCatalog: async (): Promise<CatalogResponse> => {
-    return apiClient.get('/onboarding/catalog');
+  fetchCatalog: async (specialty?: string): Promise<CatalogResponse> => {
+    const url = specialty ? `/onboarding/catalog?specialty=${specialty}` : '/onboarding/catalog';
+    return apiClient.get(url);
+  },
+
+  fetchSpecializedDepartments: async (specialty: string): Promise<SpecializedDeptResponse> => {
+    return apiClient.get(`/onboarding/specialties/departments?specialty=${specialty}`);
+  },
+
+  verifyMR: async (code: string): Promise<VerifyMRResponse> => {
+    return apiClient.get(`/onboarding/verify-mr?code=${encodeURIComponent(code)}`);
   },
 
   checkSubdomain: async (value: string): Promise<CheckSubdomainResponse> => {
     return apiClient.get(`/onboarding/check-subdomain?value=${encodeURIComponent(value)}`);
+  },
+
+  verifyGst: async (gstNumber: string): Promise<VerifyGstResponse> => {
+    return apiClient.get(`/onboarding/verify-gst?gstNumber=${encodeURIComponent(gstNumber)}`);
   },
 
   initiateOnboarding: async (payload: InitiatePayload): Promise<InitiateResponse> => {
