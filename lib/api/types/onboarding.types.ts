@@ -10,6 +10,8 @@ export type OnboardingStatus =
   | 'provisioned' 
   | 'failed';
 
+export type FacilityType = 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic';
+
 // --- Base Response Interface ---
 export interface BaseResponse {
   success: boolean;
@@ -30,6 +32,9 @@ export interface ModuleItem {
   description?: string;
   icon?: string;
   pricing: ModulePricing;
+  specialties?: string[];
+  isHero?: boolean;
+  isShared?: boolean;
   isActive: boolean;
   order: number;
 }
@@ -41,6 +46,7 @@ export interface PackageItem {
   tagline?: string;
   modules: string[]; // slugs
   pricing: ModulePricing;
+  specialties?: string[];
   savings?: string;
   badge?: string;
   isActive: boolean;
@@ -142,6 +148,7 @@ export interface RegisterPayload {
   billingCycle?: BillingCycle;
   subscriptionPlan?: string; 
   referralCode?: string;
+  facilityType?: FacilityType;
 }
 
 export interface RegisterResponse extends BaseResponse {
@@ -164,4 +171,34 @@ export interface StatusResponse extends BaseResponse {
   dashboardUrl?: string;
   adminEmail?: string;
   tempPassword?: string;
+}
+
+// 9. GET /onboarding/specialties/departments
+export interface MasterDept {
+  _id: string;
+  name: string;
+  code: string;
+  category: string;
+  description?: string;
+  specialties: string[];
+  isActive: boolean;
+  defaultTemplate: any[];
+}
+
+export interface SpecializedDeptResponse extends BaseResponse {
+  data: MasterDept[];
+  specialty: string;
+}
+
+// 10. GET /onboarding/verify-mr
+export interface VerifyMRResponse extends BaseResponse {
+  exists: boolean;
+  name?: string;
+  code?: string;
+}
+
+export interface VerifyGstResponse extends BaseResponse {
+  exists: boolean;
+  legalName?: string;
+  taxId?: string;
 }

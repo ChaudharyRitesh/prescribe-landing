@@ -1,19 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Box, Typography, TextField, Button, CircularProgress, Alert } from "@mui/material";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+  InputAdornment
+} from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PaymentIcon from "@mui/icons-material/Payment";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
 import { AddressInput } from "@/components/ui/google-places-input";
 import { OnboardingData } from "../OnboardingWizard";
-import { useRegisterOrgMutation } from "@/hooks/queries/useOnboarding";
+import { useRegisterOrgMutation, useVerifyGstMutation } from "@/hooks/queries/useOnboarding";
 import { loadRazorpayScript } from "@/lib/services/razorpay.service";
 import { Address } from "@/lib/api/types/onboarding.types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TermsAndConditionsModal } from "../TermsAndConditionsModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContactSchema, ContactFormValues } from "@/lib/validations/onboarding-schema";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface Props {
   onNext: () => void;
@@ -23,27 +36,64 @@ interface Props {
 }
 
 export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Props) {
-  const { 
-    register, 
-    handleSubmit, 
+  const {
+    register,
+    handleSubmit,
     setValue,
-    formState: { errors, isValid } 
+    watch,
+    control,
+    formState: { errors, isValid }
   } = useForm<ContactFormValues>({
     resolver: zodResolver(ContactSchema),
     mode: "onChange",
     defaultValues: {
-      contactName: (data as any).contactName || "",
-      contactPhone: (data as any).contactPhone || "",
-      gstNumber: (data as any).gstNumber || "",
+      contactName: data.contactName || "",
+      contactPhone: data.contactPhone || "",
+      gstNumber: data.gstNumber || "",
     }
   });
 
   const { mutate: registerOrg, isPending: registering } = useRegisterOrgMutation();
+  const { mutate: verifyGst, isPending: verifyingGst } = useVerifyGstMutation();
+
   const [razorpayLoading, setRazorpayLoading] = useState(false);
   const [addressData, setAddressData] = useState<Address | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
+
+  // GST Verification State
+  const gstValue = watch("gstNumber");
+  const debouncedGst = useDebounce(gstValue, 600);
+  const [gstStatus, setGstStatus] = useState<"idle" | "loading" | "valid" | "invalid">("idle");
+  const [legalName, setLegalName] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Basic regex check before calling API
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!debouncedGst || !gstRegex.test(debouncedGst)) {
+      setGstStatus("idle");
+      setLegalName(null);
+      return;
+    }
+
+    setGstStatus("loading");
+    verifyGst(debouncedGst, {
+      onSuccess: (res) => {
+        if (res.success && res.exists) {
+          setGstStatus("valid");
+          setLegalName(res.legalName || "Verified Entity");
+        } else {
+          setGstStatus("invalid");
+          setLegalName(null);
+        }
+      },
+      onError: () => {
+        setGstStatus("invalid");
+        setLegalName(null);
+      }
+    });
+  }, [debouncedGst, verifyGst]);
 
   const handleAddressChange = (addr: Address) => {
     setAddressData(addr);
@@ -60,12 +110,19 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
   const onSubmit = async (values: ContactFormValues) => {
     setErrorMsg(null);
 
-    if (!data.verifiedToken || !data.orgName || !data.subdomain || !(data as any).selectionType) {
+    // If GST was entered but failed verification, block submission
+    if (values.gstNumber && gstStatus === "invalid") {
+      setErrorMsg("Please provide a valid and verifiable GST number.");
+      return;
+    }
+
+    if (!data.verifiedToken || !data.orgName || !data.subdomain || !data.selectionType) {
       setErrorMsg("Missing core identity details. Please go back and complete previous steps.");
       return;
     }
     const payload = {
       ...data,
+      organizationType: data.facilityType,
       contactPhone: values.contactPhone,
       gstNumber: values.gstNumber,
       address: addressData || undefined,
@@ -98,7 +155,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
               description: "Kaero Prescribe Subscription",
               order_id: razorpayOrderId,
               prefill: {
-                name: (data as any).contactName,
+                name: data.contactName,
                 email: data.email,
                 contact: values.contactPhone,
               },
@@ -118,9 +175,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
                   if (verifyData.success) {
                     const finalSessionId = verifyData.sessionId || sessionId || data.sessionId;
                     console.log(`[FinalReviewAndPayment] verify-payment SUCCESS. sessionID: ${finalSessionId}`);
-                    
-                    // Critical: Immediate localStorage persistence to avoid race condition 
-                    // before Prop/State update propagates to the next step.
+
                     if (typeof window !== "undefined" && finalSessionId) {
                       const current = localStorage.getItem("kaero_onboarding_session");
                       const parsed = current ? JSON.parse(current) : {};
@@ -209,26 +264,77 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: "text.secondary" }}>
             Phone Number
           </Typography>
-          <TextField
-            fullWidth
-            placeholder="+91 9876543210"
-            error={!!errors.contactPhone}
-            helperText={errors.contactPhone?.message || " "}
-            {...register("contactPhone")}
+          <Controller
+            name="contactPhone"
+            control={control}
+            render={({ field }) => (
+              <Box
+                sx={{
+                  '& .PhoneInput': {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    p: '12px 14px',
+                    border: '1px solid',
+                    borderColor: !!errors.contactPhone ? 'error.main' : 'rgba(0,0,0,0.23)',
+                    borderRadius: '12px',
+                    bgcolor: 'background.paper',
+                    '&:focus-within': {
+                      borderColor: !!errors.contactPhone ? 'error.main' : 'primary.main',
+                      borderWidth: '2px',
+                      p: '11px 13px',
+                    }
+                  },
+                  '& .PhoneInputInput': {
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '1rem',
+                    width: '100%',
+                    bgcolor: 'transparent'
+                  }
+                }}
+              >
+                <PhoneInput
+                  {...field}
+                  international
+                  defaultCountry="IN"
+                  placeholder="Enter phone number"
+                />
+                {errors.contactPhone && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5, display: 'block' }}>
+                    {errors.contactPhone.message}
+                  </Typography>
+                )}
+              </Box>
+            )}
           />
         </Box>
 
         <Box mb={3}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: "text.secondary" }}>
-            GST Number
+            GST Number (Optional)
           </Typography>
           <TextField
             fullWidth
             placeholder="22AAAAA0000A1Z5"
-            error={!!errors.gstNumber}
-            helperText={errors.gstNumber?.message || " "}
+            error={!!errors.gstNumber || gstStatus === "invalid"}
+            helperText={errors.gstNumber?.message || (gstStatus === "invalid" ? "GST identification failed existence check." : " ")}
             {...register("gstNumber")}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  {gstStatus === "loading" && <CircularProgress size={20} />}
+                  {gstStatus === "valid" && <CheckCircleIcon color="success" />}
+                  {gstStatus === "invalid" && <ErrorIcon color="error" />}
+                </InputAdornment>
+              ),
+            }}
           />
+          {gstStatus === "valid" && legalName && (
+            <Typography variant="caption" color="success.main" sx={{ mt: 0.5, display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+              Verified: {legalName}
+            </Typography>
+          )}
         </Box>
 
         <Box mb={3}>
@@ -237,23 +343,23 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           </Typography>
           <AddressInput onAddressChange={handleAddressChange} initialAddress={addressData} />
           {errors.address && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                  Please select a valid address from the clinical suggestions.
-              </Typography>
+            <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+              Please select a valid address from the clinical suggestions.
+            </Typography>
           )}
         </Box>
 
         <Box mb={4} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
           <div className="flex items-start gap-3">
-            <Checkbox 
-              id="terms" 
+            <Checkbox
+              id="terms"
               checked={termsAccepted}
               onCheckedChange={(checked) => setTermsAccepted(!!checked)}
               className="mt-1 border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <div className="flex flex-col gap-1">
-              <label 
-                htmlFor="terms" 
+              <label
+                htmlFor="terms"
                 className="text-sm font-medium text-slate-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
                 I agree to the Software License and Terms of Service
@@ -274,7 +380,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           variant="contained"
           fullWidth
           size="large"
-          disabled={isProcessing || !termsAccepted || !isValid}
+          disabled={isProcessing || !termsAccepted || !isValid || gstStatus === "loading" || !!(gstValue && gstStatus === "invalid")}
           endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <PaymentIcon />}
           sx={{
             mt: 2,
@@ -287,14 +393,14 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           {razorpayLoading
             ? "Finalising your workspace..."
             : registering
-            ? "Processing..."
-            : "Pay & Complete Setup"}
+              ? "Processing..."
+              : "Pay & Complete Setup"}
         </Button>
       </form>
 
-      <TermsAndConditionsModal 
-        open={termsModalOpen} 
-        onOpenChange={setTermsModalOpen} 
+      <TermsAndConditionsModal
+        open={termsModalOpen}
+        onOpenChange={setTermsModalOpen}
       />
     </Box>
   );

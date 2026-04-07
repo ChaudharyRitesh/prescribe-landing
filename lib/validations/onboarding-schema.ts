@@ -29,7 +29,7 @@ export type IdentityFormValues = z.infer<typeof IdentitySchema>;
 // Step 4: Contact & Billing Information
 export const ContactSchema = z.object({
   contactName: z.string().min(2, { message: "Contact name must be at least 2 characters." }),
-  contactPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/, { message: "Please enter a valid phone number." }).optional().or(z.literal('')),
+  contactPhone: z.string().min(10, { message: "Please enter a valid phone number with country code." }),
   
   // Address info
   address: z.object({
@@ -38,12 +38,15 @@ export const ContactSchema = z.object({
     city: z.string().optional(),
     district: z.string().optional(),
     state: z.string().optional(),
-    postalCode: z.string().optional(),
+    postalCode: z.string().regex(/^[1-9][0-9]{5}$/, { message: "Please enter a valid 6-digit PIN code." }).optional(),
   }).optional(),
 
   // Legal / Tax info
   licenseNumber: z.string().optional(),
-  gstNumber: z.string().optional(),
+  gstNumber: z.string()
+    .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, { message: "Please enter a valid GST number (e.g. 22AAAAA0000A1Z5)." })
+    .optional()
+    .or(z.literal('')),
   registrationNumber: z.string().optional(),
   taxId: z.string().optional(),
 });

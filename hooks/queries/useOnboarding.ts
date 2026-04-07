@@ -19,11 +19,20 @@ export const ONBOARDING_KEYS = {
 
 // --- Queries ---
 
-export const useCatalogQuery = () => {
+export const useCatalogQuery = (specialty?: string) => {
   return useQuery({
-    queryKey: ONBOARDING_KEYS.catalog(),
-    queryFn: () => OnboardingService.fetchCatalog(),
+    queryKey: [...ONBOARDING_KEYS.catalog(), specialty],
+    queryFn: () => OnboardingService.fetchCatalog(specialty),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useSpecializedDepartmentsQuery = (specialty: string) => {
+  return useQuery({
+    queryKey: [...ONBOARDING_KEYS.all, 'specialties', 'departments', specialty],
+    queryFn: () => OnboardingService.fetchSpecializedDepartments(specialty),
+    enabled: !!specialty,
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -70,6 +79,18 @@ export const useResendOtpMutation = () => {
 export const useSubdomainCheckMutation = () => {
   return useMutation({
     mutationFn: (subdomain: string) => OnboardingService.checkSubdomain(subdomain),
+  });
+};
+
+export const useVerifyMRMutation = () => {
+  return useMutation({
+    mutationFn: (code: string) => OnboardingService.verifyMR(code),
+  });
+};
+
+export const useVerifyGstMutation = () => {
+  return useMutation({
+    mutationFn: (gstNumber: string) => OnboardingService.verifyGst(gstNumber),
   });
 };
 

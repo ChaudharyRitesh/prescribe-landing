@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Box, Stepper, Step, StepLabel, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { OnboardingThemeProvider } from "./OnboardingThemeProvider";
+import { LavaLampBackground } from "./LavaLampBackground";
+import { FacilityTypeSelection } from "./steps/FacilityTypeSelection";
 import { EmailInitiation } from "./steps/EmailInitiation";
 import { OtpVerification } from "./steps/OtpVerification";
 import { OrganizationDetails } from "./steps/OrganizationDetails";
@@ -15,11 +18,27 @@ export type OnboardingData = {
   email?: string;
   subdomain?: string;
   orgName?: string;
+  contactName?: string;
+  contactPhone?: string;
   referralCode?: string;
-  // more properties can be added here
+  gstNumber?: string;
+  facilityType?: string;
+  selectionType?: 'package' | 'individual';
+  packageId?: string;
+  selectedModules?: string[];
+  billingCycle?: 'monthly' | 'yearly';
+  address?: {
+    building?: string;
+    street?: string;
+    city?: string;
+    district?: string;
+    state?: string;
+    postalCode?: string;
+  };
 };
 
 const steps = [
+  "Facility Type",
   "Email Entry",
   "Verification",
   "Organization Identity",
@@ -28,28 +47,21 @@ const steps = [
   "Onboarding Complete",
 ];
 
-export function OnboardingWizard() {
+interface OnboardingWizardProps {
+  externalData?: OnboardingData;
+  externalUpdateData?: (newData: Partial<OnboardingData>) => void;
+}
+
+export function OnboardingWizard({ externalData, externalUpdateData }: OnboardingWizardProps) {
   const [activeStep, setActiveStep] = useState(0);
-  const [data, setData] = useState<OnboardingData>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("kaero_onboarding_session");
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
   
+  // Use external data if provided, otherwise fallback to local (though page should provide it)
+  const [localData, setLocalData] = useState<OnboardingData>({});
+  
+  const data = externalData || localData;
+  const updateData = externalUpdateData || ((newData: Partial<OnboardingData>) => setLocalData(prev => ({ ...prev, ...newData })));
+
   const theme = useTheme();
-
-  // Sync with localStorage whenever data changes
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("kaero_onboarding_session", JSON.stringify(data));
-    }
-  }, [data]);
-
-  const updateData = (newData: Partial<OnboardingData>) => {
-    setData((prev) => ({ ...prev, ...newData }));
-  };
 
   const nextStep = () => setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setActiveStep((prev) => Math.max(prev - 1, 0));
@@ -58,16 +70,18 @@ export function OnboardingWizard() {
   const renderStepContent = (stepIndex: number) => {
     switch (stepIndex) {
       case 0:
-        return <EmailInitiation onNext={nextStep} updateData={updateData} data={data} />;
+        return <FacilityTypeSelection onNext={nextStep} updateData={updateData} data={data} />;
       case 1:
-        return <OtpVerification onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
+        return <EmailInitiation onNext={nextStep} updateData={updateData} data={data} />;
       case 2:
-        return <OrganizationDetails onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
+        return <OtpVerification onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
       case 3:
-        return <ModuleCatalogSelection onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
+        return <OrganizationDetails onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
       case 4:
-        return <FinalReviewAndPayment onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
+        return <ModuleCatalogSelection onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
       case 5:
+        return <FinalReviewAndPayment onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
+      case 6:
         return <ProvisioningStatus data={data} />;
       default:
         return <Typography>Unknown step Index</Typography>;
@@ -75,42 +89,41 @@ export function OnboardingWizard() {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, minHeight: 600 }}>
-      {/* Sidebar / Progress Tracker */}
+    <Box sx={{ position: 'relative', zIndex: 1, display: "flex", flexDirection: "column", minHeight: 600 }}>
+      {/* Top Progress Tracker */}
       <Box 
         sx={{ 
-          width: { xs: "100%", md: "35%" }, 
+          width: "100%", 
           bgcolor: "background.default", 
-          p: { xs: 4, md: 6 },
-          borderRight: { xs: 'none', md: '1px solid' },
-          borderBottom: { xs: '1px solid', md: 'none' },
+          p: { xs: 3, md: 4 },
+          borderBottom: '1px solid',
           borderColor: 'divider',
         }}
       >
-        <Typography variant="h5" sx={{ mb: 4, fontWeight: 700, color: 'text.primary' }}>
-          Setup Progress
-        </Typography>
-        <Stepper activeStep={activeStep} orientation="vertical" sx={{ '& .MuiStepConnector-line': { minHeight: 40 } }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel 
-                sx={{
-                  '& .MuiStepLabel-label': {
-                    typography: 'subtitle1',
-                    fontWeight: 600,
-                  }
-                }}
-              >
-                {label}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+          <Stepper activeStep={activeStep} orientation="horizontal" alternativeLabel sx={{ '& .MuiStepConnector-line': { minHeight: 0 } }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel 
+                  sx={{
+                    '& .MuiStepLabel-label': {
+                      typography: 'caption',
+                      fontWeight: 600,
+                      display: { xs: 'none', md: 'block' }
+                    }
+                  }}
+                >
+                  {label}
+                </StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Box>
       </Box>
 
       {/* Main Content Area */}
-      <Box sx={{ width: { xs: "100%", md: "65%" }, p: { xs: 4, md: 8 }, display: 'flex', flexDirection: 'column', justifyContent: 'center', bgcolor: 'background.paper' }}>
-        <Box sx={{ maxWidth: 480, width: '100%', mx: 'auto' }}>
+      <Box sx={{ flexGrow: 1, p: { xs: 4, md: 8 }, display: 'flex', flexDirection: 'column', justifyContent: 'center', bgcolor: 'background.paper' }}>
+        <Box sx={{ maxWidth: 900, width: '100%', mx: 'auto' }}>
           {renderStepContent(activeStep)}
         </Box>
       </Box>

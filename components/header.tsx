@@ -84,12 +84,12 @@ export default function Header() {
               >
                 Partner Program
               </Link>
-              {/* <Link href="/onboarding" className="button-primary text-sm">
-                Create Account
-              </Link> */}
-              <Link href="#" className="button-primary text-sm">
+              <Link href="/onboarding" className="button-primary text-sm">
                 Create Account
               </Link>
+              {/* <Link href="#" className="button-primary text-sm">
+                Create Account
+              </Link> */}
             </>
           )}
         </div>

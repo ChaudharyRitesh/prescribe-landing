@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Props) {
-  const { data: catalog, isLoading, error } = useCatalogQuery();
+  const { data: catalog, isLoading, error } = useCatalogQuery(data.facilityType);
 
   const [selectionTab, setSelectionTab] = useState(0); // 0 = Packages, 1 = Modules
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
@@ -47,6 +47,22 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
   }
 
   const { packages, modules } = catalog;
+
+  // Persona-based module recommendations using backend signals
+  const isRecommended = (mod: ModuleItem) => {
+    if (mod.isHero) return true;
+    if (data.facilityType && mod.specialties?.includes(data.facilityType)) return true;
+    return false;
+  };
+
+  // Filter or Sort modules based on recommendation
+  const sortedModules = [...modules].sort((a, b) => {
+    const aRec = isRecommended(a);
+    const bRec = isRecommended(b);
+    if (aRec && !bRec) return -1;
+    if (!aRec && bRec) return 1;
+    return 0;
+  });
 
   const toggleModule = (slug: string) => {
     setSelectedModules((prev) =>
@@ -88,7 +104,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
             Select Modules
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Choose what tools your team needs to operate efficiently.
+            {data.facilityType ? `Recommended tools for your ${data.facilityType} setup.` : 'Choose what tools your team needs to operate efficiently.'}
           </Typography>
         </Box>
         <Box bgcolor="background.default" p={0.5} borderRadius={2} display="flex" gap={0.5}>
@@ -185,16 +201,18 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
           </Box>
         ) : (
           <Box display="flex" flexDirection="column" gap={2}>
-            {modules.map((mod: ModuleItem) => {
+            {sortedModules.map((mod: ModuleItem) => {
               const isSelected = selectedModules.includes(mod.slug);
+              const recommended = isRecommended(mod);
               return (
                 <Card 
                   key={mod.slug}
                   sx={{ 
                     cursor: 'pointer',
                     borderColor: isSelected ? 'primary.main' : 'divider',
-                    bgcolor: isSelected ? '#EEF2FF' : 'background.paper',
-                    borderWidth: isSelected ? 2 : 1
+                    bgcolor: isSelected ? 'primary.50' : 'background.paper',
+                    borderWidth: isSelected ? 2 : 1,
+                    position: 'relative'
                   }}
                   onClick={() => toggleModule(mod.slug)}
                 >
@@ -205,7 +223,12 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                           {mod.icon === 'doctors' ? <LocalHospitalIcon /> : <ScienceIcon />}
                         </Box>
                         <Box>
-                          <Typography variant="subtitle1" fontWeight="bold">{mod.label}</Typography>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography variant="subtitle1" fontWeight="bold">{mod.label}</Typography>
+                            {recommended && (
+                              <Chip label="Recommended" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700 }} />
+                            )}
+                          </Box>
                           <Typography variant="body2" color="text.secondary">{mod.description}</Typography>
                         </Box>
                       </Box>
