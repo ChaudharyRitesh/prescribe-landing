@@ -30,7 +30,7 @@ export default function Header() {
     { label: "Modules", href: "/#modules" },
     { label: "Features", href: "/#features" },
     { label: "Pricing", href: "/#pricing" },
-    { label: "Compliance", href: "/compliance" },
+    { label: "Kaero Partners", href: "/#partners" },
   ];
 
   return (
@@ -84,8 +84,8 @@ export default function Header() {
               >
                 Partner Program
               </Link>
-              <Link href="/onboarding" className="button-primary text-sm">
-                Create Account
+              <Link href="/onboarding" className="button-primary text-sm px-8">
+                Create
               </Link>
               {/* <Link href="#" className="button-primary text-sm">
                 Create Account
