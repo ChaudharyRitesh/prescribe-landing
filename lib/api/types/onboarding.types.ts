@@ -171,6 +171,7 @@ export interface StatusResponse extends BaseResponse {
   dashboardUrl?: string;
   adminEmail?: string;
   tempPassword?: string;
+  failureReason?: string;
 }
 
 // 9. GET /onboarding/specialties/departments
