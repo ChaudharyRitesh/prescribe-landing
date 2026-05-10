@@ -134,10 +134,10 @@ export function PricingSection() {
         {/* ---- Section heading ---- */}
         <ScrollReveal>
           <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
               Pricing That Fits Your Practice
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Every facility operates differently. Tell us about yours and
               we&apos;ll put together a plan that matches your scale, modules,
               and budget — no cookie-cutter packages.
@@ -147,7 +147,7 @@ export function PricingSection() {
 
         {/* ---- Two-column layout: highlights + form ---- */}
         <ScrollReveal delay={100}>
-          <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-start">
+          <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-16 items-start">
             {/* Left column — highlights */}
             <div className="lg:col-span-2 space-y-8">
               <div>
@@ -178,7 +178,7 @@ export function PricingSection() {
 
             {/* Right column — form card */}
             <div className="lg:col-span-3">
-              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 md:p-10">
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 sm:p-6 md:p-8 lg:p-10">
                 {submitSuccess ? (
                   <div className="text-center py-6">
                     <div className="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-5">

@@ -56,17 +56,17 @@ export function CTASection({ data }: CTASectionProps) {
 
       <div className="section-max-width">
         <ScrollReveal>
-          <div className="mb-16">
+          <div className="mb-8 sm:mb-12 md:mb-16">
             <div className="hidden md:block mb-16">
               <MacbookShowcase slides={slides} />
             </div>
 
             <div className="text-center space-y-8">
-              <h2 className="text-5xl md:text-6xl font-bold leading-tight">
+              <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                 {title}
               </h2>
 
-              <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              <p className="text-base sm:text-lg text-gray-300 max-w-3xl mx-auto">
                 {description}
               </p>
 

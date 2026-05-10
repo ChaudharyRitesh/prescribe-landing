@@ -31,11 +31,11 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
     <section className="section-padding bg-gray-50">
       <div className="section-max-width">
         <ScrollReveal>
-          <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-10 sm:mb-14 md:mb-20">
+            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
               Why Kaero Prescribe Wins
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Built from the ground up for modern healthcare. Not a legacy
               system with AI bolted on.
             </p>
@@ -43,13 +43,14 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
         </ScrollReveal>
 
         <ScrollReveal>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="grid grid-cols-3 gap-8 p-8 border-b border-gray-200 bg-gray-50">
-              <div className="text-sm font-semibold text-gray-900">Feature</div>
-              <div className="text-sm font-semibold text-blue-600 text-center">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden min-w-[320px]">
+            <div className="grid grid-cols-3 gap-2 p-3 sm:gap-4 sm:p-5 md:gap-8 md:p-8 border-b border-gray-200 bg-gray-50">
+              <div className="text-xs sm:text-sm font-semibold text-gray-900">Feature</div>
+              <div className="text-xs sm:text-sm font-semibold text-blue-600 text-center">
                 KaeroPrescribe
               </div>
-              <div className="text-sm font-semibold text-gray-600 text-center">
+              <div className="text-xs sm:text-sm font-semibold text-gray-600 text-center">
                 Traditional
               </div>
             </div>
@@ -58,9 +59,9 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
               {displayComparisons.map((row, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-3 gap-8 p-8 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                  className="grid grid-cols-3 gap-2 p-3 sm:gap-4 sm:p-5 md:gap-8 md:p-8 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-xs sm:text-sm font-medium text-gray-900">
                     {row.feature}
                   </div>
                   <div className="flex justify-center">
@@ -80,6 +81,7 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
                 </div>
               ))}
             </div>
+          </div>
           </div>
         </ScrollReveal>
       </div>

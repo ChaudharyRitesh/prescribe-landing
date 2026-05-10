@@ -90,10 +90,10 @@ export function TrustSection({ items }: TrustSectionProps) {
               <CheckCircle2 size={16} />
               Enterprise-Grade Security
             </div>
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
               Trust Built In
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Healthcare data demands the highest standards. We don't compromise
               on security or compliance.
             </p>
@@ -102,11 +102,11 @@ export function TrustSection({ items }: TrustSectionProps) {
 
         {/* Certification Badges */}
         <ScrollReveal>
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
             {certifications.map((cert) => (
               <div
                 key={cert.name}
-                className="flex items-center gap-3 px-5 py-3 bg-white rounded-xl border border-gray-200 shadow-sm"
+                className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-5 sm:py-3 bg-white rounded-xl border border-gray-200 shadow-sm"
               >
                 <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                   <CheckCircle2 size={18} className="text-green-600" />
@@ -123,7 +123,7 @@ export function TrustSection({ items }: TrustSectionProps) {
         </ScrollReveal>
 
         {/* Trust Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
           {defaultItems.map((item, i) => {
             const Icon = item.icon;
             const colors = colorClasses[item.color];
@@ -131,14 +131,14 @@ export function TrustSection({ items }: TrustSectionProps) {
             return (
               <ScrollReveal key={i} delay={i * 100}>
                 <div
-                  className={`p-8 rounded-xl border ${colors.border} ${colors.bg} hover:shadow-lg transition-all duration-300`}
+                  className={`p-5 sm:p-6 md:p-8 rounded-xl border ${colors.border} ${colors.bg} hover:shadow-lg transition-all duration-300`}
                 >
                   <div
                     className={`w-12 h-12 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center mb-5`}
                   >
                     <Icon size={24} className={colors.icon} />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
                     {item.title}
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
@@ -152,8 +152,8 @@ export function TrustSection({ items }: TrustSectionProps) {
 
         {/* Stats Bar */}
         <ScrollReveal>
-          <div className="bg-gray-900 rounded-2xl p-8 md:p-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="bg-gray-900 rounded-2xl p-5 sm:p-6 md:p-8 lg:p-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center">
               {[
                 { value: "99.9%", label: "Uptime SLA" },
                 { value: "256-bit", label: "Encryption" },
@@ -161,10 +161,10 @@ export function TrustSection({ items }: TrustSectionProps) {
                 { value: "24/7", label: "Security Monitoring" },
               ].map((stat, i) => (
                 <div key={i}>
-                  <p className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-gray-400 text-sm">{stat.label}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">{stat.label}</p>
                 </div>
               ))}
             </div>

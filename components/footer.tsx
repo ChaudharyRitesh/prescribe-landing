@@ -106,7 +106,7 @@ export function Footer() {
         <div className="section-max-width section-padding py-12">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="text-center lg:text-left">
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
                 Stay Updated with KaeroPrescribe
               </h3>
               <p className="text-gray-400">
@@ -117,7 +117,7 @@ export function Footer() {
             <div className="w-full lg:w-auto">
               <form
                 onSubmit={onNewsletterSubmit}
-                className="flex w-full lg:w-auto gap-3"
+                className="flex flex-col sm:flex-row w-full lg:w-auto gap-3"
               >
                 <input
                   type="email"
@@ -159,9 +159,9 @@ export function Footer() {
 
       {/* Main Footer Content */}
       <div className="section-max-width section-padding py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-10 md:gap-12">
           {/* Brand Column */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center overflow-hidden">
                 <Image

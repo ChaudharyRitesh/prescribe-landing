@@ -35,13 +35,13 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-b border-neutral-100">
-      <div className="section-max-width py-3 flex items-center justify-between">
+      <div className="section-max-width px-4 sm:px-6 md:px-8 lg:px-12 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <img
               src="/logo.png"
               alt="KaeroPrescribe Logo"
-              className="object-cover w-60 h-full"
+              className="object-cover w-32 xs:w-36 sm:w-44 md:w-52 lg:w-60 h-full"
             />
           </Link>
         </div>
@@ -103,19 +103,19 @@ export default function Header() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden border-t border-neutral-100 bg-white">
-          <div className="section-padding flex flex-col gap-4">
+        <div className="md:hidden border-t border-neutral-100 bg-white animate-in slide-in-from-top duration-200">
+          <div className="px-4 py-4 sm:px-6 flex flex-col gap-1">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="text-neutral-600 font-medium transition-colors hover:text-neutral-900"
+                className="text-neutral-600 font-medium transition-colors hover:text-neutral-900 py-2.5 text-base"
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
               </a>
             ))}
-            <div className="flex flex-col gap-2 pt-4">
+            <div className="flex flex-col gap-3 pt-4 border-t border-neutral-100 mt-2">
               {isLogged ? (
                 <>
                   <Link href="/partner/dashboard" className="button-outline w-full text-sm text-center py-2 border rounded-full text-neutral-600 font-medium flex items-center justify-center gap-2">

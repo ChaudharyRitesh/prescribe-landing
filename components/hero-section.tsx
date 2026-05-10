@@ -86,24 +86,24 @@ export function HeroSection({ data }: HeroSectionProps) {
       : fallbackSlides;
 
   return (
-    <section className="relative min-h-screen pt-32 pb-8 overflow-hidden bg-white">
+    <section className="relative min-h-[calc(100vh-60px)] sm:min-h-screen pt-20 xs:pt-24 sm:pt-28 md:pt-32 pb-8 overflow-hidden bg-white">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-40 right-1/3 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-40"></div>
+        <div className="absolute top-40 right-1/3 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-blue-50 rounded-full blur-3xl opacity-40"></div>
       </div>
 
       <div className="section-max-width section-padding">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center mb-10 sm:mb-14 md:mb-20">
           <div className="space-y-8">
             <div>
-              <div className="inline-block mb-6 px-4 py-2 rounded-full bg-blue-50 border border-blue-200">
+              <div className="inline-block mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-blue-50 border border-blue-200">
                 <p className="text-sm font-semibold text-blue-700">{tagline}</p>
               </div>
 
-              <h1 className="text-6xl md:text-7xl font-bold text-gray-900 leading-tight mb-6">
+              <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
                 {title} <span className="text-blue-600">{subtitle}</span>
               </h1>
 
-              <p className="text-lg text-gray-600 leading-relaxed max-w-lg">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-lg">
                 {description}
               </p>
             </div>
@@ -159,18 +159,18 @@ export function HeroSection({ data }: HeroSectionProps) {
                 })}
             </div>
 
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 md:gap-8 pt-6 sm:pt-8 border-t border-gray-200">
               <div>
-                <p className="text-3xl font-bold text-gray-900">4+</p>
-                <p className="text-sm text-gray-600 mt-1">Integrated Modules</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">4+</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">Integrated Modules</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-gray-900">99.9%</p>
-                <p className="text-sm text-gray-600 mt-1">Uptime SLA</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">99.9%</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">Uptime SLA</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-gray-900">24/7</p>
-                <p className="text-sm text-gray-600 mt-1">Customer Support</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">24/7</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">Customer Support</p>
               </div>
             </div>
           </div>

@@ -92,14 +92,14 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
   const displayModules = modules.length > 0 ? modules : defaultModules;
 
   return (
-    <section className="py-12 px-4 sm:px-6 md:px-8 lg:px-12 bg-gray-50">
+    <section className="py-8 sm:py-10 md:py-12 px-4 sm:px-6 md:px-8 lg:px-12 bg-gray-50">
       <div className="section-max-width">
         <ScrollReveal>
-          <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-10 sm:mb-14 md:mb-20">
+            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
               4+ Modules. One Unified Core
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Each Kaero Prescribe module functions as a complete standalone
               solution while remaining deeply interconnected through a unified
               data architecture. Organizations can deploy individual modules or
@@ -109,7 +109,7 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {displayModules.map((module: any, idx) => {
             const Icon = iconMap[module.icon] || Zap;
             const imageSrc = module.image?.imageUpload
@@ -125,7 +125,7 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
             return (
               <ScrollReveal key={idx} delay={idx * 100}>
                 <div className="group">
-                  <div className="relative mb-6 overflow-hidden rounded-xl aspect-video bg-gray-200 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="relative mb-4 sm:mb-6 overflow-hidden rounded-xl aspect-video bg-gray-200 shadow-md hover:shadow-lg transition-shadow">
                     <Image
                       src={imageSrc}
                       alt={module.title}
@@ -142,7 +142,7 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
                         <Icon size={24} />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">
+                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
                           {module.title}
                         </h3>
                         <p className="text-gray-600">{module.description}</p>
@@ -150,7 +150,7 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
                     </div>
 
                     {module.features && module.features.length > 0 && (
-                      <div className="grid grid-cols-2 gap-3 pt-4">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
                         {module.features.map((feature: string, i: number) => (
                           <div
                             key={i}

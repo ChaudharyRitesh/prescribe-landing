@@ -23,14 +23,14 @@ export function FeaturesSection({
   const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeVideoId}?autoplay=1&rel=0`;
 
   return (
-    <section className="px-4 sm:px-6 md:px-8 lg:px-12 py-20 md:py-28 bg-white">
+    <section className="px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
       <div className="section-max-width">
         <ScrollReveal>
           <div className="text-center mb-12">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
               Built for Real Operations
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
               Kaero Prescribe was created in collaboration with clinicians,
               administrators, and healthcare operators who needed systems that
               reflect real-world workflows. Every module is designed to reduce
@@ -93,7 +93,7 @@ export function FeaturesSection({
             </div>
 
             {/* Decorative elements */}
-            <div className="absolute -z-10 -top-4 -left-4 w-full h-full rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100" />
+            <div className="absolute -z-10 -top-2 -left-2 sm:-top-3 sm:-left-3 md:-top-4 md:-left-4 w-full h-full rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100" />
           </div>
         </ScrollReveal>
       </div>
