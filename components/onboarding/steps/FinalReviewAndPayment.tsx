@@ -47,7 +47,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
     resolver: zodResolver(ContactSchema),
     mode: "onChange",
     defaultValues: {
-      contactName: data.contactName || "",
+      contactName: data.contactName || data.orgName || "Valued Partner",
       contactPhone: data.contactPhone || "",
       gstNumber: data.gstNumber || "",
     }
