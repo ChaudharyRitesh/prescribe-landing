@@ -45,6 +45,17 @@ export function ProvisioningStatus({ data }: Props) {
     console.log(`[ProvisioningStatus] localSessionID: ${localSessionId}, status: ${statusResp.status}`);
   }
 
+  const isProvisioned = statusResp?.status === "provisioned";
+  const isFailed = statusResp?.status === "failed" || isError;
+
+  useEffect(() => {
+    if (isProvisioned || isFailed) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("kaero_onboarding_session");
+      }
+    }
+  }, [isProvisioned, isFailed]);
+
   if (isLoading) {
     return (
        <Box 
@@ -82,9 +93,6 @@ export function ProvisioningStatus({ data }: Props) {
        </Box>
     );
   }
-
-  const isProvisioned = statusResp?.status === "provisioned";
-  const isFailed = statusResp?.status === "failed" || isError;
 
   return (
     <Box 
@@ -125,7 +133,12 @@ export function ProvisioningStatus({ data }: Props) {
              variant="contained"
              color="primary"
              size="large"
-             onClick={() => window.location.href = statusResp?.dashboardUrl || "#"}
+             onClick={() => {
+               if (typeof window !== "undefined") {
+                 localStorage.removeItem("kaero_onboarding_session");
+               }
+               window.location.href = statusResp?.dashboardUrl || "#";
+             }}
              endIcon={<DashboardIcon />}
              sx={{ px: 5, py: 1.5, zIndex: 1 }}
            >
@@ -139,9 +152,14 @@ export function ProvisioningStatus({ data }: Props) {
               Provisioning Failed
             </Typography>
             <Typography variant="body1" color="text.secondary" mb={4} maxWidth="sm">
-              Something went wrong while setting up your tenant workspace. Our support team has been notified and we will fix this shortly.
+              {statusResp?.failureReason || "Something went wrong while setting up your tenant workspace. Our support team has been notified and we will fix this shortly."}
             </Typography>
-            <Button variant="outlined" color="primary" onClick={() => window.location.reload()} startIcon={<RefreshIcon />}>
+            <Button variant="outlined" color="primary" onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("kaero_onboarding_session");
+                }
+                window.location.href = "/onboarding";
+            }} startIcon={<RefreshIcon />}>
               Start over
             </Button>
           </>
