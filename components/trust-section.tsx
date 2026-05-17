@@ -1,14 +1,12 @@
 "use client";
 
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import MuiLink from "@mui/material/Link";
 import ScrollReveal from "./scroll-reveal";
-import {
-  Shield,
-  Lock,
-  FileCheck,
-  Server,
-  CheckCircle2,
-  ArrowRight,
-} from "lucide-react";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import Link from "next/link";
 
 interface TrustItem {
@@ -20,173 +18,161 @@ interface TrustSectionProps {
   items: TrustItem[];
 }
 
-const defaultItems = [
-  {
-    title: "Regulated Architecture",
-    description:
-      "Built from the ground up for healthcare compliance. HIPAA-ready foundations. Support for Indian healthcare regulations.",
-    icon: Shield,
-    color: "blue",
-  },
-  {
-    title: "Complete Audit Trails",
-    description:
-      "Every transaction, every access, every change is logged and traceable. Complete compliance documentation.",
-    icon: FileCheck,
-    color: "green",
-  },
-  {
-    title: "Enterprise Security",
-    description:
-      "AES-256 encryption at rest, TLS 1.3 in transit. Regular security audits and penetration testing. Zero-trust architecture.",
-    icon: Lock,
-    color: "purple",
-  },
-  {
-    title: "Disaster Recovery",
-    description:
-      "Multi-region redundancy. Automated backups. RTO < 1 hour. RPO < 15 minutes. 99.9% uptime guarantee.",
-    icon: Server,
-    color: "orange",
-  },
+const complianceBadges = [
+  { acronym: "HIPAA", label: "Compliant" },
+  { acronym: "DPDP", label: "Compliant" },
+  { acronym: "ISO 27001", label: "Aligned" },
+  { acronym: "GDPR", label: "Ready" },
 ];
 
-const certifications = [
-  { name: "HIPAA", status: "Compliant" },
-  { name: "DPDP Act", status: "Compliant" },
-  { name: "ISO 27001", status: "Aligned" },
-  { name: "GDPR", status: "Ready" },
+const slaMetrics = [
+  { val: "99.9%", label: "Uptime SLA" },
+  { val: "256-bit", label: "Encryption" },
+  { val: "<1hr", label: "Recovery Time" },
+  { val: "24/7", label: "Monitoring" },
 ];
-
-const colorClasses: Record<
-  string,
-  { bg: string; icon: string; border: string }
-> = {
-  blue: { bg: "bg-blue-50", icon: "text-blue-600", border: "border-blue-100" },
-  green: {
-    bg: "bg-green-50",
-    icon: "text-green-600",
-    border: "border-green-100",
-  },
-  purple: {
-    bg: "bg-purple-50",
-    icon: "text-purple-600",
-    border: "border-purple-100",
-  },
-  orange: {
-    bg: "bg-orange-50",
-    icon: "text-orange-600",
-    border: "border-orange-100",
-  },
-};
 
 export function TrustSection({ items }: TrustSectionProps) {
   return (
-    <section className="section-padding bg-gradient-to-b from-gray-50 to-white">
-      <div className="section-max-width">
+    <Box
+      component="section"
+      sx={{
+        background: "#0B1120",
+        py: { xs: 6, md: 10 },
+        px: 2,
+      }}
+    >
+      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
         <ScrollReveal>
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-6">
-              <CheckCircle2 size={16} />
-              Enterprise-Grade Security
-            </div>
-            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
+          <Box sx={{ textAlign: "center", mb: { xs: 3, md: 4 } }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "primary.main", mb: 0.5, display: "block" }}
+            >
+              Compliance & Certifications
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{
+                color: "#F1F5F9",
+                fontSize: { xs: "1.375rem", md: "2rem" },
+                mb: 1.5,
+              }}
+            >
               Trust Built In
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
-              Healthcare data demands the highest standards. We don't compromise
-              on security or compliance.
-            </p>
-          </div>
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ color: "#94A3B8", maxWidth: 480, mx: "auto" }}
+            >
+              Healthcare data demands the highest standards. We don&apos;t
+              compromise on security or compliance.
+            </Typography>
+          </Box>
         </ScrollReveal>
 
-        {/* Certification Badges */}
-        <ScrollReveal>
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
-            {certifications.map((cert) => (
-              <div
-                key={cert.name}
-                className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-5 sm:py-3 bg-white rounded-xl border border-gray-200 shadow-sm"
-              >
-                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                  <CheckCircle2 size={18} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">
-                    {cert.name}
-                  </p>
-                  <p className="text-xs text-green-600">{cert.status}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </ScrollReveal>
-
-        {/* Trust Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          {defaultItems.map((item, i) => {
-            const Icon = item.icon;
-            const colors = colorClasses[item.color];
-
-            return (
-              <ScrollReveal key={i} delay={i * 100}>
-                <div
-                  className={`p-5 sm:p-6 md:p-8 rounded-xl border ${colors.border} ${colors.bg} hover:shadow-lg transition-all duration-300`}
+        {/* Compliance badge grid */}
+        <ScrollReveal delay={100}>
+          <Grid
+            container
+            spacing={1.5}
+            sx={{ mb: 4, maxWidth: 600, mx: "auto" }}
+          >
+            {complianceBadges.map((b) => (
+              <Grid size={{ xs: 6 }} key={b.acronym}>
+                <Paper
+                  sx={{
+                    background: "#1E293B",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 2,
+                    p: 2,
+                    textAlign: "center",
+                    transition: "all 0.3s",
+                    "&:hover": {
+                      borderColor: "rgba(20,184,166,0.3)",
+                      background: "#263549",
+                    },
+                  }}
                 >
-                  <div
-                    className={`w-12 h-12 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center mb-5`}
+                  <Typography
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: 700,
+                      fontSize: "1rem",
+                    }}
                   >
-                    <Icon size={24} className={colors.icon} />
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </ScrollReveal>
-            );
-          })}
-        </div>
+                    {b.acronym}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#64748B", fontSize: "0.6875rem" }}
+                  >
+                    {b.label}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </ScrollReveal>
 
-        {/* Stats Bar */}
-        <ScrollReveal>
-          <div className="bg-gray-900 rounded-2xl p-5 sm:p-6 md:p-8 lg:p-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center">
-              {[
-                { value: "99.9%", label: "Uptime SLA" },
-                { value: "256-bit", label: "Encryption" },
-                { value: "<1hr", label: "Recovery Time" },
-                { value: "24/7", label: "Security Monitoring" },
-              ].map((stat, i) => (
-                <div key={i}>
-                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
-                    {stat.value}
-                  </p>
-                  <p className="text-gray-400 text-xs sm:text-sm">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* SLA metrics strip */}
+        <ScrollReveal delay={200}>
+          <Grid
+            container
+            spacing={1.5}
+            sx={{ maxWidth: 600, mx: "auto", mb: 4 }}
+          >
+            {slaMetrics.map((m) => (
+              <Grid size={{ xs: 6, sm: 3 }} key={m.label}>
+                <Box sx={{ textAlign: "center" }}>
+                  <Typography
+                    variant="overline"
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: 700,
+                      fontSize: "1.125rem",
+                      display: "block",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {m.val}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#64748B" }}>
+                    {m.label}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
         </ScrollReveal>
 
         {/* CTA to Compliance Page */}
-        <ScrollReveal>
-          <div className="text-center mt-12">
-            <Link
+        <ScrollReveal delay={300}>
+          <Box sx={{ textAlign: "center" }}>
+            <MuiLink
+              component={Link}
               href="/compliance"
-              className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors group"
+              underline="none"
+              sx={{
+                color: "primary.main",
+                fontWeight: 600,
+                fontSize: "0.8125rem",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.5,
+                transition: "all 0.2s",
+                "&:hover": {
+                  color: "primary.light",
+                  gap: 1,
+                },
+              }}
             >
               View Full Compliance Documentation
-              <ArrowRight
-                size={18}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </Link>
-          </div>
+              <ArrowForwardIcon sx={{ fontSize: 16 }} />
+            </MuiLink>
+          </Box>
         </ScrollReveal>
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }

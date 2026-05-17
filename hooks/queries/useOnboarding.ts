@@ -43,7 +43,7 @@ export const useProvisioningStatusQuery = (sessionId: string, enabled: boolean =
     enabled: !!sessionId && enabled,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      if (status === 'provisioned' || status === 'failed') return false; // Stop polling
+      if (status === 'provisioned' || status === 'failed' || status === 'quote_pending') return false; // Stop polling
       return 3000; // Poll every 3 seconds
     },
     refetchIntervalInBackground: true,

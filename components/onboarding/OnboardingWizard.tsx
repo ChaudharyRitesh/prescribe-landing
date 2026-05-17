@@ -27,6 +27,7 @@ export type OnboardingData = {
   packageId?: string;
   selectedModules?: string[];
   billingCycle?: 'monthly' | 'yearly';
+  subscriptionPlan?: string;
   address?: {
     building?: string;
     street?: string;

@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
 import ScrollReveal from "./scroll-reveal";
-import { Play } from "lucide-react";
-import Image from "next/image";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 
 interface FeaturesSectionProps {
   features?: any;
   youtubeVideoId?: string;
 }
 
-// Default YouTube video ID - replace with your actual video ID
+// Default YouTube video ID
 const DEFAULT_YOUTUBE_VIDEO_ID = "bu27ErSgjSs";
 
 export function FeaturesSection({
@@ -23,80 +25,163 @@ export function FeaturesSection({
   const embedUrl = `https://www.youtube-nocookie.com/embed/${youtubeVideoId}?autoplay=1&rel=0`;
 
   return (
-    <section className="px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
-      <div className="section-max-width">
+    <Box
+      component="section"
+      id="features"
+      sx={{
+        px: 2,
+        py: { xs: 6, md: 10 },
+        background: "#FFFFFF",
+        scrollMarginTop: "72px",
+      }}
+    >
+      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
         <ScrollReveal>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
+          <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "primary.dark", mb: 1, display: "block" }}
+            >
+              Product Demo
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{ fontSize: { xs: "1.375rem", md: "2rem" }, mb: 1.5 }}
+            >
               Built for Real Operations
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
-              Kaero Prescribe was created in collaboration with clinicians,
-              administrators, and healthcare operators who needed systems that
-              reflect real-world workflows. Every module is designed to reduce
-              friction, improve visibility, and scale seamlessly as
-              organizations grow.
-            </p>
-          </div>
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ maxWidth: 600, mx: "auto" }}
+            >
+              Created in collaboration with clinicians, administrators, and
+              healthcare operators who needed systems that reflect real-world
+              workflows.
+            </Typography>
+          </Box>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-          <div className="relative max-w-4xl mx-auto">
-            {/* Video container with aspect ratio */}
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gray-900">
+          <Box sx={{ position: "relative", maxWidth: 900, mx: "auto" }}>
+            {/* Video container */}
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                aspectRatio: "16/9",
+                borderRadius: 3,
+                overflow: "hidden",
+                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+                background: "#0F172A",
+              }}
+            >
               {!isPlaying ? (
                 <>
-                  {/* YouTube Thumbnail */}
-                  <Image
+                  {/* Thumbnail */}
+                  <Box
+                    component="img"
                     src={thumbnailUrl}
                     alt="Video preview"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 896px"
-                    priority
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      position: "absolute",
+                      inset: 0,
+                    }}
                   />
-
                   {/* Dark overlay */}
-                  <div className="absolute inset-0 bg-black/30 transition-opacity hover:bg-black/20" />
-
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "rgba(0,0,0,0.3)",
+                      transition: "background 0.3s",
+                      "&:hover": { background: "rgba(0,0,0,0.2)" },
+                    }}
+                  />
                   {/* Play button */}
-                  <button
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
                     onClick={() => setIsPlaying(true)}
-                    className="absolute inset-0 flex items-center justify-center group cursor-pointer"
-                    aria-label="Play video"
                   >
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-blue-600 flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-700">
-                      <Play
-                        className="w-8 h-8 md:w-10 md:h-10 text-white ml-1"
-                        fill="white"
-                      />
-                    </div>
-                  </button>
-
-                  {/* Optional: "Watch Demo" text */}
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-                    <span className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-gray-900 shadow-md">
+                    <IconButton
+                      aria-label="Play video"
+                      sx={{
+                        width: { xs: 64, md: 80 },
+                        height: { xs: 64, md: 80 },
+                        background: "#14B8A6",
+                        color: "#0B1120",
+                        boxShadow: "0 8px 32px rgba(20,184,166,0.4)",
+                        transition: "all 0.3s",
+                        "&:hover": {
+                          background: "#0D9488",
+                          transform: "scale(1.1)",
+                        },
+                      }}
+                    >
+                      <PlayArrowRoundedIcon sx={{ fontSize: { xs: 32, md: 40 } }} />
+                    </IconButton>
+                    <Box
+                      sx={{
+                        mt: 2,
+                        px: 2.5,
+                        py: 0.75,
+                        background: "rgba(255,255,255,0.9)",
+                        backdropFilter: "blur(8px)",
+                        borderRadius: 10,
+                        fontSize: "0.8125rem",
+                        fontWeight: 600,
+                        color: "#0F172A",
+                      }}
+                    >
                       Watch Demo
-                    </span>
-                  </div>
+                    </Box>
+                  </Box>
                 </>
               ) : (
-                /* YouTube iframe embed */
                 <iframe
                   src={embedUrl}
                   title="Product Demo Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
-                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    border: "none",
+                  }}
                 />
               )}
-            </div>
+            </Box>
 
-            {/* Decorative elements */}
-            <div className="absolute -z-10 -top-2 -left-2 sm:-top-3 sm:-left-3 md:-top-4 md:-left-4 w-full h-full rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100" />
-          </div>
+            {/* Decorative element */}
+            <Box
+              sx={{
+                position: "absolute",
+                zIndex: -1,
+                top: -8,
+                left: -8,
+                right: -8,
+                bottom: -8,
+                borderRadius: 4,
+                background:
+                  "linear-gradient(135deg, rgba(20,184,166,0.15) 0%, rgba(59,130,246,0.1) 100%)",
+              }}
+            />
+          </Box>
         </ScrollReveal>
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }

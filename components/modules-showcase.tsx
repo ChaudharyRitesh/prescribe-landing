@@ -1,14 +1,21 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
+import { useState } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import MuiLink from "@mui/material/Link";
 import ScrollReveal from "./scroll-reveal";
-import { Zap, Users, Clock, BarChart3 } from "lucide-react";
-import { urlFor } from "@/lib/sanity";
-
-import labImage from "@/assets/lab-section.jpeg";
-import pharmaImage from "@/assets/pharmacy.jpeg";
-import doctorImage from "@/assets/doctor.jpeg";
-import receptionImage from "@/assets/reception.jpeg";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import LocalPharmacyOutlinedIcon from "@mui/icons-material/LocalPharmacyOutlined";
+import MedicalServicesOutlinedIcon from "@mui/icons-material/MedicalServicesOutlined";
+import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
+import BiotechOutlinedIcon from "@mui/icons-material/BiotechOutlined";
 
 interface Module {
   title: string;
@@ -25,47 +32,40 @@ interface ModulesShowcaseProps {
   modules: Module[];
 }
 
-const iconMap: Record<string, any> = {
-  Zap,
-  Users,
-  Clock,
-  BarChart3,
-};
-
 const defaultModules = [
   {
     title: "Pharmacy Admin",
-    description: "Inventory & Orders",
-    icon: "Zap",
-    image: pharmaImage,
+    description:
+      "Complete inventory management, order processing, supplier integration, and sales analytics with integrated billing and secure payments.",
+    icon: <LocalPharmacyOutlinedIcon sx={{ color: "#0D9488", fontSize: 24 }} />,
     features: [
       "Inventory management",
       "Order processing",
       "Supplier integration",
       "Sales analytics",
-      "Integreted billing",
+      "Integrated billing",
       "Secure payments",
     ],
   },
   {
     title: "Doctor's Portal",
-    description: "Patient Management",
-    icon: "Users",
-    image: doctorImage,
+    description:
+      "Unified patient management with e-prescriptions, appointment scheduling, telemedicine, clinical decision support, and medicine alerts.",
+    icon: <MedicalServicesOutlinedIcon sx={{ color: "#0D9488", fontSize: 24 }} />,
     features: [
       "Patient history",
       "E-prescriptions",
       "Appointment scheduling",
       "Telemedicine integration",
       "Clinical decision support",
-      "Medicine Suggestions & Alerts",
+      "Medicine suggestions & alerts",
     ],
   },
   {
     title: "Reception & Ops",
-    description: "Queue & Appointments",
-    icon: "Clock",
-    image: receptionImage,
+    description:
+      "Smart queue management, appointment scheduling, patient check-in/out, staff management, notifications, and operational reporting.",
+    icon: <EventNoteOutlinedIcon sx={{ color: "#0D9488", fontSize: 24 }} />,
     features: [
       "Appointment scheduling",
       "Patient check-in/out",
@@ -77,98 +77,154 @@ const defaultModules = [
   },
   {
     title: "Lab Dashboard",
-    description: "Reports & Results",
-    icon: "BarChart3",
-    image: labImage,
+    description:
+      "Analyzer interfacing, quality control with abnormal result alerts, and secure digital report delivery to patients.",
+    icon: <BiotechOutlinedIcon sx={{ color: "#0D9488", fontSize: 24 }} />,
     features: [
-      "Analyzer and machine interfacing",
-      "Quality control and abnormal result alerts",
-      "Secure digital report delivery to patients",
+      "Analyzer interfacing",
+      "Quality control & alerts",
+      "Digital report delivery",
     ],
   },
 ];
 
 export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
-  const displayModules = modules.length > 0 ? modules : defaultModules;
+  const [activeTab, setActiveTab] = useState(0);
+  const displayModules = defaultModules;
 
   return (
-    <section className="py-8 sm:py-10 md:py-12 px-4 sm:px-6 md:px-8 lg:px-12 bg-gray-50">
-      <div className="section-max-width">
+    <Box
+      component="section"
+      id="modules"
+      sx={{
+        py: { xs: 6, md: 10 },
+        px: 2,
+        background: "#F8FAFC",
+        scrollMarginTop: "72px",
+      }}
+    >
+      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
         <ScrollReveal>
-          <div className="text-center mb-10 sm:mb-14 md:mb-20">
-            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
+          <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "primary.dark", mb: 1, display: "block" }}
+            >
+              Platform Modules
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{
+                fontSize: { xs: "1.375rem", md: "2rem" },
+                mb: 1.5,
+              }}
+            >
               4+ Modules. One Unified Core
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
-              Each Kaero Prescribe module functions as a complete standalone
-              solution while remaining deeply interconnected through a unified
-              data architecture. Organizations can deploy individual modules or
-              operate the full ecosystem without duplication, reimplementation,
-              or data fragmentation.
-            </p>
-          </div>
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ maxWidth: 600, mx: "auto" }}
+            >
+              Each module functions as a complete standalone solution while
+              remaining deeply interconnected through a unified data
+              architecture.
+            </Typography>
+          </Box>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          {displayModules.map((module: any, idx) => {
-            const Icon = iconMap[module.icon] || Zap;
-            const imageSrc = module.image?.imageUpload
-              ? urlFor(module.image.imageUpload).width(600).height(400).url()
-              : module.image?.imageUrl ||
-                module.image ||
-                "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&h=400&q=80";
+        <ScrollReveal delay={100}>
+          {/* Scrollable tab switcher */}
+          <Tabs
+            value={activeTab}
+            onChange={(_, v) => setActiveTab(v)}
+            variant="scrollable"
+            scrollButtons={false}
+            sx={{
+              mb: 3,
+              "& .MuiTabs-flexContainer": { gap: 1, justifyContent: "center" },
+            }}
+          >
+            {displayModules.map((m, i) => (
+              <Tab key={m.title} label={m.title} value={i} disableRipple />
+            ))}
+          </Tabs>
 
-            // Check if it's a static import (has src property) or a string URL
-            const isStaticImport =
-              typeof imageSrc === "object" && imageSrc?.src;
+          {/* Active module card */}
+          <Box sx={{ maxWidth: 600, mx: "auto" }}>
+            <Card>
+              <CardContent sx={{ p: { xs: 2.5, md: 3.5 } }}>
+                {/* Icon box */}
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 2,
+                    background: "#F0FDFA",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: 1.5,
+                  }}
+                >
+                  {displayModules[activeTab].icon}
+                </Box>
 
-            return (
-              <ScrollReveal key={idx} delay={idx * 100}>
-                <div className="group">
-                  <div className="relative mb-4 sm:mb-6 overflow-hidden rounded-xl aspect-video bg-gray-200 shadow-md hover:shadow-lg transition-shadow">
-                    <Image
-                      src={imageSrc}
-                      alt={module.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      {...(!isStaticImport && { unoptimized: true })}
+                <Typography variant="h3" sx={{ mb: 0.5 }}>
+                  {displayModules[activeTab].title}
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1.5 }}
+                >
+                  {displayModules[activeTab].description}
+                </Typography>
+
+                {/* Feature chips */}
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  flexWrap="wrap"
+                  useFlexGap
+                  sx={{ mb: 2 }}
+                >
+                  {displayModules[activeTab].features.map((f) => (
+                    <Chip
+                      key={f}
+                      label={f}
+                      size="small"
+                      sx={{
+                        background: "#F1F5F9",
+                        color: "#475569",
+                        fontSize: "0.6875rem",
+                        borderRadius: 1,
+                      }}
                     />
-                  </div>
+                  ))}
+                </Stack>
 
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
-                        <Icon size={24} />
-                      </div>
-                      <div>
-                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
-                          {module.title}
-                        </h3>
-                        <p className="text-gray-600">{module.description}</p>
-                      </div>
-                    </div>
-
-                    {module.features && module.features.length > 0 && (
-                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
-                        {module.features.map((feature: string, i: number) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-2 text-sm text-gray-700"
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-                            {feature}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </ScrollReveal>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+                <MuiLink
+                  href="#"
+                  underline="none"
+                  sx={{
+                    color: "primary.dark",
+                    fontWeight: 600,
+                    fontSize: "0.8125rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    "&:hover": { color: "primary.main" },
+                  }}
+                >
+                  Learn more <ArrowForwardIcon sx={{ fontSize: 14 }} />
+                </MuiLink>
+              </CardContent>
+            </Card>
+          </Box>
+        </ScrollReveal>
+      </Box>
+    </Box>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider, CssBaseline } from "@mui/material";
 import { useState } from "react";
+import theme from "@/theme";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   // Create a client internally to ensure data is not shared between users on the server
@@ -23,7 +25,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

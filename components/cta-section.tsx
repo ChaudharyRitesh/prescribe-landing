@@ -1,7 +1,17 @@
 "use client";
 
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Avatar from "@mui/material/Avatar";
+import Grid from "@mui/material/Grid";
 import ScrollReveal from "./scroll-reveal";
-import { MacbookShowcase } from "./macbook-showcase";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import Link from "next/link";
 
 interface CTAData {
   title?: string;
@@ -16,72 +26,104 @@ interface CTASectionProps {
 }
 
 export function CTASection({ data }: CTASectionProps) {
-  const slides = [
-    {
-      title: "Hospital Management Dashboard",
-      description:
-        "Centralized control over patient care, bed management, and clinical workflows",
-      image:
-        "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1200&h=675&q=80",
-    },
-    {
-      title: "Pharmacy & Inventory Control",
-      description:
-        "Smart inventory management with real-time stock tracking and expiry alerts",
-      image:
-        "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1200&h=675&q=80",
-    },
-    {
-      title: "Laboratory Information System",
-      description:
-        "Streamlined sample processing with automated result validation",
-      image:
-        "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&h=675&q=80",
-    },
-  ];
-
-  const title = data?.title || "Ready to Transform Your Healthcare Operations?";
+  const title =
+    data?.title || "Ready to Transform Your Healthcare Operations?";
   const description =
     data?.description ||
     "Join forward-thinking healthcare organizations already using KaeroPrescribe to reduce costs, improve patient care, and scale with confidence.";
-  const footer =
-    data?.footerText ||
-    "This section is a quick snapshot of what KaeroPrescribe is built to deliver across your core hospital workflows.";
 
   return (
-    <section className="section-padding bg-gray-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 right-1/3 w-96 h-96 bg-blue-900/20 rounded-full blur-3xl"></div>
-      </div>
+    <Box
+      component="section"
+      sx={{
+        py: { xs: 6, md: 10 },
+        px: 2,
+        background:
+          "linear-gradient(160deg, #0B1120 0%, #0F2744 55%, #0D3B36 100%)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Radial glow */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "30%",
+          right: "10%",
+          width: 500,
+          height: 500,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+      />
 
-      <div className="section-max-width">
+      <Box sx={{ maxWidth: 800, mx: "auto", position: "relative", zIndex: 1 }}>
         <ScrollReveal>
-          <div className="mb-8 sm:mb-12 md:mb-16">
-            <div className="hidden md:block mb-16">
-              <MacbookShowcase slides={slides} />
-            </div>
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "primary.main", mb: 1, display: "block" }}
+            >
+              Get Started
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{
+                color: "#F1F5F9",
+                fontSize: { xs: "1.375rem", md: "2rem" },
+                mb: 1.5,
+              }}
+            >
+              {title}
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ color: "#94A3B8", maxWidth: 580, mx: "auto", mb: 3 }}
+            >
+              {description}
+            </Typography>
 
-            <div className="text-center space-y-8">
-              <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                {title}
-              </h2>
-
-              <p className="text-base sm:text-lg text-gray-300 max-w-3xl mx-auto">
-                {description}
-              </p>
-
-              <div className="max-w-3xl mx-auto">
-                <p className="text-sm text-gray-400">{footer}</p>
-                <p className="text-sm text-gray-400 mt-3">
-                  Designed for operational clarity: unified dashboards,
-                  compliant records, and reliable workflows across OPD, IPD,
-                  Lab, and Pharmacy.
-                </p>
-              </div>
-            </div>
-          </div>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.5}
+              justifyContent="center"
+            >
+              <Button
+                variant="contained"
+                size="large"
+                component={Link}
+                href="/onboarding"
+                endIcon={<ArrowForwardIcon />}
+                disableRipple
+              >
+                Get Started Free
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                color="secondary"
+                startIcon={<PlayArrowRoundedIcon />}
+                component="a"
+                href="#features"
+                sx={{
+                  borderColor: "rgba(255,255,255,0.15)",
+                  color: "#94A3B8",
+                  "&:hover": {
+                    borderColor: "#2DD4BF",
+                    background: "rgba(255,255,255,0.04)",
+                  },
+                }}
+              >
+                Watch Demo
+              </Button>
+            </Stack>
+          </Box>
         </ScrollReveal>
-      </div>
-    </section>
+
+
+      </Box>
+    </Box>
   );
 }

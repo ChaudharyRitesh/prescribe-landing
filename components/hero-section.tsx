@@ -42,7 +42,7 @@ export function HeroSection({ data }: HeroSectionProps) {
       : fallbackSlides;
 
   return (
-    <section className="relative min-h-screen pt-32 lg:pt-24 bg-white bg-[url('/hero-bg.png')] bg-cover bg-center overflow-hidden">
+    <section className="relative min-h-screen pt-32 lg:pt-2 bg-white bg-[url('/hero-bg.png')] bg-cover bg-center overflow-hidden">
       {/* Wave background is now handled by the image in public/hero-bg.png */}
 
       <div className="section-max-width section-padding relative z-10">

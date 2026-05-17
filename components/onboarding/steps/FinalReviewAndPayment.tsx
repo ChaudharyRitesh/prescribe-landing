@@ -381,7 +381,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           fullWidth
           size="large"
           disabled={isProcessing || !termsAccepted || !isValid || gstStatus === "loading" || !!(gstValue && gstStatus === "invalid")}
-          endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <PaymentIcon />}
+          endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : (data.subscriptionPlan === 'kaero-nexus' ? undefined : <PaymentIcon />)}
           sx={{
             mt: 2,
             mb: 2,
@@ -394,7 +394,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
             ? "Finalising your workspace..."
             : registering
               ? "Processing..."
-              : "Pay & Complete Setup"}
+              : (data.subscriptionPlan === 'kaero-nexus' ? "Submit Quote Request" : "Pay & Complete Setup")}
         </Button>
       </form>
 

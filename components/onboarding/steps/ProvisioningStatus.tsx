@@ -46,15 +46,16 @@ export function ProvisioningStatus({ data }: Props) {
   }
 
   const isProvisioned = statusResp?.status === "provisioned";
+  const isQuotePending = statusResp?.status === "quote_pending";
   const isFailed = statusResp?.status === "failed" || isError;
 
   useEffect(() => {
-    if (isProvisioned || isFailed) {
+    if (isProvisioned || isFailed || isQuotePending) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("kaero_onboarding_session");
       }
     }
-  }, [isProvisioned, isFailed]);
+  }, [isProvisioned, isFailed, isQuotePending]);
 
   if (isLoading) {
     return (
@@ -145,7 +146,73 @@ export function ProvisioningStatus({ data }: Props) {
              Go to my Dashboard
            </Button>
          </>
-        ) : isFailed ? (
+        ) : isQuotePending ? (
+           <>
+             {/* Dynamic success screen for Quote Requests */}
+             <Box
+               bgcolor="primary.light"
+               color="primary.main"
+               p={2}
+               borderRadius="50%"
+               display="flex"
+               alignItems="center"
+               justifyContent="center"
+               mb={3}
+               sx={{ opacity: 0.15, position: 'absolute', width: 120, height: 120, zIndex: 0 }}
+             />
+             <CheckCircleOutlineIcon color="primary" sx={{ fontSize: 80, mb: 3, zIndex: 1 }} />
+             
+             <Typography variant="h3" fontWeight="bold" gutterBottom color="text.primary" sx={{ zIndex: 1 }}>
+               Quote Request Submitted! 📝
+             </Typography>
+             
+             <Typography variant="h6" color="text.secondary" mb={4} maxWidth="sm" sx={{ zIndex: 1 }}>
+               We have received your custom setup requirements for <strong>Kaero Nexus</strong>. Our team is currently reviewing your requested limits.
+             </Typography>
+
+             <Box 
+               sx={{ 
+                 bgcolor: 'background.paper', 
+                 p: 3, 
+                 borderRadius: 2, 
+                 border: 1, 
+                 borderColor: 'divider',
+                 textAlign: 'left',
+                 maxWidth: 'sm',
+                 mb: 4,
+                 zIndex: 1
+               }}
+             >
+               <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="text.primary">
+                 What's next?
+               </Typography>
+               <Typography variant="body2" color="text.secondary" mb={1} display="flex" alignItems="center">
+                 <Box component="span" sx={{ mr: 1, fontWeight: 'bold' }}>1.</Box> <span><strong>Super Admin Review:</strong> We will evaluate your custom doctor/staff accounts and cloud storage caps.</span>
+               </Typography>
+               <Typography variant="body2" color="text.secondary" mb={1} display="flex" alignItems="center">
+                 <Box component="span" sx={{ mr: 1, fontWeight: 'bold' }}>2.</Box> <span><strong>Custom Quotation Email:</strong> You will receive a specialized email proposal containing your custom limits and pricing.</span>
+               </Typography>
+               <Typography variant="body2" color="text.secondary" display="flex" alignItems="center">
+                 <Box component="span" sx={{ mr: 1, fontWeight: 'bold' }}>3.</Box> <span><strong>Setup Activation:</strong> Simply click the payment link in the email to activate and auto-provision your workspace instantly.</span>
+               </Typography>
+             </Box>
+             
+             <Button
+               variant="contained"
+               color="primary"
+               size="large"
+               onClick={() => {
+                 if (typeof window !== "undefined") {
+                   localStorage.removeItem("kaero_onboarding_session");
+                 }
+                 window.location.href = "/";
+               }}
+               sx={{ px: 5, py: 1.5, zIndex: 1 }}
+             >
+               Back to Homepage
+             </Button>
+           </>
+         ) : isFailed ? (
           <>
             <ErrorOutlineIcon color="error" sx={{ fontSize: 80, mb: 3 }} />
             <Typography variant="h4" fontWeight="bold" gutterBottom color="text.primary">

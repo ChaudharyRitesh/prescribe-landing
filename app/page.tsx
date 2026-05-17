@@ -1,4 +1,5 @@
 import Header from "@/components/header";
+import ScrollProgress from "@/components/scroll-progress";
 import { HeroSectionWrapper } from "@/components/hero-section-wrapper";
 import { ModulesShowcaseWrapper } from "@/components/modules-showcase-wrapper";
 import { FeaturesSectionWrapper } from "@/components/features-section-wrapper";
@@ -11,17 +12,20 @@ import { PartnerProgramSection } from "@/components/partner-program-section";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      <ScrollProgress />
       <Header />
-      <HeroSectionWrapper />
-      <ModulesShowcaseWrapper />
-      <FeaturesSectionWrapper />
-      <ComparisonSectionWrapper />
-      <PricingSectionWrapper />
-      <PartnerProgramSection />
-      <CTASectionWrapper />
-      <TrustSectionWrapper />
+      <main style={{ overflowX: "hidden" }}>
+        <HeroSectionWrapper />
+        <ModulesShowcaseWrapper />
+        <FeaturesSectionWrapper />
+        <ComparisonSectionWrapper />
+        <PricingSectionWrapper />
+        <PartnerProgramSection />
+        <CTASectionWrapper />
+        <TrustSectionWrapper />
+      </main>
       <Footer />
-    </div>
+    </>
   );
 }

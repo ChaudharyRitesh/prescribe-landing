@@ -1,7 +1,10 @@
 "use client";
 
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import ScrollReveal from "./scroll-reveal";
-import { Check, X } from "lucide-react";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 
 interface Comparison {
   feature: string;
@@ -28,63 +31,169 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
     comparisons.length > 0 ? comparisons : defaultComparisons;
 
   return (
-    <section className="section-padding bg-gray-50">
-      <div className="section-max-width">
+    <Box
+      component="section"
+      sx={{
+        py: { xs: 6, md: 10 },
+        px: 2,
+        background: "#F8FAFC",
+      }}
+    >
+      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
         <ScrollReveal>
-          <div className="text-center mb-10 sm:mb-14 md:mb-20">
-            <h2 className="text-3xl xs:text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
-              Why Kaero Prescribe Wins
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
-              Built from the ground up for modern healthcare. Not a legacy
-              system with AI bolted on.
-            </p>
-          </div>
+          <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "primary.dark", mb: 1, display: "block" }}
+            >
+              Comparison
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{ fontSize: { xs: "1.375rem", md: "2rem" }, mb: 1.5 }}
+            >
+              Why KaeroPrescribe Wins
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ maxWidth: 520, mx: "auto" }}
+            >
+              Built from the ground up for modern healthcare. Not a legacy system
+              with AI bolted on.
+            </Typography>
+          </Box>
         </ScrollReveal>
 
-        <ScrollReveal>
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden min-w-[320px]">
-            <div className="grid grid-cols-3 gap-2 p-3 sm:gap-4 sm:p-5 md:gap-8 md:p-8 border-b border-gray-200 bg-gray-50">
-              <div className="text-xs sm:text-sm font-semibold text-gray-900">Feature</div>
-              <div className="text-xs sm:text-sm font-semibold text-blue-600 text-center">
+        <ScrollReveal delay={100}>
+          <Box
+            sx={{
+              maxWidth: 800,
+              mx: "auto",
+              borderRadius: 2,
+              overflow: "hidden",
+              border: "1px solid",
+              borderColor: "divider",
+              background: "#FFFFFF",
+            }}
+          >
+            {/* Table header */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: 0,
+                px: { xs: 2, md: 4 },
+                py: { xs: 1.5, md: 2 },
+                background: "#FFFFFF",
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: "text.primary",
+                  fontSize: { xs: "0.75rem", md: "0.875rem" },
+                }}
+              >
+                Feature
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: "primary.main",
+                  textAlign: "center",
+                  fontSize: { xs: "0.75rem", md: "0.875rem" },
+                }}
+              >
                 KaeroPrescribe
-              </div>
-              <div className="text-xs sm:text-sm font-semibold text-gray-600 text-center">
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: "#64748B",
+                  textAlign: "center",
+                  fontSize: { xs: "0.75rem", md: "0.875rem" },
+                }}
+              >
                 Traditional
-              </div>
-            </div>
+              </Typography>
+            </Box>
 
-            <div>
-              {displayComparisons.map((row, idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-3 gap-2 p-3 sm:gap-4 sm:p-5 md:gap-8 md:p-8 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+            {/* Table rows */}
+            {displayComparisons.map((row, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: 0,
+                  px: { xs: 2, md: 4 },
+                  py: { xs: 1.25, md: 1.5 },
+                  borderBottom:
+                    idx < displayComparisons.length - 1
+                      ? "1px solid"
+                      : "none",
+                  borderColor: "divider",
+                  transition: "background 0.2s",
+                  "&:hover": { background: "#F8FAFC" },
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 500,
+                    color: "text.primary",
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: { xs: "0.75rem", md: "0.8125rem" },
+                  }}
                 >
-                  <div className="text-xs sm:text-sm font-medium text-gray-900">
-                    {row.feature}
-                  </div>
-                  <div className="flex justify-center">
-                    {row.kaero ? (
-                      <Check size={18} className="text-green-600" />
-                    ) : (
-                      <X size={18} className="text-gray-300" />
-                    )}
-                  </div>
-                  <div className="flex justify-center">
-                    {row.traditional ? (
-                      <Check size={18} className="text-green-600" />
-                    ) : (
-                      <X size={18} className="text-gray-300" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          </div>
+                  {row.feature}
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {row.kaero ? (
+                    <CheckCircleOutlineIcon
+                      sx={{ color: "primary.main", fontSize: { xs: 18, md: 20 } }}
+                    />
+                  ) : (
+                    <CancelOutlinedIcon
+                      sx={{ color: "text.disabled", fontSize: { xs: 18, md: 20 } }}
+                    />
+                  )}
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {row.traditional ? (
+                    <CheckCircleOutlineIcon
+                      sx={{ color: "primary.main", fontSize: { xs: 18, md: 20 } }}
+                    />
+                  ) : (
+                    <CancelOutlinedIcon
+                      sx={{ color: "error.main", fontSize: { xs: 18, md: 20 } }}
+                    />
+                  )}
+                </Box>
+              </Box>
+            ))}
+          </Box>
         </ScrollReveal>
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }
