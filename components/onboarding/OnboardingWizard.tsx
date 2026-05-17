@@ -28,6 +28,16 @@ export type OnboardingData = {
   selectedModules?: string[];
   billingCycle?: 'monthly' | 'yearly';
   subscriptionPlan?: string;
+  status?: string;
+  quotedPrice?: number;
+  customLimits?: {
+    maxDoctors?: number;
+    maxReceptionists?: number;
+    maxLabTechs?: number;
+    maxPharmacists?: number;
+    maxAdmins?: number;
+    maxStorageGB?: number;
+  };
   address?: {
     building?: string;
     street?: string;
@@ -66,6 +76,17 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
 
   const nextStep = () => setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setActiveStep((prev) => Math.max(prev - 1, 0));
+
+  // Automatically fast-forward to payment step if session is pending payment
+  useEffect(() => {
+    if (data.sessionId && (data.status === 'pending_payment' || data.status === 'provisioned' || data.status === 'provisioning')) {
+      if (data.status === 'provisioned' || data.status === 'provisioning') {
+        setActiveStep(6);
+      } else {
+        setActiveStep(5);
+      }
+    }
+  }, [data.sessionId, data.status]);
 
   // Render the appropriate step component
   const renderStepContent = (stepIndex: number) => {

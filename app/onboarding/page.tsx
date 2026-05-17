@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { OnboardingWizard, OnboardingData } from "@/components/onboarding/OnboardingWizard";
 import { OnboardingThemeProvider } from "@/components/onboarding/OnboardingThemeProvider";
 import { LavaLampBackground } from "@/components/onboarding/LavaLampBackground";
@@ -8,7 +9,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Box } from "@mui/material";
 
-export default function OnboardingPage() {
+function OnboardingContent() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("sessionId");
   const [data, setData] = useState<OnboardingData>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("kaero_onboarding_session");
@@ -16,6 +19,7 @@ export default function OnboardingPage() {
     }
     return {};
   });
+  const [loading, setLoading] = useState(!!sessionId);
 
   // Sync with localStorage
   useEffect(() => {
@@ -24,9 +28,45 @@ export default function OnboardingPage() {
     }
   }, [data]);
 
+  // Load session from backend if sessionId is present in URL query
+  useEffect(() => {
+    if (sessionId) {
+      const fetchSession = async () => {
+        try {
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+          const res = await fetch(`${apiBase}/onboarding/session/${sessionId}`);
+          const result = await res.json();
+          if (result.success && result.data) {
+            setData(result.data);
+          }
+        } catch (err) {
+          console.error("Failed to load session:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchSession();
+    }
+  }, [sessionId]);
+
   const updateData = (newData: Partial<OnboardingData>) => {
     setData((prev) => ({ ...prev, ...newData }));
   };
+
+  if (loading) {
+    return (
+      <OnboardingThemeProvider facilityType={data.facilityType}>
+        <LavaLampBackground facilityType={data.facilityType} />
+        <Box sx={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+          <div className="bg-white/80 backdrop-blur-md border border-slate-100 rounded-[24px] p-12 shadow-2xl flex flex-col items-center justify-center max-w-md w-full text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Loading Custom Proposal</h3>
+            <p className="text-sm text-slate-500">Please wait while we retrieve your negotiated pricing and workspace settings...</p>
+          </div>
+        </Box>
+      </OnboardingThemeProvider>
+    );
+  }
 
   return (
     <OnboardingThemeProvider facilityType={data.facilityType}>
@@ -60,5 +100,17 @@ export default function OnboardingPage() {
         </div>
       </Box>
     </OnboardingThemeProvider>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <OnboardingContent />
+    </Suspense>
   );
 }

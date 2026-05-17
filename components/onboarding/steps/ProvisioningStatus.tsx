@@ -49,8 +49,27 @@ export function ProvisioningStatus({ data }: Props) {
   const isQuotePending = statusResp?.status === "quote_pending";
   const isFailed = statusResp?.status === "failed" || isError;
 
+  const clearAllStorageAndCookies = () => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      const cookies = document.cookie.split(";");
+      for (const cookie of cookies) {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+      }
+    } catch (e) {
+      console.error("Failed to clear all storage and cookies", e);
+    }
+  };
+
   useEffect(() => {
-    if (isProvisioned || isFailed || isQuotePending) {
+    if (isProvisioned || isQuotePending) {
+      clearAllStorageAndCookies();
+    } else if (isFailed) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("kaero_onboarding_session");
       }
@@ -135,11 +154,9 @@ export function ProvisioningStatus({ data }: Props) {
              color="primary"
              size="large"
              onClick={() => {
-               if (typeof window !== "undefined") {
-                 localStorage.removeItem("kaero_onboarding_session");
-               }
-               window.location.href = statusResp?.dashboardUrl || "#";
-             }}
+                clearAllStorageAndCookies();
+                window.location.href = statusResp?.dashboardUrl || "#";
+              }}
              endIcon={<DashboardIcon />}
              sx={{ px: 5, py: 1.5, zIndex: 1 }}
            >
@@ -202,11 +219,9 @@ export function ProvisioningStatus({ data }: Props) {
                color="primary"
                size="large"
                onClick={() => {
-                 if (typeof window !== "undefined") {
-                   localStorage.removeItem("kaero_onboarding_session");
-                 }
-                 window.location.href = "/";
-               }}
+                  clearAllStorageAndCookies();
+                  window.location.href = "/";
+                }}
                sx={{ px: 5, py: 1.5, zIndex: 1 }}
              >
                Back to Homepage
