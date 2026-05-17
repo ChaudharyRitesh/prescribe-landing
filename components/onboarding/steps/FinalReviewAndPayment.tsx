@@ -259,6 +259,67 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
         </Alert>
       )}
 
+      {data.subscriptionPlan === 'kaero-nexus' && data.quotedPrice && (
+        <Box 
+          className="mb-6 p-6 rounded-[20px] border border-blue-100 bg-gradient-to-br from-blue-50/60 to-indigo-50/30 backdrop-blur-md"
+          sx={{
+            boxShadow: '0 8px 32px 0 rgba(147, 197, 253, 0.08)',
+          }}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div>
+              <span className="px-3 py-1 text-[11px] font-bold text-blue-700 bg-blue-100 rounded-full uppercase tracking-wider">
+                Approved Custom Proposal
+              </span>
+              <h4 className="text-xl font-extrabold text-slate-800 mt-2">
+                Kaero Prescribe Nexus
+              </h4>
+            </div>
+            <div className="text-left md:text-right">
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                ₹{data.quotedPrice.toLocaleString('en-IN')}
+              </Typography>
+              <span className="text-xs font-semibold text-slate-500 capitalize block mt-0.5">
+                Billed {data.billingCycle}
+              </span>
+            </div>
+          </div>
+
+          <div className="h-px bg-slate-200/60 my-4" />
+
+          <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+            Tailored Limits & Capacities
+          </h5>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
+              <span className="text-[11px] text-slate-500 block">Doctor Accounts</span>
+              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxDoctors || 0} max</span>
+            </div>
+            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
+              <span className="text-[11px] text-slate-500 block">Receptionists</span>
+              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxReceptionists || 0} max</span>
+            </div>
+            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
+              <span className="text-[11px] text-slate-500 block">Lab Technicians</span>
+              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxLabTechs || 0} max</span>
+            </div>
+            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
+              <span className="text-[11px] text-slate-500 block">Pharmacists</span>
+              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxPharmacists || 0} max</span>
+            </div>
+            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
+              <span className="text-[11px] text-slate-500 block">Admin Accounts</span>
+              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxAdmins || 0} max</span>
+            </div>
+            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
+              <span className="text-[11px] text-slate-500 block">Cloud Storage</span>
+              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxStorageGB || 0} GB</span>
+            </div>
+          </div>
+        </Box>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box mb={3}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: "text.secondary" }}>
@@ -381,7 +442,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           fullWidth
           size="large"
           disabled={isProcessing || !termsAccepted || !isValid || gstStatus === "loading" || !!(gstValue && gstStatus === "invalid")}
-          endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <PaymentIcon />}
+          endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : ((data.subscriptionPlan === 'kaero-nexus' && !(data.quotedPrice && data.quotedPrice > 0)) ? undefined : <PaymentIcon />)}
           sx={{
             mt: 2,
             mb: 2,
@@ -394,7 +455,9 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
             ? "Finalising your workspace..."
             : registering
               ? "Processing..."
-              : "Pay & Complete Setup"}
+              : (data.quotedPrice && data.quotedPrice > 0
+                  ? `Pay ₹${data.quotedPrice.toLocaleString('en-IN')} & Complete Setup`
+                  : (data.subscriptionPlan === 'kaero-nexus' ? "Submit Quote Request" : "Pay & Complete Setup"))}
         </Button>
       </form>
 

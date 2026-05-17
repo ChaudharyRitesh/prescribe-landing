@@ -1,8 +1,20 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+import Grid from "@mui/material/Grid";
+import CircularProgress from "@mui/material/CircularProgress";
 import ScrollReveal from "./scroll-reveal";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CheckIcon from "@mui/icons-material/Check";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
 /* ------------------------------------------------------------------ */
 /*  Validation helpers                                                 */
@@ -36,10 +48,10 @@ function validateOrgName(value: string): string | null {
 /* ------------------------------------------------------------------ */
 
 const highlights = [
-  "Pricing tailored to your patient volume \u0026 workflow",
+  "Pricing tailored to your patient volume & workflow",
   "Choose only the modules you need",
   "Transparent — no hidden charges",
-  "Dedicated onboarding \u0026 migration support",
+  "Dedicated onboarding & migration support",
   "Response within 24 business hours",
 ];
 
@@ -122,219 +134,238 @@ export function PricingSection() {
   const err = (field: keyof typeof errors) =>
     touched[field] ? errors[field] : null;
 
-  /* ---- Shared input class ---- */
-  const inputBase =
-    "w-full rounded-md border bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:ring-1 focus:ring-gray-400 focus:border-gray-400";
-  const inputErr = "border-red-300 focus:ring-red-400 focus:border-red-400";
-  const inputOk = "border-gray-300";
-
   return (
-    <section id="pricing" className="section-padding bg-white">
-      <div className="section-max-width">
-        {/* ---- Section heading ---- */}
+    <Box
+      component="section"
+      id="pricing"
+      sx={{
+        py: { xs: 6, md: 10 },
+        px: 2,
+        background: "#FFFFFF",
+        scrollMarginTop: "72px",
+      }}
+    >
+      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
+        {/* Section heading */}
         <ScrollReveal>
-          <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+          <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "primary.dark", mb: 1, display: "block" }}
+            >
+              Custom Pricing
+            </Typography>
+            <Typography
+              variant="h2"
+              sx={{ fontSize: { xs: "1.375rem", md: "2rem" }, mb: 1.5 }}
+            >
               Pricing That Fits Your Practice
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ maxWidth: 560, mx: "auto" }}
+            >
               Every facility operates differently. Tell us about yours and
               we&apos;ll put together a plan that matches your scale, modules,
-              and budget — no cookie-cutter packages.
-            </p>
-          </div>
+              and budget.
+            </Typography>
+          </Box>
         </ScrollReveal>
 
-        {/* ---- Two-column layout: highlights + form ---- */}
         <ScrollReveal delay={100}>
-          <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-start">
+          <Grid
+            container
+            spacing={{ xs: 3, lg: 6 }}
+            sx={{ maxWidth: 1000, mx: "auto" }}
+            alignItems="flex-start"
+          >
             {/* Left column — highlights */}
-            <div className="lg:col-span-2 space-y-8">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            <Grid size={{ xs: 12, lg: 5 }}>
+              <Box sx={{ mb: { xs: 2, lg: 0 } }}>
+                <Typography variant="h3" sx={{ mb: 1 }}>
                   Why custom pricing?
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 3, lineHeight: 1.7 }}
+                >
                   Rather than locking you into rigid tiers, we work with you to
                   scope only what you need — so you never overpay for capacity
                   you won&apos;t use.
-                </p>
-              </div>
+                </Typography>
 
-              <ul className="space-y-4">
-                {highlights.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-3 text-gray-700 text-sm"
-                  >
-                    <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center">
-                      <Check size={12} className="text-white" strokeWidth={3} />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                <Stack spacing={1.5}>
+                  {highlights.map((item) => (
+                    <Stack
+                      key={item}
+                      direction="row"
+                      alignItems="flex-start"
+                      spacing={1.5}
+                    >
+                      <CheckCircleOutlineIcon
+                        sx={{
+                          color: "primary.dark",
+                          fontSize: 18,
+                          mt: 0.25,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        {item}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            </Grid>
 
             {/* Right column — form card */}
-            <div className="lg:col-span-3">
-              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 md:p-10">
-                {submitSuccess ? (
-                  <div className="text-center py-6">
-                    <div className="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center mx-auto mb-5">
-                      <Check size={28} className="text-white" />
-                    </div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-2">
-                      Request Received
-                    </h4>
-                    <p className="text-gray-600 text-sm mb-6 max-w-sm mx-auto">
-                      Our team will review your details and reach out within 24
-                      hours with a tailored proposal.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setSubmitSuccess(false)}
-                      className="button-secondary text-sm"
-                    >
-                      Submit another request
-                    </button>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={handleSubmit}
-                    noValidate
-                    className="space-y-5"
-                  >
-                    <h4 className="text-lg font-bold text-gray-900">
-                      Request a Quote
-                    </h4>
-
-                    {/* Phone */}
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="pricing-phone"
-                        className="block text-sm font-medium text-gray-700"
+            <Grid size={{ xs: 12, lg: 7 }}>
+              <Card sx={{ p: 0.5 }}>
+                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                  {submitSuccess ? (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      <Box
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          background: "#14B8A6",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mx: "auto",
+                          mb: 2.5,
+                        }}
                       >
-                        Phone number{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="pricing-phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        onBlur={() => markTouched("phone")}
-                        placeholder="+91 98765 43210"
-                        className={`${inputBase} ${err("phone") ? inputErr : inputOk}`}
-                      />
-                      {err("phone") && (
-                        <p className="text-xs text-red-600">{err("phone")}</p>
-                      )}
-                    </div>
-
-                    {/* Email */}
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="pricing-email"
-                        className="block text-sm font-medium text-gray-700"
+                        <CheckIcon sx={{ color: "#fff", fontSize: 28 }} />
+                      </Box>
+                      <Typography variant="h3" sx={{ mb: 1 }}>
+                        Request Received
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 3, maxWidth: 360, mx: "auto" }}
                       >
-                        Work email{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="pricing-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onBlur={() => markTouched("email")}
-                        placeholder="you@hospital.com"
-                        className={`${inputBase} ${err("email") ? inputErr : inputOk}`}
-                      />
-                      {err("email") && (
-                        <p className="text-xs text-red-600">{err("email")}</p>
-                      )}
-                    </div>
-
-                    {/* Organization */}
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="pricing-org"
-                        className="block text-sm font-medium text-gray-700"
+                        Our team will review your details and reach out within 24
+                        hours with a tailored proposal.
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        onClick={() => setSubmitSuccess(false)}
+                        sx={{ fontSize: "0.8125rem" }}
                       >
-                        Organization / Facility name{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="pricing-org"
-                        type="text"
-                        value={orgName}
-                        onChange={(e) => setOrgName(e.target.value)}
-                        onBlur={() => markTouched("orgName")}
-                        placeholder="e.g. City General Hospital"
-                        className={`${inputBase} ${err("orgName") ? inputErr : inputOk}`}
-                      />
-                      {err("orgName") && (
-                        <p className="text-xs text-red-600">{err("orgName")}</p>
-                      )}
-                    </div>
-
-                    {/* Message */}
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="pricing-message"
-                        className="block text-sm font-medium text-gray-700"
+                        Submit another request
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Box component="form" onSubmit={handleSubmit} noValidate>
+                      <Typography variant="h3" sx={{ mb: 0.5 }}>
+                        Request a Quote
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2.5 }}
                       >
-                        Additional details{" "}
-                        <span className="text-gray-400 font-normal">
-                          (optional)
-                        </span>
-                      </label>
-                      <textarea
-                        id="pricing-message"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Number of departments, expected patient volume, modules of interest…"
-                        rows={3}
-                        className={`${inputBase} ${inputOk} resize-y`}
-                      />
-                    </div>
+                        No cookie-cutter packages. Tailored to your needs.
+                      </Typography>
 
-                    {submitError && (
-                      <p className="text-sm text-red-600">{submitError}</p>
-                    )}
+                      <Stack spacing={2}>
+                        <TextField
+                          label="Phone Number"
+                          type="tel"
+                          autoComplete="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          onBlur={() => markTouched("phone")}
+                          error={!!err("phone")}
+                          helperText={err("phone")}
+                        />
+                        <TextField
+                          label="Work Email"
+                          type="email"
+                          autoComplete="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          onBlur={() => markTouched("email")}
+                          error={!!err("email")}
+                          helperText={err("email")}
+                        />
+                        <TextField
+                          label="Organization / Facility"
+                          autoComplete="organization"
+                          value={orgName}
+                          onChange={(e) => setOrgName(e.target.value)}
+                          onBlur={() => markTouched("orgName")}
+                          error={!!err("orgName")}
+                          helperText={err("orgName")}
+                        />
+                        <TextField
+                          label="Additional details (optional)"
+                          multiline
+                          rows={2}
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                        />
+                      </Stack>
 
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="button-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {submitting ? (
-                        <>
-                          <Loader2 size={18} className="animate-spin" />
-                          Sending…
-                        </>
-                      ) : (
-                        <>
-                          Get a Quote
-                          <ArrowRight
-                            size={18}
-                            className="transition-transform group-hover:translate-x-1"
-                          />
-                        </>
+                      {submitError && (
+                        <Typography
+                          variant="body2"
+                          color="error"
+                          sx={{ mt: 1.5, fontSize: "0.8125rem" }}
+                        >
+                          {submitError}
+                        </Typography>
                       )}
-                    </button>
 
-                    <p className="text-xs text-gray-400 leading-relaxed">
-                      By submitting you agree to be contacted by our team. We
-                      never share your information with third parties.
-                    </p>
-                  </form>
-                )}
-              </div>
-            </div>
-          </div>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        size="large"
+                        disabled={submitting}
+                        endIcon={
+                          submitting ? (
+                            <CircularProgress size={18} color="inherit" />
+                          ) : (
+                            <ArrowForwardIcon />
+                          )
+                        }
+                        sx={{ mt: 2.5 }}
+                      >
+                        {submitting ? "Sending…" : "Get a Quote"}
+                      </Button>
+
+                      <Typography
+                        variant="body2"
+                        align="center"
+                        sx={{
+                          mt: 1.5,
+                          color: "text.disabled",
+                          fontSize: "0.6875rem",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 0.5,
+                        }}
+                      >
+                        <LockOutlinedIcon sx={{ fontSize: 12 }} />
+                        Your data is never shared. Reply within 24 business
+                        hours.
+                      </Typography>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </ScrollReveal>
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }

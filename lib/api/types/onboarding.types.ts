@@ -8,7 +8,9 @@ export type OnboardingStatus =
   | 'pending_payment' 
   | 'provisioning' 
   | 'provisioned' 
+  | 'quote_pending'
   | 'failed';
+
 
 export type FacilityType = 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic';
 
