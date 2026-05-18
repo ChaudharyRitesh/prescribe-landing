@@ -17,7 +17,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import { AddressInput } from "@/components/ui/google-places-input";
 import { OnboardingData } from "../OnboardingWizard";
-import { useRegisterOrgMutation, useVerifyGstMutation } from "@/hooks/queries/useOnboarding";
+import { useRegisterOrgMutation, useVerifyGstMutation, useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { loadRazorpayScript } from "@/lib/services/razorpay.service";
 import { Address } from "@/lib/api/types/onboarding.types";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,6 +36,10 @@ interface Props {
 }
 
 export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Props) {
+  const { data: catalog } = useCatalogQuery(data.facilityType);
+  const activePkg = catalog?.packages?.find((p: any) => p._id === data.packageId || p.slug === data.subscriptionPlan);
+  const isCustomPackage = activePkg?.isCustom || data.subscriptionPlan === 'kaero-nexus' || data.subscriptionPlan === 'custom';
+
   const {
     register,
     handleSubmit,
@@ -259,7 +263,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
         </Alert>
       )}
 
-      {data.subscriptionPlan === 'kaero-nexus' && data.quotedPrice && (
+      {isCustomPackage && data.quotedPrice && (
         <Box 
           className="mb-6 p-6 rounded-[20px] border border-blue-100 bg-gradient-to-br from-blue-50/60 to-indigo-50/30 backdrop-blur-md"
           sx={{
@@ -272,7 +276,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
                 Approved Custom Proposal
               </span>
               <h4 className="text-xl font-extrabold text-slate-800 mt-2">
-                Kaero Prescribe Nexus
+                {activePkg?.label || "Kaero Prescribe Nexus"}
               </h4>
             </div>
             <div className="text-left md:text-right">
@@ -442,7 +446,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           fullWidth
           size="large"
           disabled={isProcessing || !termsAccepted || !isValid || gstStatus === "loading" || !!(gstValue && gstStatus === "invalid")}
-          endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : ((data.subscriptionPlan === 'kaero-nexus' && !(data.quotedPrice && data.quotedPrice > 0)) ? undefined : <PaymentIcon />)}
+          endIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : ((isCustomPackage && !(data.quotedPrice && data.quotedPrice > 0)) ? undefined : <PaymentIcon />)}
           sx={{
             mt: 2,
             mb: 2,
@@ -457,7 +461,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
               ? "Processing..."
               : (data.quotedPrice && data.quotedPrice > 0
                   ? `Pay ₹${data.quotedPrice.toLocaleString('en-IN')} & Complete Setup`
-                  : (data.subscriptionPlan === 'kaero-nexus' ? "Submit Quote Request" : "Pay & Complete Setup"))}
+                  : (isCustomPackage ? "Submit Quote Request" : "Pay & Complete Setup"))}
         </Button>
       </form>
 

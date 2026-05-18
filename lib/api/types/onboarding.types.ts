@@ -39,6 +39,7 @@ export interface ModuleItem {
   isShared?: boolean;
   isActive: boolean;
   order: number;
+  isCustom?: boolean;
 }
 
 export interface PackageItem {
@@ -53,6 +54,7 @@ export interface PackageItem {
   badge?: string;
   isActive: boolean;
   order: number;
+  isCustom?: boolean;
 }
 
 export interface CatalogResponse extends BaseResponse {

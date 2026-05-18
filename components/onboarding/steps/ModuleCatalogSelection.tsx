@@ -173,9 +173,9 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                       
                       <Box display="flex" alignItems="baseline" mb={0.5}>
                         <Typography variant="h4" fontWeight="900" color="text.primary">
-                          {pkg.slug === 'kaero-nexus' ? "Custom Quote" : `₹${billingCycle === "monthly" ? pkg.pricing.monthly : pkg.pricing.yearly}`}
+                          {(pkg.isCustom || pkg.slug === 'kaero-nexus') ? "Custom Quote" : `₹${billingCycle === "monthly" ? pkg.pricing.monthly : pkg.pricing.yearly}`}
                         </Typography>
-                        {pkg.slug !== 'kaero-nexus' && (
+                        {!(pkg.isCustom || pkg.slug === 'kaero-nexus') && (
                           <Typography variant="body2" color="text.secondary" ml={0.5}>
                             /{billingCycle === "monthly" ? "mo" : "yr"}
                           </Typography>
@@ -266,9 +266,9 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
             color="primary"
             size="large"
             disabled={isNextDisabled}
-            endIcon={packages.find((p: PackageItem) => p._id === selectedPackage)?.slug === 'kaero-nexus' ? undefined : <WorkspacePremiumIcon />}
+            endIcon={(() => { const p = packages.find((x: PackageItem) => x._id === selectedPackage); return p?.isCustom || p?.slug === 'kaero-nexus'; })() ? undefined : <WorkspacePremiumIcon />}
           >
-            {packages.find((p: PackageItem) => p._id === selectedPackage)?.slug === 'kaero-nexus' ? "Continue to Quote" : "Continue to Payment"}
+            {(() => { const p = packages.find((x: PackageItem) => x._id === selectedPackage); return p?.isCustom || p?.slug === 'kaero-nexus'; })() ? "Continue to Quote" : "Continue to Payment"}
           </Button>
       </Box>
     </Box>
