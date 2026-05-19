@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { OnboardingData } from "../OnboardingWizard";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
@@ -27,7 +27,21 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
   const [selectionTab, setSelectionTab] = useState(0); // 0 = Packages, 1 = Modules
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(data.billingCycle || "yearly");
+
+  // Pre-select package from URL parameter or existing onboarding state once catalog loads
+  useEffect(() => {
+    if (catalog?.packages && catalog.packages.length > 0) {
+      if (data.packageId) {
+        setSelectedPackage(data.packageId);
+      } else if (data.subscriptionPlan) {
+        const found = catalog.packages.find((p: PackageItem) => p.slug === data.subscriptionPlan);
+        if (found) {
+          setSelectedPackage(found._id);
+        }
+      }
+    }
+  }, [catalog, data.packageId, data.subscriptionPlan]);
 
   if (isLoading) {
     return (

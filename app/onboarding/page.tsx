@@ -12,10 +12,16 @@ import { Box } from "@mui/material";
 function OnboardingContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
+  const packageParam = searchParams.get("package");
   const [data, setData] = useState<OnboardingData>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("kaero_onboarding_session");
-      return saved ? JSON.parse(saved) : {};
+      const parsed = saved ? JSON.parse(saved) : {};
+      if (packageParam && !parsed.sessionId) {
+        parsed.subscriptionPlan = packageParam;
+        parsed.selectionType = "package";
+      }
+      return parsed;
     }
     return {};
   });

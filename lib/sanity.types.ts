@@ -57,25 +57,6 @@ export interface Service {
   isActive: boolean;
 }
 
-export interface PricingPlan {
-  _id: string;
-  planType?: "module" | "plan";
-  planName: string;
-  price: string;
-  currency?: string;
-  billingPeriod?: "month" | "year";
-  description?: string;
-  features?: string[];
-  addons?: string[];
-  planImage?: SanityImage;
-  isPopular?: boolean;
-  ctaText?: string;
-  ctaLink?: string;
-  order?: number;
-  isActive: boolean;
-  iconColor?: string;
-}
-
 export interface Testimonial {
   _id: string;
   name: string;
