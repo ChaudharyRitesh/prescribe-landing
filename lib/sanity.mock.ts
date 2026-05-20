@@ -131,6 +131,7 @@ export const mockServices: Service[] = [
     ctaLink: "#pricing",
     order: 3,
     isActive: true,
+  },
 ];
 
 export const mockTestimonials: Testimonial[] = [

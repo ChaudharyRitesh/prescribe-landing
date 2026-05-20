@@ -235,7 +235,7 @@ export function PricingSection() {
       }}
     >
       <Box sx={{ maxWidth: 1280, mx: "auto" }}>
-        
+
         {/* Section Heading */}
         <ScrollReveal>
           <Box sx={{ textAlign: "center", mb: { xs: 6, md: 8 } }}>
@@ -243,12 +243,12 @@ export function PricingSection() {
               <SparklesIcon sx={{ fontSize: 13 }} />
               <span>Simple, Transparent Pricing</span>
             </div>
-            
+
             <Typography
               variant="h2"
-              sx={{ 
-                fontSize: { xs: "2rem", md: "2.75rem" }, 
-                fontWeight: 850, 
+              sx={{
+                fontSize: { xs: "2rem", md: "2.75rem" },
+                fontWeight: 850,
                 letterSpacing: "-0.03em",
                 mb: 2.5,
                 color: "slate.900"
@@ -256,7 +256,7 @@ export function PricingSection() {
             >
               Plans Designed to Scale with You
             </Typography>
-            
+
             <Typography
               variant="body1"
               color="text.secondary"
@@ -270,21 +270,19 @@ export function PricingSection() {
               <div className="bg-slate-100/80 backdrop-blur-md p-1 rounded-xl inline-flex items-center border border-slate-200/50 shadow-inner">
                 <button
                   onClick={() => setBillingCycle("monthly")}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 ${
-                    billingCycle === "monthly"
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200/40"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 ${billingCycle === "monthly"
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/40"
+                    : "text-slate-500 hover:text-slate-800"
+                    }`}
                 >
                   Monthly
                 </button>
                 <button
                   onClick={() => setBillingCycle("yearly")}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-1.5 ${
-                    billingCycle === "yearly"
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200/40"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-1.5 ${billingCycle === "yearly"
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/40"
+                    : "text-slate-500 hover:text-slate-800"
+                    }`}
                 >
                   <span>Yearly</span>
                   <span className="bg-emerald-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-md animate-pulse">
@@ -308,9 +306,9 @@ export function PricingSection() {
                 const isPro = pkg.slug === "clinic-pro";
                 const monthlyPrice = pkg.pricing.monthly;
                 const yearlyMonthlyEquivalent = Math.round(pkg.pricing.yearly / 12);
-                
+
                 return (
-                  <Grid item key={pkg._id} xs={12} sm={6} lg={3} display="flex">
+                  <Grid key={pkg._id} size={{ xs: 12, sm: 6, lg: 3 }} display="flex">
                     <Card
                       sx={{
                         display: "flex",
@@ -342,7 +340,7 @@ export function PricingSection() {
                         <Typography variant="h3" sx={{ fontSize: "1.25rem", fontWeight: 800, color: "slate.900", mb: 1 }}>
                           {pkg.label}
                         </Typography>
-                        
+
                         <Typography variant="body2" color="text.secondary" sx={{ minHeight: 40, mb: 3.5, lineHeight: 1.5 }}>
                           {pkg.tagline}
                         </Typography>
@@ -378,10 +376,10 @@ export function PricingSection() {
 
                         {/* Modules Included */}
                         <Box sx={{ flexGrow: 1, mb: 4 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "slate.700", mb: 2, uppercase: true, tracking: "wider", fontSize: "0.75rem" }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, letterSpacing: "0.05em", fontSize: "0.75rem" }}>
                             Included Modules:
                           </Typography>
-                          
+
                           <Stack spacing={1.5}>
                             {pkg.modules.map((mSlug) => {
                               const mod = modules.find((m) => m.slug === mSlug);
@@ -423,7 +421,7 @@ export function PricingSection() {
               })}
 
               {/* Dynamic Custom Suite Card */}
-              <Grid item xs={12} sm={6} lg={3} display="flex">
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }} display="flex">
                 <Card
                   sx={{
                     display: "flex",
@@ -447,7 +445,7 @@ export function PricingSection() {
                     <Typography variant="h3" sx={{ fontSize: "1.25rem", fontWeight: 800, color: "slate.900", mb: 1 }}>
                       Enterprise Suite
                     </Typography>
-                    
+
                     <Typography variant="body2" color="text.secondary" sx={{ minHeight: 40, mb: 3.5, lineHeight: 1.5 }}>
                       SaaS environment customized for large hospital chains and networks.
                     </Typography>
@@ -461,10 +459,10 @@ export function PricingSection() {
                     <hr className="border-slate-100 my-4" />
 
                     <Box sx={{ flexGrow: 1, mb: 4 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "slate.700", mb: 2, uppercase: true, tracking: "wider", fontSize: "0.75rem" }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "slate.700", mb: 2, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "0.75rem" }}>
                         Ultimate Capacity:
                       </Typography>
-                      
+
                       <Stack spacing={1.5}>
                         <div className="flex items-start gap-2.5">
                           <div className="w-5 h-5 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 text-slate-500 mt-0.5">
@@ -527,7 +525,7 @@ export function PricingSection() {
               {/* Left column — highlights */}
               <Grid size={{ xs: 12, lg: 5 }}>
                 <Box sx={{ mb: { xs: 2, lg: 0 } }}>
-                  <Typography variant="h3" sx={{ mb: 2, fontWeight: 800, fontSize: "1.75rem", tracking: "-0.02em" }}>
+                  <Typography variant="h3" sx={{ mb: 2, fontWeight: 800, fontSize: "1.75rem", letterSpacing: "-0.02em" }}>
                     Why Custom Pricing?
                   </Typography>
                   <Typography
@@ -556,7 +554,7 @@ export function PricingSection() {
                             flexShrink: 0,
                           }}
                         />
-                        <Typography variant="body2" color="text.secondary" sx={{ fontMedium: true, fontSize: "0.9rem" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.9rem" }}>
                           {item}
                         </Typography>
                       </Stack>
