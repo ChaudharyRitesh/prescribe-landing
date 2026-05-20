@@ -1,12 +1,23 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Sora } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import Providers from "./providers";
 
-const inter = Inter({ subsets: ["latin"] });
-const sora = Sora({ subsets: ["latin"], variable: "--font-sora" });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plus-jakarta",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://kaero-prescribe.kaerogroup.com/"),
@@ -52,15 +63,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={sora.variable} data-scroll-behavior="smooth">
+    <html
+      lang="en"
+      className={`${plusJakartaSans.variable} ${dmSans.variable}`}
+      data-scroll-behavior="smooth"
+    >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+        />
       </head>
-      <body
-        className={`${inter.className} bg-white text-neutral-900 antialiased`}
-      >
+      <body className={dmSans.className}>
         <Providers>
           {children}
           <Toaster />

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { OnboardingData } from "../OnboardingWizard";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
 import { 
   Box, Typography, Button, Tabs, Tab, Card, CardContent, 
-  CardActionArea, CircularProgress, Chip, IconButton 
+  CardActionArea, CircularProgress, Chip 
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -27,7 +27,21 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
   const [selectionTab, setSelectionTab] = useState(0); // 0 = Packages, 1 = Modules
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(data.billingCycle || "yearly");
+
+  // Pre-select package from URL parameter or existing onboarding state once catalog loads
+  useEffect(() => {
+    if (catalog?.packages && catalog.packages.length > 0) {
+      if (data.packageId) {
+        setSelectedPackage(data.packageId);
+      } else if (data.subscriptionPlan) {
+        const found = catalog.packages.find((p: PackageItem) => p.slug === data.subscriptionPlan);
+        if (found) {
+          setSelectedPackage(found._id);
+        }
+      }
+    }
+  }, [catalog, data.packageId, data.subscriptionPlan]);
 
   if (isLoading) {
     return (
@@ -76,11 +90,15 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
       return;
     }
     
+    const selectedPkgObj = selectedPackage ? packages.find((p: PackageItem) => p._id === selectedPackage) : null;
+    const resolvedPlanName = selectedPkgObj ? selectedPkgObj.slug : 'individual';
+
     updateData({
       selectionType: selectionTab === 0 ? "package" : "individual",
       packageId: selectedPackage || undefined,
       selectedModules: selectedModules.length > 0 ? selectedModules : undefined,
       billingCycle,
+      subscriptionPlan: resolvedPlanName,
     } as any);
 
     onNext();
@@ -111,7 +129,6 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
           <Button
             size="small"
             variant={billingCycle === "monthly" ? "contained" : "text"}
-            color={billingCycle === "monthly" ? "inherit" : "inherit"}
             onClick={() => setBillingCycle("monthly")}
             sx={{ 
               color: billingCycle === "monthly" ? "text.primary" : "text.secondary",
@@ -124,7 +141,6 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
           <Button
             size="small"
             variant={billingCycle === "yearly" ? "contained" : "text"}
-            color={billingCycle === "yearly" ? "inherit" : "inherit"}
             onClick={() => setBillingCycle("yearly")}
             sx={{ 
               color: billingCycle === "yearly" ? "text.primary" : "text.secondary",
@@ -171,11 +187,13 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                       
                       <Box display="flex" alignItems="baseline" mb={0.5}>
                         <Typography variant="h4" fontWeight="900" color="text.primary">
-                          ₹{billingCycle === "monthly" ? pkg.pricing.monthly : pkg.pricing.yearly}
+                          {(pkg.isCustom || pkg.slug === 'kaero-nexus') ? "Custom Quote" : `₹${billingCycle === "monthly" ? pkg.pricing.monthly : pkg.pricing.yearly}`}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" ml={0.5}>
-                          /{billingCycle === "monthly" ? "mo" : "yr"}
-                        </Typography>
+                        {!(pkg.isCustom || pkg.slug === 'kaero-nexus') && (
+                          <Typography variant="body2" color="text.secondary" ml={0.5}>
+                            /{billingCycle === "monthly" ? "mo" : "yr"}
+                          </Typography>
+                        )}
                       </Box>
                       
                       {pkg.savings && billingCycle === "yearly" && (
@@ -250,11 +268,11 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
 
       <Box mt={3} pt={3} borderTop={1} borderColor="divider" display="flex" alignItems="center" justifyContent="space-between">
          <Typography variant="body2" color="text.secondary" fontWeight={500}>
-           {selectionTab === 0 ? (
-             selectedPackage ? "1 Package selected" : "Select a package"
-           ) : (
-             `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''} selected`
-           )}
+            {selectionTab === 0 ? (
+              selectedPackage ? "1 Package selected" : "Select a package"
+            ) : (
+              `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''} selected`
+            )}
          </Typography>
          <Button
             onClick={handleCompleteSetup}
@@ -262,9 +280,9 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
             color="primary"
             size="large"
             disabled={isNextDisabled}
-            endIcon={<WorkspacePremiumIcon />}
+            endIcon={(() => { const p = packages.find((x: PackageItem) => x._id === selectedPackage); return p?.isCustom || p?.slug === 'kaero-nexus'; })() ? undefined : <WorkspacePremiumIcon />}
           >
-            Continue to Payment
+            {(() => { const p = packages.find((x: PackageItem) => x._id === selectedPackage); return p?.isCustom || p?.slug === 'kaero-nexus'; })() ? "Continue to Quote" : "Continue to Payment"}
           </Button>
       </Box>
     </Box>

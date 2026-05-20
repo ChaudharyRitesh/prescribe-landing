@@ -1,44 +1,48 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  Handshake, 
-  TrendingUp, 
-  ShieldCheck, 
-  Globe, 
-  ArrowRight,
-  CheckCircle2,
-  Users2,
-  Building2,
-  PieChart
-} from "lucide-react";
 import Link from "next/link";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import HandshakeOutlinedIcon from "@mui/icons-material/HandshakeOutlined";
+import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
+import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
+import PieChartOutlinedIcon from "@mui/icons-material/PieChartOutlined";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 
 const benefits = [
   {
     title: "High Commission Structure",
-    description: "Earn industry-leading commissions on every successful hospital conversion and follow-on subscription.",
-    icon: <TrendingUp className="w-6 h-6" />,
-    color: "bg-blue-50 text-blue-600"
+    description:
+      "Earn industry-leading commissions on every successful hospital conversion and follow-on subscription.",
+    icon: <TrendingUpOutlinedIcon />,
   },
   {
     title: "Territory Exclusivity",
-    description: "Lock in your region and manage operations with zero competition from other partners.",
-    icon: <Globe className="w-6 h-6" />,
-    color: "bg-emerald-50 text-emerald-600"
+    description:
+      "Lock in your region and manage operations with zero competition from other partners.",
+    icon: <PublicOutlinedIcon />,
   },
   {
     title: "Advanced CRM Tools",
-    description: "Access a dedicated partner dashboard to track pitches, monitor performance, and manage hospital leads.",
-    icon: <PieChart className="w-6 h-6" />,
-    color: "bg-purple-50 text-purple-600"
+    description:
+      "Access a dedicated partner dashboard to track pitches, monitor performance, and manage hospital leads.",
+    icon: <PieChartOutlinedIcon />,
   },
   {
     title: "Full Training & Support",
-    description: "Comprehensive product training and a dedicated support team to help you close larger hospital deals.",
-    icon: <Users2 className="w-6 h-6" />,
-    color: "bg-orange-50 text-orange-600"
-  }
+    description:
+      "Comprehensive product training and a dedicated support team to help you close larger hospital deals.",
+    icon: <GroupsOutlinedIcon />,
+  },
 ];
 
 const features = [
@@ -46,119 +50,232 @@ const features = [
   "Automated commission payouts",
   "Whitelabel pitch materials",
   "Dedicated support representative",
-  "Real-time analytics & reporting"
+  "Real-time analytics & reporting",
 ];
+
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-60px" as const },
+  transition: { duration: 0.45, ease: "easeOut" as const },
+};
 
 export function PartnerProgramSection() {
   return (
-    <section id="partner-program" className="relative py-24 overflow-hidden bg-white">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-emerald-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
-
-      <div className="section-max-width px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          
+    <Box
+      component="section"
+      id="partner-program"
+      sx={{
+        py: { xs: 6, md: 10 },
+        px: 2,
+        background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
+        scrollMarginTop: "72px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
+        <Grid container spacing={{ xs: 4, lg: 8 }} alignItems="center">
           {/* Left Column: Content */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="space-y-8"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-sm font-semibold text-blue-600">
-              <Handshake className="w-4 h-4" />
-              <span>Partner with Kaero</span>
-            </div>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <motion.div {...fadeUp}>
+              {/* Badge */}
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.75,
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 10,
+                  background: "#F0FDFA",
+                  border: "1px solid rgba(20,184,166,0.2)",
+                  mb: 2,
+                }}
+              >
+                <HandshakeOutlinedIcon
+                  sx={{ fontSize: 16, color: "primary.dark" }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    color: "primary.dark",
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  Partner with Kaero
+                </Typography>
+              </Box>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 leading-[1.1]">
-              Join the <span className="text-blue-600">Kaero Partner Program</span> & Scale Your Success
-            </h2>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontSize: { xs: "1.375rem", md: "2rem" },
+                  mb: 1.5,
+                  lineHeight: 1.2,
+                }}
+              >
+                Join the{" "}
+                <Box component="span" sx={{ color: "primary.main" }}>
+                  Kaero Partner Program
+                </Box>{" "}
+                & Scale Your Success
+              </Typography>
 
-            <p className="text-lg text-neutral-600 leading-relaxed max-w-xl">
-              Become a strategic partner in the healthcare revolution. We provide the tools, technology, and support you need to empower hospitals and grow your business exponentially.
-            </p>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 3, maxWidth: 520 }}
+              >
+                Become a strategic partner in the healthcare revolution. We
+                provide the tools, technology, and support you need to empower
+                hospitals and grow your business.
+              </Typography>
 
-            <div className="space-y-4">
-              {features.map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span className="text-neutral-700 font-medium">{feature}</span>
-                </div>
+              {/* Feature list with teal left-border accent */}
+              {features.map((f) => (
+                <Stack
+                  key={f}
+                  direction="row"
+                  alignItems="center"
+                  spacing={1.5}
+                  sx={{ mb: 1.5 }}
+                >
+                  <CheckCircleOutlineIcon
+                    sx={{ color: "primary.main", fontSize: 20, flexShrink: 0 }}
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {f}
+                  </Typography>
+                </Stack>
               ))}
-            </div>
 
-            <div className="flex flex-wrap gap-4 pt-4">
-              <Link 
-                href="/partner/register" 
-                className="px-8 py-4 bg-neutral-900 text-white rounded-2xl font-bold flex items-center gap-2 hover:bg-neutral-800 transition-all active:scale-[0.98] shadow-xl shadow-neutral-200"
-              >
-                Become a Partner
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link 
-                href="/partner/login" 
-                className="px-8 py-4 bg-white text-neutral-900 border-2 border-neutral-100 rounded-2xl font-bold hover:bg-neutral-50 transition-all active:scale-[0.98]"
-              >
-                Partner Login
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {benefits.map((benefit, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="p-6 rounded-3xl bg-white border border-neutral-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className={`w-12 h-12 rounded-2xl ${benefit.color} flex items-center justify-center mb-4`}>
-                  {benefit.icon}
-                </div>
-                <h3 className="text-xl font-bold text-neutral-900 mb-2">{benefit.title}</h3>
-                <p className="text-sm text-neutral-500 leading-relaxed">
-                  {benefit.description}
-                </p>
-              </motion.div>
-            ))}
-
-            {/* Stats Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="sm:col-span-2 p-8 rounded-3xl bg-blue-600 text-white relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-8 transform rotate-12 opacity-10">
-                <Building2 className="w-24 h-24" />
-              </div>
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div>
-                  <h4 className="text-3xl font-bold mb-1">500+</h4>
-                  <p className="text-blue-100">Hospitals Empowered Globally</p>
-                </div>
-                <div className="h-12 w-[1px] bg-blue-400 hidden md:block" />
-                <div>
-                  <h4 className="text-3xl font-bold mb-1">₹50 Cr+</h4>
-                  <p className="text-blue-100">Partner Commissions Paid</p>
-                </div>
-                <div className="h-12 w-[1px] bg-blue-400 hidden md:block" />
-                <div>
-                  <h4 className="text-3xl font-bold mb-1">₹0</h4>
-                  <p className="text-blue-100">Joining Fee Always</p>
-                </div>
-              </div>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 3 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  component={Link}
+                  href="/partner/register"
+                  endIcon={<ArrowForwardIcon />}
+                >
+                  Become a Partner
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  component={Link}
+                  href="/partner/login"
+                  startIcon={<LoginOutlinedIcon />}
+                  sx={{
+                    borderColor: "#334155",
+                    color: "#475569",
+                    "&:hover": {
+                      borderColor: "#14B8A6",
+                      background: "rgba(20,184,166,0.04)",
+                    },
+                  }}
+                >
+                  Partner Login
+                </Button>
+              </Stack>
             </motion.div>
-          </div>
+          </Grid>
 
-        </div>
-      </div>
-    </section>
+          {/* Right Column: Benefits grid + Stats */}
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <Grid container spacing={2}>
+              {benefits.map((benefit, i) => (
+                <Grid size={{ xs: 12, sm: 6 }} key={benefit.title}>
+                  <motion.div
+                    {...fadeUp}
+                    transition={{ ...fadeUp.transition, delay: i * 0.1 }}
+                  >
+                    <Card
+                      sx={{
+                        height: "100%",
+                        transition: "all 0.3s",
+                        "&:hover": {
+                          boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+                          transform: "translateY(-2px)",
+                        },
+                      }}
+                    >
+                      <CardContent sx={{ p: 2.5 }}>
+                        <Box
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 2,
+                            background: "#F0FDFA",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            mb: 1.5,
+                            color: "primary.dark",
+                          }}
+                        >
+                          {benefit.icon}
+                        </Box>
+                        <Typography variant="h4" sx={{ mb: 0.5 }}>
+                          {benefit.title}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontSize: "0.75rem" }}
+                        >
+                          {benefit.description}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
+
+              {/* Stats bar */}
+              <Grid size={12}>
+                <motion.div
+                  {...fadeUp}
+                  transition={{ ...fadeUp.transition, delay: 0.4 }}
+                >
+                  <Box
+                    sx={{
+                      background:
+                        "linear-gradient(135deg, #0B1120 0%, #0F2744 100%)",
+                      borderRadius: 3,
+                      p: { xs: 2.5, md: 3.5 },
+                    }}
+                  >
+                    <Grid container spacing={2} textAlign="center">
+                      {[
+                        { val: "500+", label: "Hospitals Empowered" },
+                        { val: "₹50 Cr+", label: "Partner Commissions" },
+                        { val: "₹0", label: "Joining Fee" },
+                      ].map((stat) => (
+                        <Grid size={4} key={stat.label}>
+                          <Typography
+                            variant="h2"
+                            sx={{ color: "primary.main", fontWeight: 700 }}
+                          >
+                            {stat.val}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#64748B", fontSize: "0.6875rem" }}
+                          >
+                            {stat.label}
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                </motion.div>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Box>
+    </Box>
   );
 }

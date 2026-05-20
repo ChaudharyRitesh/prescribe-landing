@@ -8,7 +8,9 @@ export type OnboardingStatus =
   | 'pending_payment' 
   | 'provisioning' 
   | 'provisioned' 
+  | 'quote_pending'
   | 'failed';
+
 
 export type FacilityType = 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic';
 
@@ -37,6 +39,7 @@ export interface ModuleItem {
   isShared?: boolean;
   isActive: boolean;
   order: number;
+  isCustom?: boolean;
 }
 
 export interface PackageItem {
@@ -51,6 +54,7 @@ export interface PackageItem {
   badge?: string;
   isActive: boolean;
   order: number;
+  isCustom?: boolean;
 }
 
 export interface CatalogResponse extends BaseResponse {

@@ -3,7 +3,6 @@ import type {
   HeroSection,
   Feature,
   Service,
-  PricingPlan,
   Testimonial,
   AboutSection,
   ContactSection,
@@ -14,7 +13,6 @@ import {
   mockHeroSection,
   mockFeatures,
   mockServices,
-  mockPricingPlans,
   mockTestimonials,
   mockAboutSection,
   mockContactSection,
@@ -58,33 +56,6 @@ export async function getServices(): Promise<Service[]> {
     return data.length > 0 ? data : mockServices;
   } catch {
     return mockServices;
-  }
-}
-
-export async function getPricingPlans(): Promise<PricingPlan[]> {
-  try {
-    const data = await client.fetch(
-      `*[_type == "pricingPlan" && isActive == true && planType == "plan"] | order(order asc)`,
-      {},
-      { next: { revalidate: 0 } }
-    );
-    return data.length > 0 ? data : mockPricingPlans;
-  } catch (error) {
-    console.error("Error fetching plans:", error);
-    return mockPricingPlans;
-  }
-}
-
-export async function getPricingModules(): Promise<PricingPlan[]> {
-  try {
-    const data = await client.fetch(
-      `*[_type == "pricingPlan" && isActive == true && planType == "module"] | order(order asc)`,
-      {},
-      { next: { revalidate: 0 } }
-    );
-    return data;
-  } catch {
-    return [];
   }
 }
 
