@@ -1,21 +1,21 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
+import { Figtree, Noto_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import Providers from "./providers";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const figtree = Figtree({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-plus-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-heading",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const notoSans = Noto_Sans({
   subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-dm-sans",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
   display: "swap",
 });
 
@@ -65,7 +65,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${dmSans.variable}`}
+      className={`${figtree.variable} ${notoSans.variable}`}
       data-scroll-behavior="smooth"
     >
       <head>
@@ -77,7 +77,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
         />
       </head>
-      <body className={dmSans.className}>
+      <body className={notoSans.className}>
         <Providers>
           {children}
           <Toaster />

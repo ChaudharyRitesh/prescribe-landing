@@ -1,10 +1,14 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import ScrollReveal from "./scroll-reveal";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Check, X, Sparkles, Building2 } from "lucide-react";
+import { GsapReveal } from "./gsap-reveal";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 interface Comparison {
   feature: string;
@@ -30,170 +34,193 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
   const displayComparisons =
     comparisons.length > 0 ? comparisons : defaultComparisons;
 
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  const kaeroScore = displayComparisons.filter((c) => c.kaero).length;
+  const traditionalScore = displayComparisons.filter(
+    (c) => c.traditional
+  ).length;
+  const total = displayComparisons.length;
+
+  // Rows cascade in; KaeroPrescribe checkmarks pop with an elastic snap
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+
+    const rows = board.querySelectorAll("[data-row]");
+    const marks = board.querySelectorAll("[data-mark]");
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set([rows, marks], { opacity: 1, x: 0, scale: 1 });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      gsap.set(rows, { opacity: 0, x: -20 });
+      gsap.set(marks, { scale: 0 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: board,
+          start: "top 75%",
+          once: true,
+        },
+      });
+
+      tl.to(rows, {
+        opacity: 1,
+        x: 0,
+        duration: 0.5,
+        stagger: 0.09,
+        ease: "power3.out",
+      }).to(
+        marks,
+        {
+          scale: 1,
+          duration: 0.45,
+          stagger: 0.09,
+          ease: "back.out(2.5)",
+        },
+        0.25
+      );
+    }, board);
+
+    return () => ctx.revert();
+  }, [displayComparisons.length]);
+
   return (
-    <Box
-      component="section"
-      sx={{
-        py: { xs: 6, md: 10 },
-        px: 2,
-        background: "#F8FAFC",
-      }}
-    >
-      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
-        <ScrollReveal>
-          <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
-            <Typography
-              variant="caption"
-              sx={{ color: "primary.dark", mb: 1, display: "block" }}
-            >
-              Comparison
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{ fontSize: { xs: "1.375rem", md: "2rem" }, mb: 1.5 }}
-            >
-              Why KaeroPrescribe Wins
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ maxWidth: 520, mx: "auto" }}
-            >
-              Built from the ground up for modern healthcare. Not a legacy system
-              with AI bolted on.
-            </Typography>
-          </Box>
-        </ScrollReveal>
+    <section className="lp-section relative overflow-hidden bg-ink-deep">
+      <div className="lp-section-divider" />
+      <div className="lp-grid-pattern pointer-events-none absolute inset-0 opacity-40" />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-80 w-[40rem] -translate-x-1/2 rounded-full bg-sky-600/10 blur-[130px]" />
 
-        <ScrollReveal delay={100}>
-          <Box
-            sx={{
-              maxWidth: 800,
-              mx: "auto",
-              borderRadius: 2,
-              overflow: "hidden",
-              border: "1px solid",
-              borderColor: "divider",
-              background: "#FFFFFF",
-            }}
+      <div className="lp-container relative">
+        <GsapReveal className="mx-auto max-w-2xl text-center">
+          <span className="lp-eyebrow">Comparison</span>
+          <h2 className="lp-h2 mt-5">Why KaeroPrescribe Wins</h2>
+          <p className="lp-sub mt-4">
+            Built from the ground up for modern healthcare — not a legacy
+            system with AI bolted on.
+          </p>
+        </GsapReveal>
+
+        <GsapReveal delay={0.1} className="mx-auto mt-12 max-w-4xl lg:mt-16">
+          <div
+            ref={boardRef}
+            className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_40px_80px_-32px_rgba(2,6,23,0.9)] backdrop-blur"
           >
-            {/* Table header */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 0,
-                px: { xs: 2, md: 4 },
-                py: { xs: 1.5, md: 2 },
-                background: "#FFFFFF",
-                borderBottom: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  color: "text.primary",
-                  fontSize: { xs: "0.75rem", md: "0.875rem" },
-                }}
-              >
-                Feature
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  color: "primary.main",
-                  textAlign: "center",
-                  fontSize: { xs: "0.75rem", md: "0.875rem" },
-                }}
-              >
-                KaeroPrescribe
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  color: "#64748B",
-                  textAlign: "center",
-                  fontSize: { xs: "0.75rem", md: "0.875rem" },
-                }}
-              >
-                Traditional
-              </Typography>
-            </Box>
+            {/* Contender header */}
+            <div className="grid grid-cols-[1.3fr_1fr_1fr] border-b border-white/10">
+              <div className="hidden items-end px-6 pb-4 pt-6 text-xs font-semibold uppercase tracking-wider text-slate-500 sm:flex md:px-8">
+                Capability
+              </div>
+              <div className="col-span-2 grid grid-cols-2 sm:col-span-2">
+                {/* Kaero card */}
+                <div className="relative overflow-hidden px-3 py-5 text-center md:py-6">
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-teal-500/20 via-sky-600/10 to-transparent" />
+                  <div className="relative">
+                    <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-sky-500 text-slate-950 shadow-[0_8px_20px_-6px_rgba(45,212,191,0.6)]">
+                      <Sparkles size={16} />
+                    </span>
+                    <p className="font-heading mt-2 text-sm font-bold text-white md:text-base">
+                      KaeroPrescribe
+                    </p>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-teal-300">
+                      AI-native platform
+                    </p>
+                  </div>
+                </div>
+                {/* Traditional card */}
+                <div className="px-3 py-5 text-center md:py-6">
+                  <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] text-slate-500">
+                    <Building2 size={16} />
+                  </span>
+                  <p className="font-heading mt-2 text-sm font-semibold text-slate-400 md:text-base">
+                    Traditional HMS
+                  </p>
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-600">
+                    Legacy systems
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            {/* Table rows */}
+            {/* Capability rows */}
             {displayComparisons.map((row, idx) => (
-              <Box
+              <div
                 key={idx}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: 0,
-                  px: { xs: 2, md: 4 },
-                  py: { xs: 1.25, md: 1.5 },
-                  borderBottom:
-                    idx < displayComparisons.length - 1
-                      ? "1px solid"
-                      : "none",
-                  borderColor: "divider",
-                  transition: "background 0.2s",
-                  "&:hover": { background: "#F8FAFC" },
-                }}
+                data-row
+                className={`grid grid-cols-[1.3fr_1fr_1fr] transition-colors duration-200 hover:bg-white/[0.04] ${
+                  idx < displayComparisons.length - 1
+                    ? "border-b border-white/[0.06]"
+                    : ""
+                }`}
               >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 500,
-                    color: "text.primary",
-                    display: "flex",
-                    alignItems: "center",
-                    fontSize: { xs: "0.75rem", md: "0.8125rem" },
-                  }}
-                >
+                <div className="flex items-center px-4 py-4 text-[13px] font-medium text-slate-200 sm:px-6 md:px-8 md:text-sm">
                   {row.feature}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+                </div>
+                <div className="relative flex items-center justify-center py-4">
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-teal-500/[0.06] to-transparent" />
                   {row.kaero ? (
-                    <CheckCircleOutlineIcon
-                      sx={{ color: "primary.main", fontSize: { xs: 18, md: 20 } }}
-                    />
+                    <span
+                      data-mark
+                      className="relative inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-sky-500 text-slate-950 shadow-[0_0_16px_rgba(45,212,191,0.45)]"
+                    >
+                      <Check size={15} strokeWidth={3.5} />
+                    </span>
                   ) : (
-                    <CancelOutlinedIcon
-                      sx={{ color: "text.disabled", fontSize: { xs: 18, md: 20 } }}
-                    />
+                    <span
+                      data-mark
+                      className="relative inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.06] text-slate-500"
+                    >
+                      <X size={14} strokeWidth={2.5} />
+                    </span>
                   )}
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+                </div>
+                <div className="flex items-center justify-center py-4">
                   {row.traditional ? (
-                    <CheckCircleOutlineIcon
-                      sx={{ color: "primary.main", fontSize: { xs: 18, md: 20 } }}
-                    />
+                    <span
+                      data-mark
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-slate-300"
+                    >
+                      <Check size={14} strokeWidth={3} />
+                    </span>
                   ) : (
-                    <CancelOutlinedIcon
-                      sx={{ color: "error.main", fontSize: { xs: 18, md: 20 } }}
-                    />
+                    <span
+                      data-mark
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.05] text-slate-600"
+                    >
+                      <X size={14} strokeWidth={2.5} />
+                    </span>
                   )}
-                </Box>
-              </Box>
+                </div>
+              </div>
             ))}
-          </Box>
-        </ScrollReveal>
-      </Box>
-    </Box>
+
+            {/* Scoreline */}
+            <div className="grid grid-cols-[1.3fr_1fr_1fr] border-t border-white/10 bg-white/[0.03]">
+              <div className="flex items-center px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-400 sm:px-6 md:px-8">
+                Score
+              </div>
+              <div className="flex items-center justify-center py-4">
+                <span className="font-heading rounded-full bg-gradient-to-r from-teal-400 to-sky-500 px-4 py-1 text-sm font-extrabold text-slate-950 shadow-[0_8px_20px_-6px_rgba(45,212,191,0.5)]">
+                  {kaeroScore}/{total}
+                </span>
+              </div>
+              <div className="flex items-center justify-center py-4">
+                <span className="font-heading rounded-full bg-white/[0.06] px-4 py-1 text-sm font-bold text-slate-400">
+                  {traditionalScore}/{total}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-5 text-center text-xs text-slate-500">
+            Comparison reflects typical legacy hospital management systems
+            deployed in Indian facilities.
+          </p>
+        </GsapReveal>
+      </div>
+    </section>
   );
 }

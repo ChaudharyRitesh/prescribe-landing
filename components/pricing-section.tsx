@@ -1,22 +1,20 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
-import Grid from "@mui/material/Grid";
-import CircularProgress from "@mui/material/CircularProgress";
-import Chip from "@mui/material/Chip";
-import ScrollReveal from "./scroll-reveal";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CheckIcon from "@mui/icons-material/Check";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import SparklesIcon from "@mui/icons-material/AutoAwesome"; // MUI equivalent for Sparkles
+import Link from "next/link";
+import {
+  Check,
+  ArrowRight,
+  Lock,
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+  Phone,
+  Mail,
+  Building2,
+  MessageSquare,
+} from "lucide-react";
+import { GsapReveal } from "./gsap-reveal";
 import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { PackageItem, ModuleItem } from "@/lib/api/types/onboarding.types";
 
@@ -137,7 +135,6 @@ export function PricingSection() {
 
   const customQuoteRef = useRef<HTMLDivElement | null>(null);
 
-  // Resolve packages and modules dynamically from catalog or use fallback
   const packages = useMemo(() => {
     if (catalog?.packages && catalog.packages.length > 0) {
       return catalog.packages.filter((p) => p.isActive).sort((a, b) => a.order - b.order);
@@ -224,497 +221,447 @@ export function PricingSection() {
     touched[field] ? errors[field] : null;
 
   return (
-    <Box
-      component="section"
+    <section
       id="pricing"
-      sx={{
-        py: { xs: 8, md: 12 },
-        px: 2,
-        background: "linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%)",
-        scrollMarginTop: "72px",
-      }}
+      className="lp-section relative overflow-hidden bg-ink-deep"
     >
-      <Box sx={{ maxWidth: 1280, mx: "auto" }}>
+      <div className="lp-section-divider" />
+      <div className="lp-grid-pattern pointer-events-none absolute inset-0 opacity-40" />
+      <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-sky-600/10 blur-[130px]" />
+      <div className="pointer-events-none absolute -right-40 bottom-40 h-[26rem] w-[26rem] rounded-full bg-teal-500/10 blur-[140px]" />
 
-        {/* Section Heading */}
-        <ScrollReveal>
-          <Box sx={{ textAlign: "center", mb: { xs: 6, md: 8 } }}>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 mb-4">
-              <SparklesIcon sx={{ fontSize: 13 }} />
-              <span>Simple, Transparent Pricing</span>
+      <div className="lp-container relative">
+        {/* Heading */}
+        <GsapReveal className="mx-auto max-w-2xl text-center">
+          <span className="lp-eyebrow">
+            <Sparkles size={13} />
+            Simple, Transparent Pricing
+          </span>
+          <h2 className="lp-h2 mt-5">Plans Designed to Scale with You</h2>
+          <p className="lp-sub mt-4">
+            Choose a standard package suited to your facility type, or design a
+            custom workflow. Select a plan below to fast-track your setup.
+          </p>
+
+          {/* Billing toggle */}
+          <div className="mt-8 flex justify-center">
+            <div
+              className="inline-flex items-center rounded-xl border border-white/10 bg-white/[0.05] p-1 backdrop-blur"
+              role="group"
+              aria-label="Billing cycle"
+            >
+              <button
+                onClick={() => setBillingCycle("monthly")}
+                aria-pressed={billingCycle === "monthly"}
+                className={`cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  billingCycle === "monthly"
+                    ? "bg-sky-600 text-white shadow-[0_6px_16px_-4px_rgba(2,132,199,0.5)]"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle("yearly")}
+                aria-pressed={billingCycle === "yearly"}
+                className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  billingCycle === "yearly"
+                    ? "bg-sky-600 text-white shadow-[0_6px_16px_-4px_rgba(2,132,199,0.5)]"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Yearly
+                <span
+                  className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                    billingCycle === "yearly"
+                      ? "bg-teal-300 text-slate-900"
+                      : "bg-teal-400/15 text-teal-300"
+                  }`}
+                >
+                  −20%
+                </span>
+              </button>
             </div>
+          </div>
+        </GsapReveal>
 
-            <Typography
-              variant="h2"
-              sx={{
-                fontSize: { xs: "2rem", md: "2.75rem" },
-                fontWeight: 850,
-                letterSpacing: "-0.03em",
-                mb: 2.5,
-                color: "slate.900"
-              }}
-            >
-              Plans Designed to Scale with You
-            </Typography>
-
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ maxWidth: 620, mx: "auto", fontSize: "1.125rem", lineHeight: 1.6 }}
-            >
-              Choose a standard package styled for your facility type, or design a custom workflow. Select a plan below to fast-track your setup.
-            </Typography>
-
-            {/* Monthly / Yearly Toggle */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-              <div className="bg-slate-100/80 backdrop-blur-md p-1 rounded-xl inline-flex items-center border border-slate-200/50 shadow-inner">
-                <button
-                  onClick={() => setBillingCycle("monthly")}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 ${billingCycle === "monthly"
-                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/40"
-                    : "text-slate-500 hover:text-slate-800"
-                    }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBillingCycle("yearly")}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-1.5 ${billingCycle === "yearly"
-                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/40"
-                    : "text-slate-500 hover:text-slate-800"
-                    }`}
-                >
-                  <span>Yearly</span>
-                  <span className="bg-emerald-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-md animate-pulse">
-                    -20%
-                  </span>
-                </button>
-              </div>
-            </Box>
-          </Box>
-        </ScrollReveal>
-
-        {/* Pricing Cards Grid */}
-        <Box sx={{ mb: { xs: 8, md: 12 } }}>
+        {/* Cards */}
+        <div className="mt-12 lg:mt-16">
           {isLoading ? (
-            <Box display="flex" justifyContent="center" py={8}>
-              <CircularProgress size={40} />
-            </Box>
+            <div className="flex justify-center py-16">
+              <Loader2 size={36} className="animate-spin text-teal-300" />
+            </div>
           ) : (
-            <Grid container spacing={3.5} justifyContent="center" alignItems="stretch">
-              {packages.map((pkg) => {
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+              {packages.map((pkg, i) => {
                 const isPro = pkg.slug === "clinic-pro";
                 const monthlyPrice = pkg.pricing.monthly;
                 const yearlyMonthlyEquivalent = Math.round(pkg.pricing.yearly / 12);
 
                 return (
-                  <Grid key={pkg._id} size={{ xs: 12, sm: 6, lg: 3 }} display="flex">
-                    <Card
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        width: "100%",
-                        borderRadius: "24px",
-                        position: "relative",
-                        border: isPro ? "2px solid #2563EB" : "1px solid #E2E8F0",
-                        boxShadow: isPro
-                          ? "0 20px 25px -5px rgba(37, 99, 235, 0.08), 0 10px 10px -5px rgba(37, 99, 235, 0.04)"
-                          : "0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)",
-                        transform: isPro ? { md: "scale(1.03)" } : "none",
-                        transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                        "&:hover": {
-                          transform: isPro ? { md: "scale(1.05)" } : "translateY(-6px)",
-                          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.02)",
-                        },
-                      }}
+                  <GsapReveal key={pkg._id} delay={0.06 * i} className="h-full">
+                    <div
+                      className={`relative flex h-full flex-col rounded-2xl border p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 ${
+                        isPro
+                          ? "border-teal-400/50 bg-white/[0.07] shadow-[0_0_48px_-12px_rgba(45,212,191,0.4)]"
+                          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:shadow-[0_24px_48px_-20px_rgba(2,6,23,0.9)]"
+                      }`}
                     >
-                      {/* Popular / Best Value Badge */}
                       {pkg.badge && (
-                        <span className="absolute top-4 right-4 bg-blue-600 text-white text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">
+                        <span
+                          className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                            isPro
+                              ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950"
+                              : "bg-white/10 text-slate-200 backdrop-blur"
+                          }`}
+                        >
                           {pkg.badge}
                         </span>
                       )}
 
-                      <CardContent sx={{ p: 4, display: "flex", flexDirection: "column", height: "100%" }}>
-                        {/* Title & Tagline */}
-                        <Typography variant="h3" sx={{ fontSize: "1.25rem", fontWeight: 800, color: "slate.900", mb: 1 }}>
-                          {pkg.label}
-                        </Typography>
+                      <h3 className="font-heading text-lg font-bold text-white">
+                        {pkg.label}
+                      </h3>
+                      <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
+                        {pkg.tagline}
+                      </p>
 
-                        <Typography variant="body2" color="text.secondary" sx={{ minHeight: 40, mb: 3.5, lineHeight: 1.5 }}>
-                          {pkg.tagline}
-                        </Typography>
+                      <div className="mt-5 flex items-baseline">
+                        <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
+                          ₹{billingCycle === "monthly" ? monthlyPrice : yearlyMonthlyEquivalent}
+                        </span>
+                        <span className="ml-1 text-sm font-medium text-slate-500">
+                          /month
+                        </span>
+                      </div>
 
-                        {/* Price */}
-                        <Box sx={{ display: "flex", alignItems: "baseline", mb: 0.5 }}>
-                          <span className="text-4xl font-extrabold text-slate-900 tracking-tight">
-                            ₹{billingCycle === "monthly" ? monthlyPrice : yearlyMonthlyEquivalent}
-                          </span>
-                          <span className="text-sm font-semibold text-slate-400 ml-1">
-                            /month
-                          </span>
-                        </Box>
+                      {billingCycle === "yearly" ? (
+                        <p className="mt-1 text-xs font-medium text-slate-500">
+                          Billed annually at ₹{pkg.pricing.yearly}
+                        </p>
+                      ) : (
+                        <div className="mt-1 h-4" />
+                      )}
 
-                        {/* Yearly cost display */}
-                        {billingCycle === "yearly" ? (
-                          <div className="text-xs text-slate-500 font-medium mb-3">
-                            Billed annually at ₹{pkg.pricing.yearly}
-                          </div>
-                        ) : (
-                          <div className="mb-7" />
-                        )}
+                      {pkg.savings && billingCycle === "yearly" && (
+                        <span className="mt-3 inline-flex self-start rounded-md border border-teal-400/30 bg-teal-400/10 px-2 py-0.5 text-[10px] font-bold text-teal-300">
+                          {pkg.savings}
+                        </span>
+                      )}
 
-                        {/* Savings Badge */}
-                        {pkg.savings && billingCycle === "yearly" && (
-                          <div className="inline-flex self-start bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md mb-4 shadow-sm">
-                            {pkg.savings}
-                          </div>
-                        )}
+                      <hr className="my-5 border-white/[0.08]" />
 
-                        {/* Divider */}
-                        <hr className="border-slate-100 my-4" />
+                      <div className="flex-1">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Included modules
+                        </p>
+                        <ul className="mt-3 space-y-2.5">
+                          {pkg.modules.map((mSlug) => {
+                            const mod = modules.find((m) => m.slug === mSlug);
+                            return (
+                              <li key={mSlug} className="flex items-start gap-2.5">
+                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-400/15 text-teal-300">
+                                  <Check size={12} strokeWidth={3} />
+                                </span>
+                                <span className="text-sm font-medium text-slate-300">
+                                  {mod?.label || mSlug}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
 
-                        {/* Modules Included */}
-                        <Box sx={{ flexGrow: 1, mb: 4 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, letterSpacing: "0.05em", fontSize: "0.75rem" }}>
-                            Included Modules:
-                          </Typography>
-
-                          <Stack spacing={1.5}>
-                            {pkg.modules.map((mSlug) => {
-                              const mod = modules.find((m) => m.slug === mSlug);
-                              return (
-                                <div key={mSlug} className="flex items-start gap-2.5">
-                                  <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-blue-600 mt-0.5">
-                                    <CheckIcon sx={{ fontSize: 13, fontWeight: "bold" }} />
-                                  </div>
-                                  <span className="text-sm text-slate-600 font-medium">
-                                    {mod?.label || mSlug}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </Stack>
-                        </Box>
-
-                        {/* CTA button */}
-                        <Button
-                          href={`/onboarding?package=${pkg.slug}`}
-                          variant={isPro ? "contained" : "outlined"}
-                          fullWidth
-                          size="large"
-                          endIcon={<ArrowForwardIcon />}
-                          sx={{
-                            borderRadius: "14px",
-                            textTransform: "none",
-                            fontWeight: 700,
-                            py: 1.5,
-                            boxShadow: isPro ? "0 4px 14px 0 rgba(37, 99, 235, 0.3)" : "none",
-                          }}
-                        >
-                          Get Started
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                      <Link
+                        href={`/onboarding?package=${pkg.slug}`}
+                        className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-200 ${
+                          isPro
+                            ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950 shadow-[0_10px_24px_-8px_rgba(45,212,191,0.6)] hover:shadow-[0_14px_32px_-8px_rgba(45,212,191,0.75)]"
+                            : "border border-white/[0.15] text-slate-200 hover:border-teal-400/50 hover:text-teal-300"
+                        }`}
+                      >
+                        Get Started
+                        <ArrowRight size={16} />
+                      </Link>
+                    </div>
+                  </GsapReveal>
                 );
               })}
 
-              {/* Dynamic Custom Suite Card */}
-              <Grid size={{ xs: 12, sm: 6, lg: 3 }} display="flex">
-                <Card
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                    borderRadius: "24px",
-                    border: "1px dashed #CBD5E1",
-                    background: "rgba(255, 255, 255, 0.4)",
-                    backdropBlur: "12px",
-                    boxShadow: "none",
-                    transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                    "&:hover": {
-                      borderColor: "primary.main",
-                      background: "#FFFFFF",
-                      transform: "translateY(-6px)",
-                      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.01)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 4, display: "flex", flexDirection: "column", height: "100%" }}>
-                    <Typography variant="h3" sx={{ fontSize: "1.25rem", fontWeight: 800, color: "slate.900", mb: 1 }}>
-                      Enterprise Suite
-                    </Typography>
+              {/* Enterprise card */}
+              <GsapReveal delay={0.24} className="h-full">
+                <div className="flex h-full flex-col rounded-2xl border border-dashed border-white/20 bg-white/[0.02] p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-teal-400/40 hover:bg-white/[0.05]">
+                  <h3 className="font-heading text-lg font-bold text-white">
+                    Enterprise Suite
+                  </h3>
+                  <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
+                    SaaS environment customized for large hospital chains and networks.
+                  </p>
 
-                    <Typography variant="body2" color="text.secondary" sx={{ minHeight: 40, mb: 3.5, lineHeight: 1.5 }}>
-                      SaaS environment customized for large hospital chains and networks.
-                    </Typography>
+                  <div className="mt-5 flex items-baseline">
+                    <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
+                      Custom
+                    </span>
+                  </div>
+                  <div className="mt-1 h-4" />
 
-                    <Box sx={{ display: "flex", alignItems: "baseline", mb: 6.5 }}>
-                      <span className="text-4xl font-extrabold text-slate-800 tracking-tight">
-                        Custom
-                      </span>
-                    </Box>
+                  <hr className="my-5 border-white/[0.08]" />
 
-                    <hr className="border-slate-100 my-4" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Ultimate capacity
+                    </p>
+                    <ul className="mt-3 space-y-2.5">
+                      {[
+                        "Unlimited doctors & staff",
+                        "Dedicated account manager",
+                        "Custom integrations & SLAs",
+                      ].map((f) => (
+                        <li key={f} className="flex items-start gap-2.5">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-slate-400">
+                            <Check size={12} strokeWidth={3} />
+                          </span>
+                          <span className="text-sm font-medium text-slate-300">
+                            {f}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-                    <Box sx={{ flexGrow: 1, mb: 4 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "slate.700", mb: 2, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "0.75rem" }}>
-                        Ultimate Capacity:
-                      </Typography>
-
-                      <Stack spacing={1.5}>
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-5 h-5 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 text-slate-500 mt-0.5">
-                            <CheckIcon sx={{ fontSize: 13 }} />
-                          </div>
-                          <span className="text-sm text-slate-600 font-medium">Unlimited doctors & staff</span>
-                        </div>
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-5 h-5 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 text-slate-500 mt-0.5">
-                            <CheckIcon sx={{ fontSize: 13 }} />
-                          </div>
-                          <span className="text-sm text-slate-600 font-medium">Dedicated account manager</span>
-                        </div>
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-5 h-5 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 text-slate-500 mt-0.5">
-                            <CheckIcon sx={{ fontSize: 13 }} />
-                          </div>
-                          <span className="text-sm text-slate-600 font-medium">Custom integrations & SLAs</span>
-                        </div>
-                      </Stack>
-                    </Box>
-
-                    <Button
-                      onClick={scrollToCustomQuote}
-                      variant="outlined"
-                      color="secondary"
-                      fullWidth
-                      size="large"
-                      sx={{
-                        borderRadius: "14px",
-                        textTransform: "none",
-                        fontWeight: 700,
-                        py: 1.5,
-                        borderColor: "slate.300",
-                        color: "slate.700",
-                        "&:hover": {
-                          borderColor: "slate.800",
-                          background: "slate.50",
-                        },
-                      }}
-                    >
-                      Contact Sales
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          )}
-        </Box>
-
-        {/* Custom Quote Inquiry Form */}
-        <div ref={customQuoteRef}>
-          <ScrollReveal delay={100}>
-            <Grid
-              container
-              spacing={{ xs: 4, lg: 8 }}
-              sx={{ maxWidth: 1000, mx: "auto", borderTop: "1px solid #F1F5F9", pt: { xs: 6, md: 8 } }}
-              alignItems="flex-start"
-            >
-              {/* Left column — highlights */}
-              <Grid size={{ xs: 12, lg: 5 }}>
-                <Box sx={{ mb: { xs: 2, lg: 0 } }}>
-                  <Typography variant="h3" sx={{ mb: 2, fontWeight: 800, fontSize: "1.75rem", letterSpacing: "-0.02em" }}>
-                    Why Custom Pricing?
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 4, lineHeight: 1.7, fontSize: "0.95rem" }}
+                  <button
+                    onClick={scrollToCustomQuote}
+                    className="mt-6 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/20 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-white hover:text-slate-950"
                   >
-                    Rather than locking you into rigid tiers, we work with you to
-                    scope only what you need — so you never overpay for capacity
-                    you won&apos;t use.
-                  </Typography>
-
-                  <Stack spacing={2.5}>
-                    {highlights.map((item) => (
-                      <Stack
-                        key={item}
-                        direction="row"
-                        alignItems="flex-start"
-                        spacing={2}
-                      >
-                        <CheckCircleOutlineIcon
-                          sx={{
-                            color: "primary.main",
-                            fontSize: 20,
-                            mt: 0.25,
-                            flexShrink: 0,
-                          }}
-                        />
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.9rem" }}>
-                          {item}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                </Box>
-              </Grid>
-
-              {/* Right column — form card */}
-              <Grid size={{ xs: 12, lg: 7 }}>
-                <Card sx={{ p: 1, borderRadius: "24px", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.04)" }}>
-                  <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                    {submitSuccess ? (
-                      <Box sx={{ textAlign: "center", py: 5 }}>
-                        <Box
-                          sx={{
-                            width: 60,
-                            height: 60,
-                            borderRadius: "50%",
-                            background: "#10B981",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            mx: "auto",
-                            mb: 3,
-                            boxShadow: "0 4px 14px 0 rgba(16, 185, 129, 0.3)",
-                          }}
-                        >
-                          <CheckIcon sx={{ color: "#fff", fontSize: 32 }} />
-                        </Box>
-                        <Typography variant="h3" sx={{ mb: 1.5, fontWeight: 800 }}>
-                          Request Received
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ mb: 4, maxWidth: 360, mx: "auto", lineHeight: 1.6 }}
-                        >
-                          Our team will review your details and reach out within 24
-                          hours with a tailored proposal.
-                        </Typography>
-                        <Button
-                          variant="outlined"
-                          onClick={() => setSubmitSuccess(false)}
-                          sx={{ fontSize: "0.875rem", borderRadius: "10px", textTransform: "none", fontWeight: 600 }}
-                        >
-                          Submit another request
-                        </Button>
-                      </Box>
-                    ) : (
-                      <Box component="form" onSubmit={handleSubmit} noValidate>
-                        <Typography variant="h3" sx={{ mb: 1, fontWeight: 800, fontSize: "1.5rem" }}>
-                          Request a Custom Quote
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ mb: 4 }}
-                        >
-                          For facilities with specialized volume, customized module bundles, or multi-location configurations.
-                        </Typography>
-
-                        <Stack spacing={2.5}>
-                          <TextField
-                            label="Phone Number"
-                            type="tel"
-                            autoComplete="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            onBlur={() => markTouched("phone")}
-                            error={!!err("phone")}
-                            helperText={err("phone")}
-                            InputProps={{ sx: { borderRadius: "12px" } }}
-                          />
-                          <TextField
-                            label="Work Email"
-                            type="email"
-                            autoComplete="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            onBlur={() => markTouched("email")}
-                            error={!!err("email")}
-                            helperText={err("email")}
-                            InputProps={{ sx: { borderRadius: "12px" } }}
-                          />
-                          <TextField
-                            label="Organization / Facility"
-                            autoComplete="organization"
-                            value={orgName}
-                            onChange={(e) => setOrgName(e.target.value)}
-                            onBlur={() => markTouched("orgName")}
-                            error={!!err("orgName")}
-                            helperText={err("orgName")}
-                            InputProps={{ sx: { borderRadius: "12px" } }}
-                          />
-                          <TextField
-                            label="Additional details (optional)"
-                            multiline
-                            rows={3}
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Tell us about your facility size, doctor count, or custom integrations required..."
-                            InputProps={{ sx: { borderRadius: "12px" } }}
-                          />
-                        </Stack>
-
-                        {submitError && (
-                          <Typography
-                            variant="body2"
-                            color="error"
-                            sx={{ mt: 2, fontSize: "0.875rem", fontWeight: 500 }}
-                          >
-                            {submitError}
-                          </Typography>
-                        )}
-
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          fullWidth
-                          size="large"
-                          disabled={submitting}
-                          endIcon={
-                            submitting ? (
-                              <CircularProgress size={18} color="inherit" />
-                            ) : (
-                              <ArrowForwardIcon />
-                            )
-                          }
-                          sx={{ mt: 4, py: 1.75, borderRadius: "14px", fontWeight: 700, textTransform: "none" }}
-                        >
-                          {submitting ? "Sending Inquiry…" : "Submit Quote Request"}
-                        </Button>
-
-                        <Typography
-                          variant="body2"
-                          align="center"
-                          sx={{
-                            mt: 2.5,
-                            color: "text.disabled",
-                            fontSize: "0.75rem",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 0.5,
-                            fontWeight: 500,
-                          }}
-                        >
-                          <LockOutlinedIcon sx={{ fontSize: 12 }} />
-                          Your data is fully secure. We respond within 24 business hours.
-                        </Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </ScrollReveal>
+                    Contact Sales
+                  </button>
+                </div>
+              </GsapReveal>
+            </div>
+          )}
         </div>
-      </Box>
-    </Box>
+
+        {/* Custom quote */}
+        <div ref={customQuoteRef} className="mt-16 md:mt-24">
+          <GsapReveal>
+            <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_48px_96px_-40px_rgba(2,6,23,0.95)] backdrop-blur">
+              <div className="pointer-events-none absolute -right-28 -top-28 h-80 w-80 rounded-full bg-sky-600/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-28 -left-28 h-80 w-80 rounded-full bg-teal-500/15 blur-3xl" />
+
+              <div className="relative grid grid-cols-1 lg:grid-cols-[2fr_3fr]">
+                {/* Info panel */}
+                <div className="border-b border-white/10 bg-gradient-to-br from-teal-500/[0.12] via-transparent to-sky-600/[0.10] p-7 md:p-10 lg:border-b-0 lg:border-r">
+                  <span className="lp-eyebrow">Enterprise &amp; Custom</span>
+                  <h3 className="font-heading mt-5 text-2xl font-bold tracking-tight text-white md:text-[1.75rem]">
+                    Why Custom Pricing?
+                  </h3>
+                  <p className="mt-3 leading-relaxed text-slate-400">
+                    Rather than locking you into rigid tiers, we work with you
+                    to scope only what you need — so you never overpay for
+                    capacity you won&apos;t use.
+                  </p>
+                  <ul className="mt-8 space-y-3.5">
+                    {highlights.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.04] px-4 py-3"
+                      >
+                        <CheckCircle2
+                          size={18}
+                          className="mt-0.5 shrink-0 text-teal-300"
+                        />
+                        <span className="text-sm leading-relaxed text-slate-300">
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Form panel */}
+                <div className="p-7 md:p-10">
+                  {submitSuccess ? (
+                    <div className="flex h-full flex-col items-center justify-center py-10 text-center">
+                      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-sky-500 shadow-[0_12px_32px_-8px_rgba(45,212,191,0.6)]">
+                        <Check size={30} className="text-slate-950" strokeWidth={3} />
+                      </span>
+                      <h3 className="font-heading mt-5 text-xl font-bold text-white">
+                        Request Received
+                      </h3>
+                      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
+                        Our team will review your details and reach out within
+                        24 hours with a tailored proposal.
+                      </p>
+                      <button
+                        onClick={() => setSubmitSuccess(false)}
+                        className="lp-btn-secondary mt-6 cursor-pointer text-sm"
+                      >
+                        Submit another request
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} noValidate>
+                      <h3 className="font-heading text-xl font-bold text-white">
+                        Request a Custom Quote
+                      </h3>
+                      <p className="mt-1.5 text-sm text-slate-400">
+                        For facilities with specialized volume, customized
+                        module bundles, or multi-location configurations.
+                      </p>
+
+                      <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                          <label htmlFor="quote-phone" className="lp-label">
+                            Phone Number
+                          </label>
+                          <div className="relative">
+                            <Phone
+                              size={15}
+                              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                            />
+                            <input
+                              id="quote-phone"
+                              type="tel"
+                              autoComplete="tel"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              onBlur={() => markTouched("phone")}
+                              aria-invalid={!!err("phone")}
+                              className={`lp-input pl-10 ${
+                                err("phone")
+                                  ? "border-rose-400/60 focus:border-rose-400 focus:ring-rose-400/20"
+                                  : ""
+                              }`}
+                            />
+                          </div>
+                          {err("phone") && (
+                            <p className="mt-1.5 text-xs font-medium text-rose-400">
+                              {err("phone")}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label htmlFor="quote-email" className="lp-label">
+                            Work Email
+                          </label>
+                          <div className="relative">
+                            <Mail
+                              size={15}
+                              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                            />
+                            <input
+                              id="quote-email"
+                              type="email"
+                              autoComplete="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              onBlur={() => markTouched("email")}
+                              aria-invalid={!!err("email")}
+                              className={`lp-input pl-10 ${
+                                err("email")
+                                  ? "border-rose-400/60 focus:border-rose-400 focus:ring-rose-400/20"
+                                  : ""
+                              }`}
+                            />
+                          </div>
+                          {err("email") && (
+                            <p className="mt-1.5 text-xs font-medium text-rose-400">
+                              {err("email")}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label htmlFor="quote-org" className="lp-label">
+                            Organization / Facility
+                          </label>
+                          <div className="relative">
+                            <Building2
+                              size={15}
+                              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                            />
+                            <input
+                              id="quote-org"
+                              autoComplete="organization"
+                              value={orgName}
+                              onChange={(e) => setOrgName(e.target.value)}
+                              onBlur={() => markTouched("orgName")}
+                              aria-invalid={!!err("orgName")}
+                              className={`lp-input pl-10 ${
+                                err("orgName")
+                                  ? "border-rose-400/60 focus:border-rose-400 focus:ring-rose-400/20"
+                                  : ""
+                              }`}
+                            />
+                          </div>
+                          {err("orgName") && (
+                            <p className="mt-1.5 text-xs font-medium text-rose-400">
+                              {err("orgName")}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label htmlFor="quote-message" className="lp-label">
+                            Additional details{" "}
+                            <span className="font-normal text-slate-500">
+                              (optional)
+                            </span>
+                          </label>
+                          <div className="relative">
+                            <MessageSquare
+                              size={15}
+                              className="pointer-events-none absolute left-3.5 top-3.5 text-slate-500"
+                            />
+                            <textarea
+                              id="quote-message"
+                              rows={3}
+                              value={message}
+                              onChange={(e) => setMessage(e.target.value)}
+                              placeholder="Tell us about your facility size, doctor count, or custom integrations required..."
+                              className="lp-input resize-none pl-10"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {submitError && (
+                        <p className="mt-4 text-sm font-medium text-rose-400">
+                          {submitError}
+                        </p>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="mt-6 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-400 to-sky-500 px-7 py-3.5 text-sm font-bold text-slate-950 shadow-[0_12px_28px_-8px_rgba(45,212,191,0.6)] transition-all duration-200 hover:shadow-[0_16px_36px_-8px_rgba(45,212,191,0.75)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-60 md:text-base"
+                      >
+                        {submitting ? (
+                          <>
+                            Sending Inquiry…
+                            <Loader2 size={18} className="animate-spin" />
+                          </>
+                        ) : (
+                          <>
+                            Submit Quote Request
+                            <ArrowRight size={18} />
+                          </>
+                        )}
+                      </button>
+
+                      <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-slate-500">
+                        <Lock size={12} />
+                        Your data is fully secure. We respond within 24 business hours.
+                      </p>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </div>
+          </GsapReveal>
+        </div>
+      </div>
+    </section>
   );
 }
