@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Lock, Server, Eye } from "lucide-react";
 import { GsapReveal, StatCounter } from "./gsap-reveal";
+import { GsapTextReveal, TiltCard } from "./animation-primitives";
 
 interface TrustItem {
   title: string;
@@ -56,9 +57,11 @@ export function TrustSection({ items }: TrustSectionProps) {
       <div className="lp-container relative">
         <GsapReveal className="mx-auto max-w-2xl text-center">
           <span className="lp-eyebrow-dark">Compliance &amp; Certifications</span>
-          <h2 className="font-heading mt-5 text-3xl font-bold tracking-tight text-white md:text-[2.6rem]">
-            Trust Built In
-          </h2>
+          <GsapTextReveal
+            as="h2"
+            className="font-heading mt-5 text-3xl font-bold tracking-tight text-white md:text-[2.6rem]"
+            segments="Trust Built In"
+          />
           <p className="mt-4 text-base leading-relaxed text-slate-400 md:text-lg">
             Healthcare data demands the highest standards. We don&apos;t
             compromise on security or compliance.
@@ -69,20 +72,22 @@ export function TrustSection({ items }: TrustSectionProps) {
         <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {complianceBadges.map(({ acronym, label, icon: Icon, detail }, i) => (
             <GsapReveal key={acronym} delay={0.07 * i} className="h-full">
-              <div className="group h-full rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center backdrop-blur transition-all duration-300 hover:border-teal-400/40 hover:bg-white/[0.07]">
-                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-teal-400/10 text-teal-300 transition-colors duration-300 group-hover:bg-teal-400/20">
-                  <Icon size={22} />
-                </span>
-                <p className="font-heading mt-3.5 text-base font-bold text-white">
-                  {acronym}
-                </p>
-                <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
-                  {label}
-                </p>
-                <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-                  {detail}
-                </p>
-              </div>
+              <TiltCard max={10} className="h-full">
+                <div className="group h-full rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center backdrop-blur transition-all duration-300 hover:border-teal-400/40 hover:bg-white/[0.07]">
+                  <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-teal-400/10 text-teal-300 transition-colors duration-300 group-hover:bg-teal-400/20">
+                    <Icon size={22} />
+                  </span>
+                  <p className="font-heading mt-3.5 text-base font-bold text-white">
+                    {acronym}
+                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-teal-400">
+                    {label}
+                  </p>
+                  <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+                    {detail}
+                  </p>
+                </div>
+              </TiltCard>
             </GsapReveal>
           ))}
         </div>

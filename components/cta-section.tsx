@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, PlayCircle, ShieldCheck, Clock4, Headset } from "lucide-react";
 import { GsapReveal } from "./gsap-reveal";
+import { GsapTextReveal, MagneticButton } from "./animation-primitives";
 
 interface CTAData {
   title?: string;
@@ -40,19 +41,23 @@ export function CTASection({ data }: CTASectionProps) {
         <GsapReveal className="mx-auto max-w-3xl text-center">
           <span className="lp-eyebrow-dark">Get Started</span>
 
-          <h2 className="font-heading mt-6 text-3xl font-bold tracking-tight text-white md:text-[2.75rem] md:leading-[1.12]">
-            {title}
-          </h2>
+          <GsapTextReveal
+            as="h2"
+            className="font-heading mt-6 justify-center text-3xl font-bold tracking-tight text-white md:text-[2.75rem] md:leading-[1.12]"
+            segments={title}
+          />
 
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-300 md:text-lg">
             {description}
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
-            <Link href="/onboarding" className="lp-btn-primary">
-              {data?.primaryButtonText || "Get Started Free"}
-              <ArrowRight size={18} />
-            </Link>
+            <MagneticButton strength={0.5}>
+              <Link href="/onboarding" className="lp-btn-primary">
+                {data?.primaryButtonText || "Get Started Free"}
+                <ArrowRight size={18} />
+              </Link>
+            </MagneticButton>
             <a href="#features" className="lp-btn-ghost-dark">
               <PlayCircle size={18} />
               {data?.secondaryButtonText || "Watch Demo"}

@@ -329,7 +329,7 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
           {/* Subdomain */}
           <Box>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-              Workspace URL
+              Workspace Name
             </Typography>
             <TextField
               fullWidth
@@ -341,7 +341,7 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
                 startAdornment: (
                   <InputAdornment position="start">
                     <LanguageIcon color="action" />
-                    <Typography variant="body2" sx={{ ml: 1, mt: 0.2 }}>https://kaeropresibe.com/?client=</Typography>
+
                   </InputAdornment>
                 ),
               }}

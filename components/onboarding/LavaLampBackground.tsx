@@ -51,28 +51,29 @@ export function LavaLampBackground({ facilityType }: Props) {
   }, [facilityType]);
 
   return (
-    <Box 
-      sx={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
-        bottom: 0, 
-        zIndex: 0, 
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 0,
         overflow: 'hidden',
         pointerEvents: 'none',
-        bgcolor: '#F9FAFB',
+        bgcolor: '#060B18',
+        // Faint enterprise grid + center vignette over the dark base
+        backgroundImage:
+          'linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px)',
+        backgroundSize: '44px 44px',
         '&::after': {
           content: '""',
           position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backdropFilter: 'blur(100px)',
-          bgcolor: 'rgba(249, 250, 251, 0.5)',
-          zIndex: 10
-        }
+          inset: 0,
+          background:
+            'radial-gradient(120% 80% at 50% 0%, transparent 40%, rgba(6,11,24,0.85) 100%)',
+          zIndex: 10,
+        },
       }}
     >
       {/* Dynamic Orbs */}
@@ -86,7 +87,7 @@ export function LavaLampBackground({ facilityType }: Props) {
           borderRadius: '50%',
           bgcolor: colors[0],
           animation: `${float} 18s infinite ease-in-out`,
-          opacity: 0.5,
+          opacity: 0.28,
           filter: 'blur(80px)',
         }}
       />
@@ -100,7 +101,7 @@ export function LavaLampBackground({ facilityType }: Props) {
           borderRadius: '50%',
           bgcolor: colors[1],
           animation: `${floatReverse} 22s infinite ease-in-out`,
-          opacity: 0.4,
+          opacity: 0.22,
           filter: 'blur(70px)',
         }}
       />
@@ -114,7 +115,7 @@ export function LavaLampBackground({ facilityType }: Props) {
           borderRadius: '50%',
           bgcolor: colors[2],
           animation: `${float} 25s infinite ease-in-out`,
-          opacity: 0.5,
+          opacity: 0.28,
           filter: 'blur(90px)',
         }}
       />
@@ -128,7 +129,7 @@ export function LavaLampBackground({ facilityType }: Props) {
           borderRadius: '50%',
           bgcolor: colors[0],
           animation: `${floatReverse} 20s infinite ease-in-out`,
-          opacity: 0.4,
+          opacity: 0.22,
           filter: 'blur(100px)',
         }}
       />
@@ -142,7 +143,7 @@ export function LavaLampBackground({ facilityType }: Props) {
           borderRadius: '50%',
           bgcolor: colors[1],
           animation: `${pulse} 15s infinite ease-in-out`,
-          opacity: 0.3,
+          opacity: 0.16,
           filter: 'blur(60px)',
         }}
       />
@@ -156,7 +157,7 @@ export function LavaLampBackground({ facilityType }: Props) {
           borderRadius: '50%',
           bgcolor: colors[2],
           animation: `${pulse} 12s infinite ease-in-out reverse`,
-          opacity: 0.3,
+          opacity: 0.16,
           filter: 'blur(80px)',
         }}
       />

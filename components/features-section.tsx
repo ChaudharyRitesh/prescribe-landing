@@ -13,6 +13,7 @@ import {
   FileCheck2,
 } from "lucide-react";
 import { GsapReveal } from "./gsap-reveal";
+import { GsapTextReveal, TiltCard } from "./animation-primitives";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -112,7 +113,11 @@ export function FeaturesSection({
       <div className="lp-container relative">
         <GsapReveal className="mx-auto max-w-2xl text-center">
           <span className="lp-eyebrow">Product Demo</span>
-          <h2 className="lp-h2 mt-5">Built for Real Operations</h2>
+          <GsapTextReveal
+            as="h2"
+            className="lp-h2 mt-5"
+            segments="Built for Real Operations"
+          />
           <p className="lp-sub mt-4">
             Watch how KaeroPrescribe mirrors real clinical workflows — from
             first patient check-in to dispensed prescription.
@@ -157,7 +162,7 @@ export function FeaturesSection({
               {/* Ambient glow ring */}
               <div className="pointer-events-none absolute -inset-5 rounded-[1.8rem] bg-gradient-to-tr from-teal-500/30 via-sky-500/10 to-sky-600/30 opacity-70 blur-xl" />
 
-              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-[0_40px_90px_-30px_rgba(2,6,23,0.95)] backdrop-blur">
+              <TiltCard max={5} className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-[0_40px_90px_-30px_rgba(2,6,23,0.95)] backdrop-blur">
                 {/* Browser chrome bar to echo the hero frame */}
                 <div className="flex items-center gap-2 border-b border-white/10 bg-slate-950/60 px-4 py-3">
                   <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
@@ -208,7 +213,7 @@ export function FeaturesSection({
                     />
                   )}
                 </div>
-              </div>
+              </TiltCard>
 
               {/* Floating metric chips */}
               <motion.div

@@ -1,6 +1,7 @@
 import Header from "@/components/header";
 import ScrollProgress from "@/components/scroll-progress";
 import { HeroSectionWrapper } from "@/components/hero-section-wrapper";
+import { SocialProofSection } from "@/components/social-proof-section";
 import { ModulesShowcaseWrapper } from "@/components/modules-showcase-wrapper";
 import { FeaturesSectionWrapper } from "@/components/features-section-wrapper";
 import { ComparisonSectionWrapper } from "@/components/comparison-section-wrapper";
@@ -10,12 +11,16 @@ import { TrustSectionWrapper } from "@/components/trust-section-wrapper";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
+
+
+
   return (
     <>
       <ScrollProgress />
       <Header />
       <main style={{ overflowX: "hidden" }}>
         <HeroSectionWrapper />
+        <SocialProofSection />
         <ModulesShowcaseWrapper />
         <FeaturesSectionWrapper />
         <ComparisonSectionWrapper />

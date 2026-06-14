@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { GsapReveal } from "./gsap-reveal";
+import { GsapTextReveal } from "./animation-primitives";
 import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { PackageItem, ModuleItem } from "@/lib/api/types/onboarding.types";
 
@@ -237,7 +238,11 @@ export function PricingSection() {
             <Sparkles size={13} />
             Simple, Transparent Pricing
           </span>
-          <h2 className="lp-h2 mt-5">Plans Designed to Scale with You</h2>
+          <GsapTextReveal
+            as="h2"
+            className="lp-h2 mt-5 justify-center"
+            segments="Plans Designed to Scale with You"
+          />
           <p className="lp-sub mt-4">
             Choose a standard package suited to your facility type, or design a
             custom workflow. Select a plan below to fast-track your setup.

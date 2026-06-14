@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { GsapReveal } from "./gsap-reveal";
+import { GsapTextReveal } from "./animation-primitives";
 import Link from "next/link";
 
 interface Module {
@@ -106,9 +107,11 @@ export function ModulesShowcase({ modules }: ModulesShowcaseProps) {
       <div className="lp-container relative">
         <GsapReveal className="mx-auto max-w-2xl text-center">
           <span className="lp-eyebrow">Platform Modules</span>
-          <h2 className="lp-h2 mt-5">
-            Four Modules. One Unified Clinical Core.
-          </h2>
+          <GsapTextReveal
+            as="h2"
+            className="lp-h2 mt-5 justify-center"
+            segments="Four Modules. One Unified Clinical Core."
+          />
           <p className="lp-sub mt-4">
             Each module runs as a complete standalone solution while staying
             deeply interconnected through a unified data architecture.

@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Check, X, Sparkles, Building2 } from "lucide-react";
 import { GsapReveal } from "./gsap-reveal";
+import { GsapTextReveal } from "./animation-primitives";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -97,7 +98,11 @@ export function ComparisonSection({ comparisons }: ComparisonSectionProps) {
       <div className="lp-container relative">
         <GsapReveal className="mx-auto max-w-2xl text-center">
           <span className="lp-eyebrow">Comparison</span>
-          <h2 className="lp-h2 mt-5">Why KaeroPrescribe Wins</h2>
+          <GsapTextReveal
+            as="h2"
+            className="lp-h2 mt-5"
+            segments="Why KaeroPrescribe Wins"
+          />
           <p className="lp-sub mt-4">
             Built from the ground up for modern healthcare — not a legacy
             system with AI bolted on.

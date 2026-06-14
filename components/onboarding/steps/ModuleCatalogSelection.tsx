@@ -172,7 +172,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                     position: 'relative', 
                     cursor: 'pointer',
                     borderColor: isSelected ? 'primary.main' : 'divider',
-                    bgcolor: isSelected ? 'primary.50' : 'background.paper',
+                    bgcolor: isSelected ? 'rgba(255,255,255,0.06)' : 'background.paper',
                     borderWidth: isSelected ? 2 : 1
                   }}
                   onClick={() => setSelectedPackage(pkg._id)}
@@ -197,7 +197,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                       </Box>
                       
                       {pkg.savings && billingCycle === "yearly" && (
-                        <Chip label={pkg.savings} size="small" sx={{ bgcolor: '#DEF7EC', color: '#03543F', fontWeight: 'bold', mb: 2 }} />
+                        <Chip label={pkg.savings} size="small" sx={{ bgcolor: 'rgba(16,185,129,0.18)', color: '#6ee7b7', fontWeight: 'bold', mb: 2 }} />
                       )}
 
                       <Box borderTop={1} borderColor="divider" pt={2} mt={2}>
@@ -228,7 +228,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                   sx={{ 
                     cursor: 'pointer',
                     borderColor: isSelected ? 'primary.main' : 'divider',
-                    bgcolor: isSelected ? 'primary.50' : 'background.paper',
+                    bgcolor: isSelected ? 'rgba(255,255,255,0.06)' : 'background.paper',
                     borderWidth: isSelected ? 2 : 1,
                     position: 'relative'
                   }}
