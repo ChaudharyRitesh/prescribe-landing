@@ -41,21 +41,9 @@ export function AddressInput({ onAddressChange, initialAddress }: AddressInputPr
   const fieldSx = {
     "& .MuiOutlinedInput-root": {
       borderRadius: "12px",
-      backgroundColor: "#f8fafc",
       transition: "all 0.2s ease",
-      "&:hover": {
-        backgroundColor: "#f1f5f9",
-      },
       "&.Mui-focused": {
-        backgroundColor: "#fff",
         boxShadow: "0 0 0 3px rgba(79, 70, 229, 0.08)",
-      },
-      "& fieldset": {
-        borderColor: "#e2e8f0",
-        transition: "border-color 0.2s ease",
-      },
-      "&:hover fieldset": {
-        borderColor: "#cbd5e1",
       },
       "&.Mui-focused fieldset": {
         borderColor: "#4F46E5",
@@ -63,9 +51,6 @@ export function AddressInput({ onAddressChange, initialAddress }: AddressInputPr
       },
     },
     "& .MuiInputLabel-root": {
-      color: "#64748b",
-      fontWeight: 500,
-      fontSize: "0.875rem",
       "&.Mui-focused": {
         color: "#4F46E5",
       },
@@ -80,13 +65,8 @@ export function AddressInput({ onAddressChange, initialAddress }: AddressInputPr
     <Box
       sx={{
         p: 2.5,
-        border: "1px solid #e2e8f0",
         borderRadius: "16px",
-        backgroundColor: "#ffffff",
         transition: "box-shadow 0.2s ease",
-        "&:hover": {
-          boxShadow: "0 1px 8px rgba(0, 0, 0, 0.04)",
-        },
       }}
     >
       {/* Full address / Building line */}
