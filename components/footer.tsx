@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   Mail,
   MapPin,
@@ -48,7 +49,7 @@ const footerGroups = [
     title: "Company",
     links: [
       { label: "About Us", href: "#" },
-      { label: "Careers", href: "#" },
+      { label: "Careers", href: "/careers" },
       { label: "Contact", href: "#" },
       { label: "Partners Program", href: "/partner/register" },
     ],
@@ -71,6 +72,8 @@ const socials = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+  const isCareers = pathname.startsWith("/careers");
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [newsletterStatus, setNewsletterStatus] = useState<
@@ -142,19 +145,25 @@ export function Footer() {
                 placeholder="Enter your email"
                 value={newsletterEmail}
                 onChange={(e) => setNewsletterEmail(e.target.value)}
-                className="w-full flex-1 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-slate-500 transition-colors duration-200 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/20"
+                className={`h-12 w-full flex-1 border border-white/10 bg-white/[0.06] px-4 text-sm text-white placeholder:text-slate-500 transition-colors duration-200 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/20 ${
+                  isCareers ? "rounded-md" : "rounded-xl"
+                }`}
               />
               <button
                 type="submit"
                 disabled={newsletterSubmitting}
-                className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-sky-700 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className={`inline-flex h-12 cursor-pointer items-center justify-center gap-2 whitespace-nowrap px-6 text-sm font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isCareers
+                    ? "rounded-md bg-teal-600 hover:bg-teal-500"
+                    : "rounded-xl bg-sky-700 hover:bg-sky-800"
+                }`}
               >
                 Subscribe
                 {newsletterSubmitting ? (
                   <Loader2 size={16} className="animate-spin" />
-                ) : (
+                ) : !isCareers ? (
                   <ArrowRight size={16} />
-                )}
+                ) : null}
               </button>
             </form>
             {newsletterStatus && (
@@ -185,26 +194,30 @@ export function Footer() {
             <div className="mt-6 space-y-2.5">
               <a
                 href="mailto:support@kaerogroup.com"
-                className="flex items-center gap-2.5 text-[13px] text-slate-400 transition-colors duration-200 hover:text-teal-300"
+                className="text-[13px] text-slate-400 transition-colors duration-200 hover:text-teal-300"
               >
-                <Mail size={15} className="text-teal-400" />
+                {!isCareers && <Mail size={15} className="mr-2.5 inline text-teal-400" />}
                 support@kaerogroup.com
               </a>
-              <p className="flex items-center gap-2.5 text-[13px] text-slate-400">
-                <MapPin size={15} className="text-teal-400" />
+              <p className="text-[13px] text-slate-400">
+                {!isCareers && <MapPin size={15} className="mr-2.5 inline text-teal-400" />}
                 Kolkata, West Bengal
               </p>
             </div>
 
-            <div className="mt-6 flex gap-2.5">
+            <div className={`mt-6 flex ${isCareers ? "gap-5" : "gap-2.5"}`}>
               {socials.map(({ icon: Icon, label, href }) => (
                 <a
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-slate-400 transition-all duration-200 hover:border-teal-400/40 hover:bg-teal-400/10 hover:text-teal-300"
+                  className={
+                    isCareers
+                      ? "text-xs font-semibold text-slate-400 transition-colors hover:text-teal-300"
+                      : "flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-slate-400 transition-all duration-200 hover:border-teal-400/40 hover:bg-teal-400/10 hover:text-teal-300"
+                  }
                 >
-                  <Icon size={17} />
+                  {isCareers ? label : <Icon size={17} />}
                 </a>
               ))}
             </div>
@@ -251,10 +264,16 @@ export function Footer() {
               All Systems Operational
             </span>
             <span className="h-3 w-px bg-white/10" />
-            <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
-              Made with
-              <Heart size={11} className="fill-rose-500 text-rose-500" />
-              in India
+            <span className="text-[11px] text-slate-500">
+              {isCareers ? (
+                "Built in India"
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  Made with
+                  <Heart size={11} className="fill-rose-500 text-rose-500" />
+                  in India
+                </span>
+              )}
             </span>
           </div>
         </div>
