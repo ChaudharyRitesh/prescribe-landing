@@ -6,7 +6,7 @@ import {
   DEPARTMENTS,
   JOB_TYPES,
   LOCATIONS,
-  jobs as allJobs,
+  type Job,
 } from "@/lib/careers-data";
 import {
   careerRowButton,
@@ -15,7 +15,7 @@ import {
 
 const ALL = "All";
 
-export function CareersBoard() {
+export function CareersBoard({ initialJobs = [] }: { initialJobs?: Job[] }) {
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState(ALL);
   const [location, setLocation] = useState(ALL);
@@ -24,7 +24,7 @@ export function CareersBoard() {
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return allJobs.filter((job) => {
+    return initialJobs.filter((job) => {
       if (department !== ALL && job.department !== department) return false;
       if (location !== ALL && job.location !== location) return false;
       if (type !== ALL && job.type !== type) return false;
@@ -191,9 +191,10 @@ export function CareersBoard() {
                 <h3 className="font-heading text-xl font-bold text-slate-950">
                   {job.title}
                 </h3>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
-                  {job.summary}
-                </p>
+                <div
+                  className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 [&_p]:m-0 [&_a]:underline"
+                  dangerouslySetInnerHTML={{ __html: job.summary }}
+                />
                 <p className="mt-3 text-sm text-slate-500">
                   {job.location} / {job.mode} / {job.type} / {job.level}
                 </p>

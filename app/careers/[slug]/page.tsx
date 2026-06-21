@@ -3,14 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/header";
 import { Footer } from "@/components/footer";
-import { jobs, type Job } from "@/lib/careers-data";
+import { getJob, getJobs, type Job } from "@/lib/careers-data";
 import {
   careerPrimaryButton,
   careerRowButton,
   careerUtilityButton,
 } from "@/components/careers/careers-ui";
+import { ApplicationForm } from "@/components/careers/application-form";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const jobs = await getJobs();
   return jobs.map((job) => ({ slug: job.slug }));
 }
 
@@ -20,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const job = jobs.find((item) => item.slug === slug);
+  const job = await getJob(slug);
 
   if (!job) {
     return { title: "Role not found | KaeroPrescribe Careers" };
@@ -93,7 +95,8 @@ export default async function JobPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const job = jobs.find((item) => item.slug === slug);
+  const job = await getJob(slug);
+  const jobs = await getJobs();
 
   if (!job) notFound();
 
@@ -103,10 +106,6 @@ export default async function JobPage({
         item.department === job.department && item.slug !== job.slug
     )
     .slice(0, 3);
-
-  const applyHref = `mailto:careers@kaerogroup.com?subject=${encodeURIComponent(
-    `Application: ${job.title}`
-  )}`;
 
   return (
     <>
@@ -129,9 +128,10 @@ export default async function JobPage({
                 <h1 className="font-heading mt-4 max-w-4xl text-4xl font-bold leading-[1.05] tracking-tight text-[#07111f] sm:text-5xl lg:text-6xl">
                   {job.title}
                 </h1>
-                <p className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-700">
-                  {job.summary}
-                </p>
+                <div
+                  className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-700 [&_p]:m-0 [&_a]:underline"
+                  dangerouslySetInnerHTML={{ __html: job.summary }}
+                />
               </div>
 
               <div className="border-t border-slate-400 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
@@ -142,8 +142,9 @@ export default async function JobPage({
                   {job.mode} / {job.type} / {job.level}
                 </p>
                 <a
-                  href={applyHref}
+                  href="#apply-form"
                   className={`${careerPrimaryButton} mt-6 w-full`}
+                  style={{ justifyContent: "center" }}
                 >
                   Apply for this role
                 </a>
@@ -159,9 +160,10 @@ export default async function JobPage({
                 <h2 className="font-heading text-2xl font-bold tracking-tight text-[#07111f]">
                   About the role
                 </h2>
-                <p className="mt-5 max-w-3xl text-[16px] leading-8 text-slate-700">
-                  {job.about}
-                </p>
+                <div
+                  className="mt-5 max-w-3xl text-[16px] leading-8 text-slate-700 [&_p]:mt-4 [&_p:first-child]:mt-0 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mt-1 [&_a]:text-teal-800 [&_a]:underline [&_strong]:font-semibold [&_b]:font-semibold [&_em]:italic"
+                  dangerouslySetInnerHTML={{ __html: job.about }}
+                />
               </section>
 
               <DescriptionSection
@@ -200,23 +202,8 @@ export default async function JobPage({
                   <RoleDetails job={job} />
                 </div>
 
-                <div className="mt-7 border-t border-slate-300 pt-6">
-                  <h3 className="font-heading font-bold text-[#07111f]">
-                    How to apply
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                    Email your resume and links to relevant work. Include the
-                    role title in the subject line.
-                  </p>
-                  <a
-                    href={applyHref}
-                    className={`${careerPrimaryButton} mt-5 w-full`}
-                  >
-                    Apply by email
-                  </a>
-                  <p className="mt-3 break-all text-xs text-slate-500">
-                    careers@kaerogroup.com
-                  </p>
+                <div id="apply-form" className="mt-7 border-t border-slate-300 pt-6">
+                  <ApplicationForm jobId={job._id} />
                 </div>
               </div>
             </aside>

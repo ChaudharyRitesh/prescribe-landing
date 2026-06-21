@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Header from "@/components/header";
 import { Footer } from "@/components/footer";
 import { CareersBoard } from "@/components/careers/careers-board";
-import { jobs, perks, values } from "@/lib/careers-data";
+import { getJobs, perks, values } from "@/lib/careers-data";
 import { careerPrimaryButton } from "@/components/careers/careers-ui";
 
 export const metadata: Metadata = {
@@ -38,7 +38,9 @@ const process = [
   },
 ];
 
-export default function CareersPage() {
+export default async function CareersPage() {
+  const jobs = await getJobs();
+
   return (
     <>
       <Header />
@@ -117,7 +119,7 @@ export default function CareersPage() {
                 includes scope, requirements, and application details.
               </p>
             </div>
-            <CareersBoard />
+            <CareersBoard initialJobs={jobs} />
           </div>
         </section>
 
