@@ -34,10 +34,15 @@ apiClient.interceptors.request.use(
         config.url.includes('/verify-otp') ||
         config.url.includes('/verify-2fa') ||
         config.url.includes('/resend-2fa-otp') ||
-        config.url.includes('/resend-verification-otp')
+        config.url.includes('/resend-verification-otp') ||
+        config.url.includes('/onboarding/initiate') ||
+        config.url.includes('/onboarding/catalog') ||
+        config.url.includes('/onboarding/check-subdomain') ||
+        config.url.includes('/onboarding/verify-mr') ||
+        config.url.includes('/onboarding/verify-gst')
       );
 
-      if (token && token !== 'undefined' && token !== 'null') {
+      if (token && token !== 'undefined' && token !== 'null' && !isPublicRoute) {
         if (config.headers.set) {
           config.headers.set('Authorization', `Bearer ${token}`);
         } else {

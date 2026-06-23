@@ -103,7 +103,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
       case 0:
         return <FacilityTypeSelection onNext={nextStep} updateData={updateData} data={data} />;
       case 1:
-        return <EmailInitiation onNext={nextStep} updateData={updateData} data={data} />;
+        return <EmailInitiation onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
       case 2:
         return <OtpVerification onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
       case 3:
@@ -113,7 +113,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
       case 5:
         return <FinalReviewAndPayment onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
       case 6:
-        return <ProvisioningStatus data={data} />;
+        return <ProvisioningStatus data={data} updateData={updateData} />;
       default:
         return <p className="text-slate-400">Unknown step</p>;
     }

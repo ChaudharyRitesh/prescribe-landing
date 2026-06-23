@@ -134,7 +134,7 @@ export default function Header() {
             ) : (
               <Link
                 href={isCareers ? "/careers#roles" : "/onboarding"}
-                className={`inline-flex items-center justify-center rounded-md px-5 text-sm font-semibold text-white transition-colors duration-200 ${
+                className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 ${
                   isCareers
                     ? "h-11 bg-teal-600 hover:bg-teal-500"
                     : "min-h-10 bg-sky-600 shadow-[0_8px_20px_-6px_rgba(2,132,199,0.6)] hover:bg-sky-500"

@@ -18,9 +18,10 @@ import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
   data: OnboardingData;
+  updateData?: (newData: Partial<OnboardingData>) => void;
 }
 
-export function ProvisioningStatus({ data }: Props) {
+export function ProvisioningStatus({ data, updateData }: Props) {
   const [localSessionId, setLocalSessionId] = useState(data.sessionId);
   const [progress, setProgress] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
@@ -79,12 +80,14 @@ export function ProvisioningStatus({ data }: Props) {
   useEffect(() => {
     if (isProvisioned || isQuotePending) {
       clearAllStorageAndCookies();
+      if (updateData) updateData({ status: isProvisioned ? "provisioned" : "quote_pending" });
     } else if (isFailed) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("kaero_onboarding_session");
       }
+      if (updateData) updateData({ status: "failed" });
     }
-  }, [isProvisioned, isFailed, isQuotePending]);
+  }, [isProvisioned, isFailed, isQuotePending, updateData]);
 
   useEffect(() => {
     if (!localSessionId || isProvisioned || isFailed || isQuotePending) return;

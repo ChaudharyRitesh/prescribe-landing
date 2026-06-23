@@ -30,7 +30,11 @@ function OnboardingContent() {
   // Sync with localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("kaero_onboarding_session", JSON.stringify(data));
+      if (data.status === "provisioned" || data.status === "quote_pending" || data.status === "failed") {
+        localStorage.removeItem("kaero_onboarding_session");
+      } else {
+        localStorage.setItem("kaero_onboarding_session", JSON.stringify(data));
+      }
     }
   }, [data]);
 

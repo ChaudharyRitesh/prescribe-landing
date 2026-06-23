@@ -111,12 +111,10 @@ export function HeroSection({ data }: HeroSectionProps) {
               {...fadeUp(0.24)}
               className="mt-9 flex flex-col gap-3.5 sm:flex-row"
             >
-              <MagneticButton strength={0.5}>
-                <Link href="/onboarding" className="lp-btn-primary">
-                  Get Started Free
-                  <ArrowRight size={18} />
-                </Link>
-              </MagneticButton>
+              <Link href="/onboarding" className="lp-btn-primary">
+                Get Started Free
+                <ArrowRight size={18} />
+              </Link>
               <a href="#features" className="lp-btn-ghost-dark">
                 <PlayCircle size={18} />
                 Watch Platform Demo

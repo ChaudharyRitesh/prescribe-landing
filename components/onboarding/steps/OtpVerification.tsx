@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { VerifyOtpSchema, VerifyOtpFormValues } from "@/lib/validations/onboarding-schema";
@@ -22,10 +23,56 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<VerifyOtpFormValues>({
     resolver: zodResolver(VerifyOtpSchema),
   });
+
+  const [otpArray, setOtpArray] = useState<string[]>(Array(6).fill(""));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    register("otp");
+  }, [register]);
+
+  const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    if (value && !/^\d+$/.test(value)) return;
+
+    const newOtp = [...otpArray];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtpArray(newOtp);
+    
+    setValue("otp", newOtp.join(""), { shouldValidate: true });
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Backspace" && !otpArray[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData("text").slice(0, 6).replace(/\D/g, "");
+    if (!pasteData) return;
+
+    const newOtp = [...otpArray];
+    for (let i = 0; i < pasteData.length; i++) {
+      if (i < 6) newOtp[i] = pasteData[i];
+    }
+    setOtpArray(newOtp);
+    setValue("otp", newOtp.join(""), { shouldValidate: true });
+
+    const focusIndex = Math.min(pasteData.length, 5);
+    inputRefs.current[focusIndex]?.focus();
+  };
 
   const { mutate: verifyOtp, isPending: verifying, error: verifyError } = useVerifyOtpMutation();
   const { mutate: resendOtp, isPending: resending, error: resendError } = useResendOtpMutation();
@@ -80,25 +127,48 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Box mb={3}>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-            6-Digit Code
+        <Box mb={4}>
+          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: 'text.secondary', textAlign: 'center' }}>
+            Enter 6-Digit Code
           </Typography>
-          <TextField
-            fullWidth
-            id="otp"
-            placeholder="123456"
-            disabled={verifying}
-            autoFocus
-            error={!!errors.otp || !!verifyError}
-            helperText={errors.otp?.message || verifyError?.message || " "}
-            inputProps={{ 
-              maxLength: 6, 
-              inputMode: "numeric",
-              style: { textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem', fontFamily: 'monospace' } 
-            }}
-            {...register("otp")}
-          />
+          <Box display="flex" gap={1.5} justifyContent="center" onPaste={handlePaste}>
+            {otpArray.map((digit, index) => (
+              <TextField
+                key={index}
+                inputRef={(el: any) => { inputRefs.current[index] = el; }}
+                value={digit}
+                onChange={(e) => handleOtpChange(index, e)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                disabled={verifying}
+                autoFocus={index === 0}
+                error={!!errors.otp || !!verifyError}
+                inputProps={{
+                  maxLength: 2,
+                  inputMode: "numeric",
+                  style: { 
+                    textAlign: 'center', 
+                    fontSize: '1.5rem', 
+                    fontFamily: 'monospace',
+                    padding: '12px 8px',
+                    width: '45px',
+                    height: '56px',
+                    boxSizing: 'border-box'
+                  }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                  }
+                }}
+              />
+            ))}
+          </Box>
+          {(errors.otp || verifyError) && (
+            <Typography variant="caption" color="error" display="block" align="center" mt={1}>
+              {errors.otp?.message || verifyError?.message}
+            </Typography>
+          )}
         </Box>
 
         <Button

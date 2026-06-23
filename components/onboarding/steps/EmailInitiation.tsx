@@ -10,17 +10,19 @@ import { InitiateResponse } from "@/lib/api/types/onboarding.types";
 import { Box, Typography, TextField, Button, InputAdornment, Link } from "@mui/material";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { CircularProgress } from "@mui/material";
 import { OnboardingData } from "../OnboardingWizard";
 import { TermsAndConditionsModal } from "../TermsAndConditionsModal";
 
 interface Props {
   onNext: () => void;
+  onBack: () => void;
   updateData: (data: Partial<OnboardingData>) => void;
   data: OnboardingData;
 }
 
-export function EmailInitiation({ onNext, updateData, data }: Props) {
+export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
   const {
     register,
     handleSubmit,
@@ -60,6 +62,14 @@ export function EmailInitiation({ onNext, updateData, data }: Props) {
   return (
     <Box className="animate-fade-up">
       <Box mb={4}>
+        <Button
+          onClick={onBack}
+          startIcon={<ArrowBackIcon />}
+          sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}
+          size="small"
+        >
+          Back to Facility Type
+        </Button>
         <Typography variant="h4" color="text.primary" gutterBottom>
           Welcome to Kaero Prescribe
         </Typography>
