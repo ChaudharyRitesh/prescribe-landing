@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PaymentIcon from "@mui/icons-material/Payment";
+import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import { AddressInput } from "@/components/ui/google-places-input";
@@ -336,6 +337,35 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        <Box sx={{ bgcolor: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '8px', p: '12px 16px', mb: 4 }}>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Facility Type</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>
+              {data.facilityType ? data.facilityType.charAt(0).toUpperCase() + data.facilityType.slice(1) : 'Organization'}
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Selected Plan</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>
+              {data.selectionType === 'package' ? (activePkg?.label || 'Custom Package') : `${data.selectedModules?.length || 0} Modules`}
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" mb={data.quotedPrice ? 1 : 0}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Billing Cycle</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500, textTransform: 'capitalize' }}>
+              {data.billingCycle || 'Yearly'}
+            </Typography>
+          </Box>
+          {data.quotedPrice && (
+            <Box display="flex" justifyContent="space-between">
+              <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Total Amount</Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>
+                ₹{data.quotedPrice.toLocaleString('en-IN')}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+
         <Box mb={3}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: "text.secondary" }}>
             Phone Number
@@ -404,9 +434,15 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
             fullWidth
             placeholder="22AAAAA0000A1Z5"
             error={!!errors.gstNumber || gstStatus === "invalid"}
-            helperText={errors.gstNumber?.message || (gstStatus === "invalid" ? "GST identification failed existence check." : " ")}
+            helperText={data.gstNumber ? "Entered in Organization step · Edit there if needed" : (errors.gstNumber?.message || (gstStatus === "invalid" ? "GST identification failed existence check." : " "))}
             {...register("gstNumber")}
             InputProps={{
+              readOnly: !!data.gstNumber,
+              startAdornment: data.gstNumber ? (
+                <InputAdornment position="start">
+                  <LockIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                </InputAdornment>
+              ) : undefined,
               endAdornment: (
                 <InputAdornment position="end">
                   {gstStatus === "loading" && <CircularProgress size={20} />}

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSubdomainCheckMutation, useReserveSubdomainMutation } from "@/hooks/queries/useOnboarding";
 import { ReserveSubdomainResponse, CheckSubdomainResponse } from "@/lib/api/types/onboarding.types";
-import { Box, Typography, TextField, Button, InputAdornment } from "@mui/material";
+import { Box, Typography, TextField, Button, InputAdornment, FormHelperText } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BusinessIcon from "@mui/icons-material/Business";
 import LanguageIcon from "@mui/icons-material/Language";
@@ -346,6 +346,11 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
                 ),
               }}
             />
+            {subdomainValue && (
+              <FormHelperText sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', mt: 1 }}>
+                Your workspace URL: kaero.io/{subdomainValue.toLowerCase().replace(/[^a-z0-9-]/g, '')}
+              </FormHelperText>
+            )}
           </Box>
         </Box>
 
@@ -441,10 +446,15 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
           size="large"
           disabled={!isValid || subdomainStatus !== "available" || reserving || isReferralInvalid || isReferralLoading || isGstInvalid || gstStatus === "loading"}
           endIcon={reserving ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
-          sx={{ mb: 2 }}
+          sx={{ mb: 1 }}
         >
           {reserving ? "Reserving..." : "Next: Configure Modules"}
         </Button>
+        {(!isValid || subdomainStatus !== "available" || reserving || isReferralInvalid || isReferralLoading || isGstInvalid || gstStatus === "loading") && (
+          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '12px', textAlign: 'center' }}>
+            Fill in all required fields to continue
+          </Typography>
+        )}
       </form>
     </Box>
   );

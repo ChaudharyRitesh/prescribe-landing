@@ -80,12 +80,11 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box mb={3}>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-            Work Email Address
-          </Typography>
           <TextField
             fullWidth
             id="email"
+            label="Work Email Address"
+            variant="outlined"
             placeholder="admin@myclinic.com"
             type="email"
             autoComplete="email"

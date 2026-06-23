@@ -122,45 +122,42 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
           Check your email
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          We sent a 6-digit verification code to <Box component="span" fontWeight="600" color="text.primary">{data.email}</Box>.
+          We sent a 6-digit verification code to <Box component="span" fontWeight="500" color="text.primary">{data.email}</Box>.
         </Typography>
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box mb={4}>
-          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: 'text.secondary', textAlign: 'center' }}>
+          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 500, color: 'text.secondary', textAlign: 'center' }}>
             Enter 6-Digit Code
           </Typography>
-          <Box display="flex" gap={1.5} justifyContent="center" onPaste={handlePaste}>
+          <Box display="flex" gap={1} justifyContent="center" onPaste={handlePaste}>
             {otpArray.map((digit, index) => (
-              <TextField
+              <input
                 key={index}
-                inputRef={(el: any) => { inputRefs.current[index] = el; }}
+                type="text"
+                maxLength={1}
+                ref={(el: any) => { inputRefs.current[index] = el; }}
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
+                onKeyDown={(e) => handleKeyDown(index, e as any)}
                 disabled={verifying}
                 autoFocus={index === 0}
-                error={!!errors.otp || !!verifyError}
-                inputProps={{
-                  maxLength: 2,
-                  inputMode: "numeric",
-                  style: { 
-                    textAlign: 'center', 
-                    fontSize: '1.5rem', 
-                    fontFamily: 'monospace',
-                    padding: '12px 8px',
-                    width: '45px',
-                    height: '56px',
-                    boxSizing: 'border-box'
-                  }
+                style={{
+                  width: '48px',
+                  height: '56px',
+                  textAlign: 'center',
+                  fontSize: '20px',
+                  fontWeight: 500,
+                  borderRadius: '8px',
+                  border: `0.5px solid ${(errors.otp || verifyError) ? '#ef4444' : 'rgba(255,255,255,0.15)'}`,
+                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  color: '#fff',
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    backgroundColor: 'rgba(255,255,255,0.03)',
-                  }
-                }}
+                onFocus={(e) => e.target.style.borderColor = (errors.otp || verifyError) ? '#ef4444' : '#0F6E56'}
+                onBlur={(e) => e.target.style.borderColor = (errors.otp || verifyError) ? '#ef4444' : 'rgba(255,255,255,0.15)'}
               />
             ))}
           </Box>
@@ -193,7 +190,7 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
             underline="hover"
             onClick={handleResend}
             disabled={resending}
-            sx={{ fontWeight: 600, ml: 1 }}
+            sx={{ fontWeight: 500, ml: 1 }}
           >
             {resending ? "Resending..." : "Resend it"}
           </Link>
