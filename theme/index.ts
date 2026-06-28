@@ -34,25 +34,25 @@ const theme = createTheme({
   },
 
   typography: {
-    fontFamily: '"DM Sans", sans-serif',
+    fontFamily: '"var(--font-inter)", "Inter", sans-serif',
     h1: {
-      fontFamily: '"Plus Jakarta Sans", sans-serif',
+      fontFamily: '"var(--font-inter)", "Inter", sans-serif',
       fontWeight: 700,
       fontSize: 'clamp(1.75rem, 7vw, 3rem)',
       lineHeight: 1.2,
     },
     h2: {
-      fontFamily: '"Plus Jakarta Sans", sans-serif',
+      fontFamily: '"var(--font-inter)", "Inter", sans-serif',
       fontWeight: 700,
       fontSize: '1.375rem',
     },
     h3: {
-      fontFamily: '"Plus Jakarta Sans", sans-serif',
+      fontFamily: '"var(--font-inter)", "Inter", sans-serif',
       fontWeight: 600,
       fontSize: '1.0625rem',
     },
     h4: {
-      fontFamily: '"Plus Jakarta Sans", sans-serif',
+      fontFamily: '"var(--font-inter)", "Inter", sans-serif',
       fontWeight: 600,
       fontSize: '0.9375rem',
     },
