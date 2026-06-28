@@ -2,11 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
+import { usePathname } from "next/navigation";
 import { PatientSidebar } from "@/shared/layout/PatientSidebar";
 import { MobilePatientDrawer } from "@/shared/layout/MobilePatientDrawer";
 import { PatientHeader } from "@/shared/layout/PatientHeader";
 
+const getPageTitle = (path: string) => {
+  if (path.startsWith("/portal/home")) return "Health Home";
+  if (path.startsWith("/portal/records")) return "Medical Records";
+  if (path.startsWith("/portal/appointments")) return "Appointments";
+  if (path.startsWith("/portal/prescriptions")) return "Prescriptions";
+  if (path.startsWith("/portal/bills")) return "Bills & Payments";
+  return "Patient Portal";
+};
+
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -38,7 +49,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           transition: "margin-left 0.2s ease-in-out, width 0.2s ease-in-out",
         }}
       >
-        <PatientHeader onMenuClick={() => setMobileOpen(true)} />
+        <PatientHeader onMenuClick={() => setMobileOpen(true)} pageTitle={getPageTitle(pathname)} />
         <Box 
           component="main" 
           sx={{ 
