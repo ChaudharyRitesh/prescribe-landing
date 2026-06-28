@@ -11,7 +11,13 @@ import {
   MenuItem,
   Tooltip,
 } from "@mui/material";
-import { Search, Bell, Menu as MenuIcon, HelpCircle, X } from "lucide-react";
+import {
+  SearchOutlinedIcon,
+  NotificationsOutlinedIcon,
+  MenuIcon,
+  HelpOutlineIcon,
+  CloseOutlinedIcon,
+} from "@/shared/icons/patientPortalIcons";
 import { BrandLogo } from "@/components/brand-logo";
 
 interface PatientHeaderProps {
@@ -44,7 +50,7 @@ export const PatientHeader = ({ onMenuClick, pageTitle = "Health Home" }: Patien
       {/* Mobile Menu & Title */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <IconButton sx={{ display: { xs: "flex", md: "none" } }} onClick={onMenuClick}>
-          <MenuIcon size={24} color="#172B3A" />
+          <MenuIcon sx={{ fontSize: 24, color: "#172B3A" }} />
         </IconButton>
         <Typography variant="h6" fontWeight="700" color="#172B3A" sx={{ display: { xs: "none", sm: "block" } }}>
           {pageTitle}
@@ -57,7 +63,7 @@ export const PatientHeader = ({ onMenuClick, pageTitle = "Health Home" }: Patien
       {/* Center: Global Search */}
       <Box sx={{ flex: 1, maxWidth: 600, mx: { xs: 1, md: 4 }, display: { xs: "none", md: "block" } }}>
         <Box sx={{ display: "flex", alignItems: "center", bgcolor: "#F5F7FA", borderRadius: "12px", px: 2, py: 1, border: "1px solid #DFE6EB" }}>
-          <Search size={20} color="#71808C" />
+          <SearchOutlinedIcon sx={{ fontSize: 22, color: "#71808C" }} />
           <InputBase
             placeholder="Search records, reports, prescriptions or bills"
             sx={{ ml: 2, flex: 1, fontSize: "0.95rem" }}
@@ -67,7 +73,7 @@ export const PatientHeader = ({ onMenuClick, pageTitle = "Health Home" }: Patien
           />
           {searchQuery && (
             <IconButton size="small" onClick={() => setSearchQuery("")} sx={{ p: 0.5 }}>
-              <X size={16} />
+              <CloseOutlinedIcon sx={{ fontSize: 16 }} />
             </IconButton>
           )}
         </Box>
@@ -76,16 +82,16 @@ export const PatientHeader = ({ onMenuClick, pageTitle = "Health Home" }: Patien
       {/* Right Actions */}
       <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, md: 2 } }}>
         <IconButton sx={{ display: { xs: "flex", md: "none" } }} disabled>
-          <Search size={24} color="#71808C" />
+          <SearchOutlinedIcon sx={{ fontSize: 24, color: "#71808C" }} />
         </IconButton>
         <Tooltip title="Help">
           <IconButton disabled>
-            <HelpCircle size={24} color="#71808C" />
+            <HelpOutlineIcon sx={{ fontSize: 24, color: "#71808C" }} />
           </IconButton>
         </Tooltip>
         <Tooltip title="Notifications">
           <IconButton disabled>
-            <Bell size={24} color="#71808C" />
+            <NotificationsOutlinedIcon sx={{ fontSize: 24, color: "#71808C" }} />
           </IconButton>
         </Tooltip>
         <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0.5, ml: 1 }}>

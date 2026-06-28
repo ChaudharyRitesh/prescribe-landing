@@ -1,155 +1,253 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
-  Box,
   Container,
+  Box,
   Typography,
-  Card,
-  CardContent,
-  Skeleton,
   Alert,
-  Tabs,
-  Tab,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
-  Chip,
-  Stack,
-  Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
-import { FileText, Filter, Download, ArrowRight } from "lucide-react";
 
-// --- MOCK HOOK ---
-const usePatientRecordsQuery = (category: string, facility: string) => {
-  const [data, setData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+import { MedicalRecordsPageHeader } from "@/features/medical-records/components/MedicalRecordsPageHeader";
+import { RecordCategoryTabs } from "@/features/medical-records/components/RecordCategoryTabs";
+import { RecordFilters } from "@/features/medical-records/components/RecordFilters";
+import { MobileRecordFilters } from "@/features/medical-records/components/MobileRecordFilters";
+import { RecordsTable } from "@/features/medical-records/components/RecordsTable";
+import { RecordMobileCard, RecordMobileCardSkeleton } from "@/features/medical-records/components/RecordMobileCard";
+import { RecordsPagination } from "@/features/medical-records/components/RecordsPagination";
+import { MissingRecordPanel } from "@/features/medical-records/components/MissingRecordPanel";
 
-  useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-    const t = setTimeout(() => {
-      if (facility === "error") {
-        setError("Failed to fetch records. Please try again.");
-        setIsLoading(false);
-        return;
-      }
+import { usePatientRecordsQuery } from "@/features/medical-records/hooks/usePatientRecordsQuery";
+import { useRecordDownloadMutation, useRecordExportMutation } from "@/features/medical-records/hooks/useRecordMutations";
 
-      let allRecords = [
-        { id: "rec_1", type: "Laboratory Report", date: new Date(Date.now() - 4 * 86400000), facility: "Thyrocare Labs", category: "lab", source: "ABDM" },
-        { id: "rec_2", type: "Discharge Summary", date: new Date(Date.now() - 30 * 86400000), facility: "Kaero Multispeciality Clinic", category: "clinical", source: "KaeroPrescribe" },
-        { id: "rec_3", type: "OPD Prescription", date: new Date(Date.now() - 60 * 86400000), facility: "Kaero Multispeciality Clinic", category: "prescription", source: "KaeroPrescribe" },
-      ];
-
-      if (category !== "all") {
-        allRecords = allRecords.filter(r => r.category === category);
-      }
-      if (facility !== "all") {
-        allRecords = allRecords.filter(r => r.facility === facility);
-      }
-      
-      setData(allRecords);
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(t);
-  }, [category, facility]);
-
-  return { data, isLoading, error };
-};
+import type {
+  RecordCategory,
+  DateRange,
+  RecordStatus,
+} from "@/features/medical-records/types/medicalRecords.types";
+import { FolderSharedOutlinedIcon } from "@/shared/icons/patientPortalIcons";
 
 export default function RecordsPage() {
-  const [category, setCategory] = useState("all");
-  const [facility, setFacility] = useState("all");
-  const { data, isLoading, error } = usePatientRecordsQuery(category, facility);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // --- URL STATE ---
+  const category = (searchParams.get("category") as RecordCategory) || "all";
+  const search = searchParams.get("search") || "";
+  const dateRange = (searchParams.get("dateRange") as DateRange) || "all";
+  const status = (searchParams.get("status") as RecordStatus | "all") || "all";
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+  const updateParams = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([key, val]) => {
+        if (val === "" || val === "all" || val === "1") {
+          params.delete(key);
+        } else {
+          params.set(key, val);
+        }
+      });
+      router.push(`/portal/records?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
+
+  // --- SELECTION (client state) ---
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // --- QUERY ---
+  const { data: records, totalCount, totalPages, pageSize, isLoading, error, refetch } =
+    usePatientRecordsQuery({ category, search, dateRange, status, page });
+
+  // --- MUTATIONS ---
+  const { download: downloadRecord } = useRecordDownloadMutation();
+  const { exportRecords, isExporting } = useRecordExportMutation();
+
+  // --- SELECTION LOGIC ---
+  const eligibleIds = useMemo(() => records.filter((r) => r.canSelect).map((r) => r.id), [records]);
+  const allEligibleSelected = eligibleIds.length > 0 && eligibleIds.every((id) => selectedIds.has(id));
+  const someSelected = eligibleIds.some((id) => selectedIds.has(id));
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (allEligibleSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(eligibleIds));
+    }
+  }, [allEligibleSelected, eligibleIds]);
+
+  // --- FILTER HELPERS ---
+  const hasActiveFilters = search.trim() !== "" || dateRange !== "all" || status !== "all";
+
+  const clearAll = useCallback(() => {
+    setSelectedIds(new Set());
+    router.push(`/portal/records${category !== "all" ? `?category=${category}` : ""}`, { scroll: false });
+  }, [category, router]);
+
+  const handleView = useCallback((id: string) => {
+    router.push(`/portal/records/${id}`);
+  }, [router]);
+
+  const handleDownloadSelected = useCallback(() => {
+    exportRecords(Array.from(selectedIds));
+  }, [selectedIds, exportRecords]);
 
   return (
-    <Container maxWidth="xl" sx={{ px: { xs: 2, md: 3, lg: 4 }, py: { xs: 3, md: 5 } }}>
-      <Typography variant="h4" component="h1" fontWeight="700" color="#172B3A" gutterBottom>
-        Health Records
-      </Typography>
-      <Typography variant="body1" color="#4E6170" sx={{ mb: 4 }}>
-        View and manage your medical documents and reports.
-      </Typography>
+    <Container
+      maxWidth={false}
+      disableGutters
+      sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 3, md: 5 }, maxWidth: 1440, margin: "0 auto" }}
+    >
+      {/* Page Header */}
+      <MedicalRecordsPageHeader
+        selectedCount={selectedIds.size}
+        onDownloadSelected={handleDownloadSelected}
+        isExporting={isExporting}
+      />
+
+      {/* Category Tabs */}
+      <RecordCategoryTabs
+        value={category}
+        onChange={(cat) => {
+          setSelectedIds(new Set());
+          updateParams({ category: cat, page: "1" });
+        }}
+      />
 
       {/* Filters */}
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 3, mb: 4, alignItems: { md: "center" } }}>
-        <Tabs 
-          value={category} 
-          onChange={(e, v) => setCategory(v)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ borderBottom: 1, borderColor: "divider", flex: 1, minHeight: 48, "& .MuiTab-root": { textTransform: "none", fontWeight: 600, fontSize: "0.95rem" } }}
-        >
-          <Tab label="All Records" value="all" />
-          <Tab label="Clinical Notes" value="clinical" />
-          <Tab label="Lab Reports" value="lab" />
-          <Tab label="Prescriptions" value="prescription" />
-        </Tabs>
+      <RecordFilters
+        search={search}
+        onSearchChange={(v) => updateParams({ search: v, page: "1" })}
+        dateRange={dateRange}
+        onDateRangeChange={(v) => updateParams({ dateRange: v, page: "1" })}
+        status={status}
+        onStatusChange={(v) => updateParams({ status: v, page: "1" })}
+        onClearAll={clearAll}
+        hasActiveFilters={hasActiveFilters}
+        onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+      />
 
-        <FormControl size="small" sx={{ minWidth: 200, bgcolor: "#FFFFFF" }}>
-          <InputLabel id="facility-filter-label">Facility</InputLabel>
-          <Select
-            labelId="facility-filter-label"
-            value={facility}
-            label="Facility"
-            onChange={(e) => setFacility(e.target.value)}
-          >
-            <MenuItem value="all">All Facilities</MenuItem>
-            <MenuItem value="Kaero Multispeciality Clinic">Kaero Multispeciality</MenuItem>
-            <MenuItem value="Thyrocare Labs">Thyrocare Labs</MenuItem>
-            <MenuItem value="error">Trigger Error State</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+      {/* Mobile Filters Drawer */}
+      <MobileRecordFilters
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        dateRange={dateRange}
+        onDateRangeChange={(v) => updateParams({ dateRange: v, page: "1" })}
+        status={status}
+        onStatusChange={(v) => updateParams({ status: v, page: "1" })}
+        onClearAll={clearAll}
+      />
+
+      {/* Error State */}
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ borderRadius: "12px", mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={refetch}>
+              Retry
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
       {/* Content */}
-      {isLoading ? (
-        <Stack spacing={2}>
-          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: "16px" }} />
-          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: "16px" }} />
-          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: "16px" }} />
-        </Stack>
-      ) : error ? (
-        <Alert severity="error" sx={{ borderRadius: "12px", border: "1px solid #B84248" }}>{error}</Alert>
-      ) : data.length === 0 ? (
-        <Card sx={{ borderRadius: "16px", border: "1px dashed #DFE6EB", boxShadow: "none", bgcolor: "transparent", textAlign: "center", py: 8 }}>
-          <Box sx={{ color: "#71808C", mb: 2 }}><Filter size={48} style={{ margin: "0 auto" }} /></Box>
-          <Typography variant="h6" color="#172B3A" fontWeight="600">No records found</Typography>
-          <Typography variant="body2" color="#4E6170">Try adjusting your filters to see more results.</Typography>
-        </Card>
-      ) : (
-        <Card sx={{ borderRadius: "16px", border: "1px solid #DFE6EB", boxShadow: "none" }}>
-          {data.map((record, idx) => (
-            <Box key={record.id}>
-              <Box sx={{ p: 3, display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: 2 }}>
-                <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
-                  <Box sx={{ bgcolor: "#EAF6F7", p: 1.5, borderRadius: "10px", color: "#087F8C", display: { xs: "none", sm: "block" } }}>
-                    <FileText size={24} />
-                  </Box>
-                  <Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                      <Typography variant="subtitle1" fontWeight="700" color="#172B3A">{record.type}</Typography>
-                      {record.source === "ABDM" && <Chip label="ABDM Record" size="small" sx={{ height: 20, fontSize: "0.65rem", bgcolor: "#EFF6FF", color: "#1D4ED8", fontWeight: 600 }} />}
-                    </Box>
-                    <Typography variant="body2" color="#4E6170">{record.facility}</Typography>
-                    <Typography variant="caption" color="#71808C" sx={{ mt: 0.5, display: "block" }}>
-                      {new Intl.DateTimeFormat("en-IN", { dateStyle: "long" }).format(record.date)}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Stack direction="row" spacing={1}>
-                   <Button variant="outlined" size="small" startIcon={<Download size={16} />} sx={{ textTransform: "none", color: "#087F8C", borderColor: "#DFE6EB", fontWeight: 600 }}>Download</Button>
-                   <Button variant="contained" size="small" endIcon={<ArrowRight size={16} />} sx={{ textTransform: "none", bgcolor: "#087F8C", fontWeight: 600, boxShadow: "none" }}>View</Button>
-                </Stack>
-              </Box>
-              {idx < data.length - 1 && <Divider sx={{ borderColor: "#DFE6EB" }} />}
+      {!error && (
+        <>
+          {/* Desktop Table / Mobile Cards */}
+          {!isMobile ? (
+            <RecordsTable
+              records={records}
+              selectedIds={selectedIds}
+              onSelect={toggleSelect}
+              onSelectAll={toggleSelectAll}
+              allEligibleSelected={allEligibleSelected}
+              someSelected={someSelected}
+              isLoading={isLoading}
+              onView={handleView}
+              onDownload={downloadRecord}
+            />
+          ) : isLoading ? (
+            <Box>
+              {[1, 2, 3].map((i) => (
+                <RecordMobileCardSkeleton key={i} />
+              ))}
             </Box>
-          ))}
-        </Card>
+          ) : records.length > 0 ? (
+            <Box>
+              {records.map((record) => (
+                <RecordMobileCard
+                  key={record.id}
+                  record={record}
+                  selected={selectedIds.has(record.id)}
+                  onSelect={toggleSelect}
+                  onView={handleView}
+                  onDownload={downloadRecord}
+                />
+              ))}
+            </Box>
+          ) : null}
+
+          {/* Empty State */}
+          {!isLoading && records.length === 0 && !error && (
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <FolderSharedOutlinedIcon sx={{ fontSize: 48, color: "#D1D5DB", mb: 2 }} />
+              <Typography variant="h6" fontWeight="600" color="#374151" gutterBottom>
+                {hasActiveFilters
+                  ? "No records match these filters."
+                  : "No medical records are available yet."}
+              </Typography>
+              <Typography variant="body2" color="#6B7280" sx={{ mb: 3, maxWidth: 400, mx: "auto" }}>
+                {hasActiveFilters
+                  ? "Try changing the date range, category, or status."
+                  : "Records created by participating healthcare facilities will appear here when available."}
+              </Typography>
+              {hasActiveFilters && (
+                <Button
+                  variant="outlined"
+                  onClick={clearAll}
+                  sx={{ textTransform: "none", borderRadius: "8px", color: "#6366F1", borderColor: "#D1D5DB" }}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </Box>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && records.length > 0 && (
+            <RecordsPagination
+              page={page}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={pageSize}
+              onPageChange={(p) => updateParams({ page: p.toString() })}
+            />
+          )}
+        </>
       )}
+
+      {/* Missing Record Panel */}
+      <MissingRecordPanel onClearFilters={clearAll} />
     </Container>
   );
 }

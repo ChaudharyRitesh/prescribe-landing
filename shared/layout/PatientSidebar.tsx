@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,40 +12,39 @@ import {
   ListItemText,
   Tooltip,
   IconButton,
-  Divider,
 } from "@mui/material";
 import {
-  Home,
-  FileText,
-  Calendar,
-  Pill,
-  TestTube,
-  CreditCard,
-  Shield,
-  User,
-  HelpCircle,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  ShieldCheck,
-  FileDown
-} from "lucide-react";
+  HomeOutlinedIcon,
+  FolderSharedOutlinedIcon,
+  CalendarMonthOutlinedIcon,
+  MedicationOutlinedIcon,
+  ScienceOutlinedIcon,
+  ReceiptLongOutlinedIcon,
+  ShieldOutlinedIcon,
+  PersonOutlineIcon,
+  DownloadOutlinedIcon,
+  HelpOutlineIcon,
+  PrivacyTipOutlinedIcon,
+  LogoutOutlinedIcon,
+  ChevronLeftOutlinedIcon,
+  ChevronRightOutlinedIcon,
+} from "@/shared/icons/patientPortalIcons";
 import { BrandLogo } from "@/components/brand-logo";
 
 const PRIMARY_NAV = [
-  { label: "Health Home", path: "/portal/home", icon: <Home size={20} />, enabled: true },
-  { label: "Medical Records", path: "/portal/records", icon: <FileText size={20} />, enabled: true },
-  { label: "Appointments", path: "/portal/appointments", icon: <Calendar size={20} />, enabled: true },
-  { label: "Prescriptions", path: "/portal/medicines", icon: <Pill size={20} />, enabled: true },
-  { label: "Lab Reports", path: "/portal/reports", icon: <TestTube size={20} />, enabled: false, reason: "Available in a later phase" },
-  { label: "Bills & Payments", path: "/portal/bills", icon: <CreditCard size={20} />, enabled: true },
-  { label: "ABHA & Consents", path: "/portal/abha", icon: <ShieldCheck size={20} />, enabled: false, reason: "Available in a later phase" },
-  { label: "Profile", path: "/portal/profile", icon: <User size={20} />, enabled: true },
+  { label: "Health Home", path: "/portal/home", icon: <HomeOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Medical Records", path: "/portal/records", icon: <FolderSharedOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Appointments", path: "/portal/appointments", icon: <CalendarMonthOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Prescriptions", path: "/portal/medicines", icon: <MedicationOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Lab Reports", path: "/portal/reports", icon: <ScienceOutlinedIcon sx={{ fontSize: 22 }} />, enabled: false, reason: "Available in a later phase" },
+  { label: "Bills & Payments", path: "/portal/bills", icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "ABHA & Consents", path: "/portal/abha", icon: <ShieldOutlinedIcon sx={{ fontSize: 22 }} />, enabled: false, reason: "Available in a later phase" },
+  { label: "Profile", path: "/portal/profile", icon: <PersonOutlineIcon sx={{ fontSize: 22 }} />, enabled: true },
 ];
 
 const SECONDARY_NAV = [
-  { label: "Help & Support", path: "/portal/support", icon: <HelpCircle size={20} />, enabled: false, reason: "Available in a later phase" },
-  { label: "Privacy", path: "/portal/privacy", icon: <Shield size={20} />, enabled: false, reason: "Available in a later phase" },
+  { label: "Help & Support", path: "/portal/support", icon: <HelpOutlineIcon sx={{ fontSize: 22 }} />, enabled: false, reason: "Available in a later phase" },
+  { label: "Privacy", path: "/portal/privacy", icon: <PrivacyTipOutlinedIcon sx={{ fontSize: 22 }} />, enabled: false, reason: "Available in a later phase" },
 ];
 
 interface PatientSidebarProps {
@@ -59,8 +58,7 @@ export const PatientSidebar = ({ collapsed, onToggle }: PatientSidebarProps) => 
   const sidebarWidth = collapsed ? 76 : 248;
 
   const NavItem = ({ item }: { item: any }) => {
-    const isActive = pathname === item.path && item.enabled;
-    const isHovered = false; // Add hover state logic if complex, else CSS handles it.
+    const isActive = pathname.startsWith(item.path) && item.enabled;
 
     const content = (
       <ListItem disablePadding sx={{ mb: 0.5 }}>
@@ -134,7 +132,7 @@ export const PatientSidebar = ({ collapsed, onToggle }: PatientSidebarProps) => 
       {/* Brand / Logo Area */}
       <Box sx={{ height: 72, display: "flex", alignItems: "center", px: collapsed ? 0 : 3, justifyContent: collapsed ? "center" : "space-between", borderBottom: "1px solid #29404F" }}>
         {!collapsed && <BrandLogo mark={32} />}
-        {collapsed && <Box sx={{ width: 32, height: 32, bgcolor: "#087F8C", borderRadius: 1 }} />} {/* Fallback mark if needed */}
+        {collapsed && <Box sx={{ width: 32, height: 32, bgcolor: "#087F8C", borderRadius: 1 }} />}
       </Box>
 
       {/* Main Navigation */}
@@ -161,7 +159,7 @@ export const PatientSidebar = ({ collapsed, onToggle }: PatientSidebarProps) => 
             }}
           >
             <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 1.5, color: "inherit", justifyContent: "center" }}>
-              <FileDown size={20} />
+              <DownloadOutlinedIcon sx={{ fontSize: 22 }} />
             </ListItemIcon>
             {!collapsed && <ListItemText primary="Download Records" primaryTypographyProps={{ fontSize: "0.9rem", fontWeight: 600 }} />}
           </ListItemButton>
@@ -190,7 +188,7 @@ export const PatientSidebar = ({ collapsed, onToggle }: PatientSidebarProps) => 
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 2, justifyContent: "center", color: "inherit" }}>
-                  <LogOut size={20} />
+                  <LogoutOutlinedIcon sx={{ fontSize: 22 }} />
                 </ListItemIcon>
                 {!collapsed && <ListItemText primary="Sign out" primaryTypographyProps={{ fontSize: "0.95rem", fontWeight: 500 }} />}
               </ListItemButton>
@@ -202,7 +200,7 @@ export const PatientSidebar = ({ collapsed, onToggle }: PatientSidebarProps) => 
       {/* Collapse Toggle */}
       <Box sx={{ display: "flex", justifyContent: collapsed ? "center" : "flex-end", p: 2, borderTop: "1px solid #29404F" }}>
         <IconButton onClick={onToggle} size="small" sx={{ color: "#BCC8D0", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}>
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {collapsed ? <ChevronRightOutlinedIcon sx={{ fontSize: 22 }} /> : <ChevronLeftOutlinedIcon sx={{ fontSize: 22 }} />}
         </IconButton>
       </Box>
     </Box>

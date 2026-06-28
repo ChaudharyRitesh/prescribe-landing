@@ -15,36 +15,36 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  Home,
-  FileText,
-  Calendar,
-  Pill,
-  TestTube,
-  CreditCard,
-  Shield,
-  User,
-  HelpCircle,
-  LogOut,
-  X,
-  ShieldCheck,
-  FileDown
-} from "lucide-react";
+  HomeOutlinedIcon,
+  FolderSharedOutlinedIcon,
+  CalendarMonthOutlinedIcon,
+  MedicationOutlinedIcon,
+  ScienceOutlinedIcon,
+  ReceiptLongOutlinedIcon,
+  ShieldOutlinedIcon,
+  PersonOutlineIcon,
+  DownloadOutlinedIcon,
+  HelpOutlineIcon,
+  PrivacyTipOutlinedIcon,
+  LogoutOutlinedIcon,
+  CloseOutlinedIcon,
+} from "@/shared/icons/patientPortalIcons";
 import { BrandLogo } from "@/components/brand-logo";
 
 const PRIMARY_NAV = [
-  { label: "Health Home", path: "/portal/home", icon: <Home size={20} />, enabled: true },
-  { label: "Medical Records", path: "/portal/records", icon: <FileText size={20} />, enabled: true },
-  { label: "Appointments", path: "/portal/appointments", icon: <Calendar size={20} />, enabled: true },
-  { label: "Prescriptions", path: "/portal/medicines", icon: <Pill size={20} />, enabled: true },
-  { label: "Lab Reports", path: "/portal/reports", icon: <TestTube size={20} />, enabled: false },
-  { label: "Bills & Payments", path: "/portal/bills", icon: <CreditCard size={20} />, enabled: true },
-  { label: "ABHA & Consents", path: "/portal/abha", icon: <ShieldCheck size={20} />, enabled: false },
-  { label: "Profile", path: "/portal/profile", icon: <User size={20} />, enabled: true },
+  { label: "Health Home", path: "/portal/home", icon: <HomeOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Medical Records", path: "/portal/records", icon: <FolderSharedOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Appointments", path: "/portal/appointments", icon: <CalendarMonthOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Prescriptions", path: "/portal/medicines", icon: <MedicationOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "Lab Reports", path: "/portal/reports", icon: <ScienceOutlinedIcon sx={{ fontSize: 22 }} />, enabled: false },
+  { label: "Bills & Payments", path: "/portal/bills", icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 22 }} />, enabled: true },
+  { label: "ABHA & Consents", path: "/portal/abha", icon: <ShieldOutlinedIcon sx={{ fontSize: 22 }} />, enabled: false },
+  { label: "Profile", path: "/portal/profile", icon: <PersonOutlineIcon sx={{ fontSize: 22 }} />, enabled: true },
 ];
 
 const SECONDARY_NAV = [
-  { label: "Help & Support", path: "/portal/support", icon: <HelpCircle size={20} />, enabled: false },
-  { label: "Privacy", path: "/portal/privacy", icon: <Shield size={20} />, enabled: false },
+  { label: "Help & Support", path: "/portal/support", icon: <HelpOutlineIcon sx={{ fontSize: 22 }} />, enabled: false },
+  { label: "Privacy", path: "/portal/privacy", icon: <PrivacyTipOutlinedIcon sx={{ fontSize: 22 }} />, enabled: false },
 ];
 
 interface MobilePatientDrawerProps {
@@ -56,7 +56,7 @@ export const MobilePatientDrawer = ({ open, onClose }: MobilePatientDrawerProps)
   const pathname = usePathname();
 
   const NavItem = ({ item }: { item: any }) => {
-    const isActive = pathname === item.path && item.enabled;
+    const isActive = pathname.startsWith(item.path) && item.enabled;
 
     return (
       <ListItem disablePadding sx={{ mb: 0.5 }}>
@@ -108,7 +108,7 @@ export const MobilePatientDrawer = ({ open, onClose }: MobilePatientDrawerProps)
       <Box sx={{ height: 72, display: "flex", alignItems: "center", justifyContent: "space-between", px: 2, borderBottom: "1px solid #29404F" }}>
         <BrandLogo mark={28} />
         <IconButton onClick={onClose} sx={{ color: "#BCC8D0" }}>
-          <X size={24} />
+          <CloseOutlinedIcon sx={{ fontSize: 24 }} />
         </IconButton>
       </Box>
 
@@ -129,7 +129,7 @@ export const MobilePatientDrawer = ({ open, onClose }: MobilePatientDrawerProps)
           }}
         >
           <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
-            <FileDown size={20} />
+            <DownloadOutlinedIcon sx={{ fontSize: 22 }} />
           </ListItemIcon>
           <ListItemText primary="Download Records" primaryTypographyProps={{ fontSize: "0.9rem", fontWeight: 600 }} />
         </ListItemButton>
@@ -147,7 +147,7 @@ export const MobilePatientDrawer = ({ open, onClose }: MobilePatientDrawerProps)
               sx={{ minHeight: 48, borderRadius: "8px", mx: 1.5, color: "#BCC8D0" }}
             >
               <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
-                <LogOut size={20} />
+                <LogoutOutlinedIcon sx={{ fontSize: 22 }} />
               </ListItemIcon>
               <ListItemText primary="Sign out" primaryTypographyProps={{ fontSize: "0.95rem", fontWeight: 500 }} />
             </ListItemButton>
