@@ -135,6 +135,17 @@ export interface Address {
   pincode?: string;
 }
 
+/** HIPAA/DPDP consent capture sent with registration for audit. */
+export interface ConsentMeta {
+  termsAccepted: boolean;
+  /** ISO timestamp captured client-side at the moment the box was ticked */
+  termsAcceptedAt?: string;
+  /** Version identifier of the Terms shown to the user */
+  termsVersion: string;
+  /** Browser user-agent at consent time */
+  userAgent?: string;
+}
+
 export interface RegisterPayload {
   orgName: string;
   subdomain: string;
@@ -147,12 +158,15 @@ export interface RegisterPayload {
   registrationNumber?: string;
   taxId?: string;
   selectionType: SelectionType;
-  packageId?: string; 
+  packageId?: string;
   selectedModules?: string[]; // array of _ids or slugs depending on selectionType
   billingCycle?: BillingCycle;
-  subscriptionPlan?: string; 
+  subscriptionPlan?: string;
   referralCode?: string;
   facilityType?: FacilityType;
+  /** Consent audit metadata (HIPAA/DPDP) */
+  termsAccepted?: boolean;
+  consent?: ConsentMeta;
 }
 
 export interface RegisterResponse extends BaseResponse {

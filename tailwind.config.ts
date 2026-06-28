@@ -12,6 +12,10 @@ const config: Config = {
       screens: {
         'xs': '480px',
       },
+      fontFamily: {
+        heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', 'system-ui', 'sans-serif'],
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
@@ -23,6 +27,15 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        ink: {
+          DEFAULT: '#0F172A',
+          deep: '#060B18',
+          soft: '#334155',
+        },
+        cta: {
+          DEFAULT: '#0369A1',
+          hover: '#075985',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

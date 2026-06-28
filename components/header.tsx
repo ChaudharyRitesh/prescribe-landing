@@ -2,28 +2,33 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import Button from "@mui/material/Button";
-import Fab from "@mui/material/Fab";
-import Zoom from "@mui/material/Zoom";
-import useScrollTrigger from "@mui/material/useScrollTrigger";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import LogoutIcon from "@mui/icons-material/Logout";
+import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  LogOut,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react";
+import { BrandLogo } from "./brand-logo";
+
+const navLinks = [
+  { label: "Modules", href: "/#modules" },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "Compliance", href: "/compliance" },
+  { label: "Careers", href: "/careers" },
+];
 
 export default function Header() {
+  const pathname = usePathname();
+  const isCareers = pathname.startsWith("/careers");
   const [isLogged, setIsLogged] = useState(false);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const trigger = useScrollTrigger({ threshold: 600, disableHysteresis: true });
+  const [showFab, setShowFab] = useState(false);
 
   useEffect(() => {
     const hasToken = document.cookie
@@ -33,11 +38,22 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    handleScroll(); // check initial
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 24);
+      setShowFab(window.scrollY > 600);
+    };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Lock body scroll while the mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const handleLogout = async () => {
     try {
@@ -51,296 +67,206 @@ export default function Header() {
     }
   };
 
-  const navLinks = [
-    { label: "Modules", href: "/#modules" },
-    { label: "Features", href: "/#features" },
-    { label: "Pricing", href: "/#pricing" },
-
-    { label: "Partners", href: "/#partner-program" },
-    { label: "Compliance", href: "/compliance" },
-  ];
-
   return (
     <>
-      <AppBar
-        position="sticky"
-        sx={{
-          background: scrolled
-            ? "rgba(255,255,255,0.72)"
-            : "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          boxShadow: scrolled
-            ? "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)"
-            : "none",
-          borderBottom: scrolled
-            ? "1px solid rgba(0,0,0,0.06)"
-            : "1px solid transparent",
-          transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
+      <header
+        className={`sticky top-0 z-50 w-full border-b bg-[#07111F]/95 backdrop-blur-xl transition-all duration-300 ${
+          scrolled
+            ? "border-teal-300/15 shadow-[0_14px_36px_-18px_rgba(2,6,23,0.95)]"
+            : "border-white/10 shadow-[0_8px_24px_-20px_rgba(2,6,23,0.8)]"
+        }`}
       >
-        <Toolbar
-          sx={{
-            minHeight: scrolled ? 64 : 88,
-            transition: "min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-            py: scrolled ? 1 : 2,
-            px: 2,
-            maxWidth: 1280,
-            width: "100%",
-            mx: "auto",
-          }}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-300/45 to-transparent" />
+        <div
+          className={`lp-container flex items-center justify-between transition-all duration-300 ${
+            scrolled ? "h-16" : "h-[4.5rem] md:h-20"
+          }`}
         >
-          {/* Logo — shrinks on scroll */}
-          <Box
-            component={Link}
+          {/* Brand lockup — teal mark + theme-colored wordmark */}
+          <Link
             href="/"
-            sx={{
-              mr: "auto",
-              display: "flex",
-              alignItems: "center",
-              textDecoration: "none",
-            }}
+            aria-label="KaeroPrescribe home"
+            className="flex shrink-0 items-center transition-opacity duration-200 hover:opacity-85"
           >
-            <Box
-              component="img"
-              src="/logo.png"
-              alt="KaeroPrescribe"
-              sx={{
-                height: scrolled ? { xs: 32, md: 44 } : { xs: 48, md: 64 },
-                transition: "height 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-            />
-          </Box>
+            <BrandLogo mark={scrolled ? 36 : 40} />
+          </Link>
 
           {/* Desktop nav */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              gap: 3,
-              mr: 3,
-            }}
+          <nav
+            className="hidden items-center gap-1 rounded-lg border border-white/[0.07] bg-white/[0.035] p-1 lg:flex"
+            aria-label="Main"
           >
             {navLinks.map((link) => (
-              <Box
+              <a
                 key={link.label}
-                component="a"
                 href={link.href}
-                sx={{
-                  color: "#475569",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                  "&:hover": { color: "#0D9488" },
-                }}
+                className="group relative rounded-md px-3.5 py-2 text-sm font-medium text-slate-300 transition-colors duration-200 hover:bg-white/[0.06] hover:text-white"
               >
                 {link.label}
-              </Box>
+                <span className="absolute inset-x-3.5 bottom-0 h-px scale-x-0 bg-teal-300 transition-transform duration-200 group-hover:scale-x-100" />
+              </a>
             ))}
-          </Box>
+          </nav>
 
           {/* Desktop actions */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
+          <div className="hidden items-center gap-3 lg:flex">
             {isLogged ? (
               <>
-                <Button
-                  component={Link}
+                <Link
                   href="/partner/dashboard"
-                  startIcon={<DashboardOutlinedIcon />}
-                  sx={{ color: "#475569", fontSize: "0.8125rem" }}
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-300 transition-colors duration-200 hover:bg-white/5 hover:text-white"
                 >
+                  {!isCareers && <LayoutDashboard size={16} />}
                   Dashboard
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<LogoutIcon />}
+                </Link>
+                <button
                   onClick={handleLogout}
-                  sx={{ fontSize: "0.8125rem" }}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-5 text-sm font-semibold text-white transition-colors duration-200 ${
+                    isCareers
+                      ? "h-11 bg-teal-600 hover:bg-teal-500"
+                      : "min-h-10 bg-sky-600 hover:bg-sky-500"
+                  }`}
                 >
+                  {!isCareers && <LogOut size={16} />}
                   Logout
-                </Button>
+                </button>
               </>
             ) : (
-              <>
-                <Button
-                  component={Link}
-                  href="/partner/register"
-                  variant="outlined"
-                  sx={{
-                    fontSize: "0.8125rem",
-                    display: { xs: "none", lg: "inline-flex" },
-                    borderColor: "#CBD5E1",
-                    color: "#475569",
-                    "&:hover": {
-                      borderColor: "#14B8A6",
-                      color: "#0D9488",
-                      background: "rgba(20,184,166,0.04)",
-                    },
-                  }}
-                >
-                  Partner Program
-                </Button>
-                <Button
-                  component={Link}
-                  href="/onboarding"
-                  variant="contained"
-                  color="primary"
-                  sx={{ fontSize: "0.8125rem" }}
-                >
-                  Get Started Free
-                </Button>
-              </>
+              <Link
+                href={isCareers ? "/careers#roles" : "/onboarding"}
+                className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 ${
+                  isCareers
+                    ? "h-11 bg-teal-600 hover:bg-teal-500"
+                    : "min-h-10 bg-sky-600 shadow-[0_8px_20px_-6px_rgba(2,132,199,0.6)] hover:bg-sky-500"
+                }`}
+              >
+                {isCareers ? "Open roles" : "Get Started Free"}
+                {!isCareers && <ArrowRight size={16} />}
+              </Link>
             )}
-          </Box>
+          </div>
 
           {/* Mobile hamburger */}
-          <IconButton
+          <button
             onClick={() => setOpen(true)}
             aria-label="Open menu"
-            sx={{
-              display: { md: "none" },
-              color: "#475569",
-              p: 1,
-              minHeight: 44,
-              minWidth: 44,
-            }}
+            className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-200 transition-colors hover:bg-white/[0.08] lg:hidden"
           >
-            <MenuIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+            <Menu size={24} />
+          </button>
+        </div>
+      </header>
 
-      {/* Full-screen mobile drawer */}
-      <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
-        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end" }}>
-          <IconButton
-            onClick={() => setOpen(false)}
-            aria-label="Close menu"
-            sx={{ color: "#94A3B8", minHeight: 44, minWidth: 44 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <List sx={{ px: 2, flex: 1 }}>
-          {navLinks.map((item) => (
-            <ListItemButton
-              key={item.label}
-              component="a"
-              href={item.href}
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setOpen(false)}
-              sx={{
-                borderRadius: 2,
-                mb: 0.5,
-                "&:hover": { background: "rgba(255,255,255,0.06)" },
-              }}
+              className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm lg:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.28, ease: "easeOut" }}
+              className="fixed inset-y-0 right-0 z-[70] flex w-[19rem] max-w-[85vw] flex-col border-l border-white/10 bg-[#0A1326] shadow-2xl lg:hidden"
+              role="dialog"
+              aria-label="Mobile menu"
             >
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  color: "#F1F5F9",
-                  fontWeight: 500,
-                  fontSize: "1.125rem",
-                }}
-              />
-            </ListItemButton>
-          ))}
+              <div className="flex items-center justify-between border-b border-white/10 p-4">
+                <BrandLogo mark={36} />
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close menu"
+                  className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/5"
+                >
+                  <X size={22} />
+                </button>
+              </div>
 
-          {isLogged && (
-            <>
-              <ListItemButton
-                component={Link}
-                href="/partner/dashboard"
-                onClick={() => setOpen(false)}
-                sx={{
-                  borderRadius: 2,
-                  mb: 0.5,
-                  "&:hover": { background: "rgba(255,255,255,0.06)" },
-                }}
-              >
-                <DashboardOutlinedIcon
-                  sx={{ color: "#94A3B8", mr: 1.5, fontSize: 20 }}
-                />
-                <ListItemText
-                  primary="Dashboard"
-                  primaryTypographyProps={{
-                    color: "#F1F5F9",
-                    fontWeight: 500,
-                    fontSize: "1.125rem",
-                  }}
-                />
-              </ListItemButton>
-            </>
-          )}
-        </List>
-        <Box sx={{ p: 2 }}>
-          {isLogged ? (
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              onClick={handleLogout}
-              startIcon={<LogoutIcon />}
+              <nav className="flex-1 overflow-y-auto p-4" aria-label="Mobile">
+                {navLinks.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="block rounded-xl px-4 py-3.5 text-base font-medium text-slate-200 transition-colors hover:bg-white/5 hover:text-teal-300"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                {isLogged && (
+                  <Link
+                    href="/partner/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-medium text-slate-200 transition-colors hover:bg-white/5"
+                  >
+                    {!isCareers && (
+                      <LayoutDashboard size={18} className="text-slate-400" />
+                    )}
+                    Dashboard
+                  </Link>
+                )}
+              </nav>
+
+              <div className="space-y-3 border-t border-white/10 p-4">
+                {isLogged ? (
+                  <button
+                    onClick={handleLogout}
+                    className="lp-btn-primary w-full cursor-pointer"
+                  >
+                    {!isCareers && <LogOut size={18} />}
+                    Logout
+                  </button>
+                ) : (
+                  <Link
+                    href={isCareers ? "/careers#roles" : "/onboarding"}
+                    onClick={() => setOpen(false)}
+                    className={`inline-flex h-12 w-full items-center justify-center rounded-md px-6 text-sm font-bold text-white ${
+                      isCareers ? "bg-teal-600" : "bg-sky-600"
+                    }`}
+                  >
+                    {isCareers ? "Open roles" : "Get Started Free"}
+                    {!isCareers && <ArrowRight size={18} />}
+                  </Link>
+                )}
+                <p className="flex items-center justify-center gap-1.5 pt-1 text-xs text-slate-500">
+                  {!isCareers && (
+                    <ShieldCheck size={14} className="text-teal-400" />
+                  )}
+                  HIPAA &amp; DPDP compliant platform
+                </p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Floating mobile CTA after hero scroll */}
+      <AnimatePresence>
+        {showFab && !isCareers && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 md:hidden"
+          >
+            <Link
+              href="/onboarding"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 py-4 text-base font-bold text-white shadow-[0_16px_40px_-8px_rgba(2,132,199,0.7)]"
             >
-              Logout
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                component={Link}
-                href="/onboarding"
-                sx={{ mb: 1.5 }}
-              >
-                Get Started Free
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                fullWidth
-                size="large"
-                component={Link}
-                href="/partner/register"
-              >
-                Partner Program
-              </Button>
-            </>
-          )}
-        </Box>
-      </Drawer>
-
-      {/* Floating CTA after hero scroll */}
-      <Zoom in={trigger}>
-        <Fab
-          variant="extended"
-          color="primary"
-          component={Link}
-          href="/onboarding"
-          sx={{
-            position: "fixed",
-            bottom: 20,
-            left: "50%",
-            transform: "translateX(-50%) !important",
-            zIndex: 1000,
-            width: "calc(100% - 32px)",
-            maxWidth: 360,
-            borderRadius: 3,
-            fontWeight: 700,
-            display: { md: "none" },
-          }}
-        >
-          Get Started Free
-        </Fab>
-      </Zoom>
+              Get Started Free
+              <ArrowRight size={18} />
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

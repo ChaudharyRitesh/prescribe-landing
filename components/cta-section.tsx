@@ -1,17 +1,9 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Avatar from "@mui/material/Avatar";
-import Grid from "@mui/material/Grid";
-import ScrollReveal from "./scroll-reveal";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import Link from "next/link";
+import { ArrowRight, PlayCircle, ShieldCheck, Clock4, Headset } from "lucide-react";
+import { GsapReveal } from "./gsap-reveal";
+import { GsapTextReveal, MagneticButton } from "./animation-primitives";
 
 interface CTAData {
   title?: string;
@@ -25,6 +17,12 @@ interface CTASectionProps {
   data: CTAData | null;
 }
 
+const assurances = [
+  { icon: ShieldCheck, label: "HIPAA & DPDP compliant" },
+  { icon: Clock4, label: "Go live in days, not months" },
+  { icon: Headset, label: "Dedicated onboarding team" },
+];
+
 export function CTASection({ data }: CTASectionProps) {
   const title =
     data?.title || "Ready to Transform Your Healthcare Operations?";
@@ -33,97 +31,52 @@ export function CTASection({ data }: CTASectionProps) {
     "Join forward-thinking healthcare organizations already using KaeroPrescribe to reduce costs, improve patient care, and scale with confidence.";
 
   return (
-    <Box
-      component="section"
-      sx={{
-        py: { xs: 6, md: 10 },
-        px: 2,
-        background:
-          "linear-gradient(160deg, #0B1120 0%, #0F2744 55%, #0D3B36 100%)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Radial glow */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "30%",
-          right: "10%",
-          width: 500,
-          height: 500,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+    <section className="relative overflow-hidden bg-ink-deep py-20 md:py-28">
+      <div className="lp-section-divider" />
+      <div className="lp-grid-pattern pointer-events-none absolute inset-0 opacity-60" />
+      <div className="pointer-events-none absolute -top-24 right-[15%] h-96 w-96 rounded-full bg-teal-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-32 left-[10%] h-80 w-80 rounded-full bg-sky-600/10 blur-[110px]" />
 
-      <Box sx={{ maxWidth: 800, mx: "auto", position: "relative", zIndex: 1 }}>
-        <ScrollReveal>
-          <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography
-              variant="caption"
-              sx={{ color: "primary.main", mb: 1, display: "block" }}
-            >
-              Get Started
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                color: "#F1F5F9",
-                fontSize: { xs: "1.375rem", md: "2rem" },
-                mb: 1.5,
-              }}
-            >
-              {title}
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: "#94A3B8", maxWidth: 580, mx: "auto", mb: 3 }}
-            >
-              {description}
-            </Typography>
+      <div className="lp-container relative">
+        <GsapReveal className="mx-auto max-w-3xl text-center">
+          <span className="lp-eyebrow-dark">Get Started</span>
 
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1.5}
-              justifyContent="center"
-            >
-              <Button
-                variant="contained"
-                size="large"
-                component={Link}
-                href="/onboarding"
-                endIcon={<ArrowForwardIcon />}
-                disableRipple
+          <GsapTextReveal
+            as="h2"
+            className="font-heading mt-6 justify-center text-3xl font-bold tracking-tight text-white md:text-[2.75rem] md:leading-[1.12]"
+            segments={title}
+          />
+
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-300 md:text-lg">
+            {description}
+          </p>
+
+          <div className="mt-9 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
+            <MagneticButton strength={0.5}>
+              <Link href="/onboarding" className="lp-btn-primary">
+                {data?.primaryButtonText || "Get Started Free"}
+                <ArrowRight size={18} />
+              </Link>
+            </MagneticButton>
+            <a href="#features" className="lp-btn-ghost-dark">
+              <PlayCircle size={18} />
+              {data?.secondaryButtonText || "Watch Demo"}
+            </a>
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/10 pt-8">
+            {assurances.map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-2 text-[13px] font-medium text-slate-400"
               >
-                Get Started Free
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                color="secondary"
-                startIcon={<PlayArrowRoundedIcon />}
-                component="a"
-                href="#features"
-                sx={{
-                  borderColor: "rgba(255,255,255,0.15)",
-                  color: "#94A3B8",
-                  "&:hover": {
-                    borderColor: "#2DD4BF",
-                    background: "rgba(255,255,255,0.04)",
-                  },
-                }}
-              >
-                Watch Demo
-              </Button>
-            </Stack>
-          </Box>
-        </ScrollReveal>
-
-
-      </Box>
-    </Box>
+                <Icon size={15} className="text-teal-400" />
+                {label}
+              </span>
+            ))}
+          </div>
+        </GsapReveal>
+      </div>
+    </section>
   );
 }

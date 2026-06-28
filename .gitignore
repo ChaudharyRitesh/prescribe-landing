@@ -12,6 +12,12 @@
 /.next/
 /out/
 
+.agent/*
+.agents/*
+.gemini/*
+.claude/*
+skills-lock.json
+
 # production
 /build
 

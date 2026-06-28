@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { OnboardingData } from "../OnboardingWizard";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
@@ -9,6 +9,7 @@ import {
   CardActionArea, CircularProgress, Chip 
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import ScienceIcon from "@mui/icons-material/Science";
@@ -28,6 +29,22 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(data.billingCycle || "yearly");
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      setIsAtBottom(scrollHeight - scrollTop - clientHeight < 5);
+    }
+  };
+
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener("resize", handleScroll);
+    return () => window.removeEventListener("resize", handleScroll);
+  }, [selectionTab, catalog]);
 
   // Pre-select package from URL parameter or existing onboarding state once catalog loads
   useEffect(() => {
@@ -160,8 +177,13 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
         </Tabs>
       </Box>
 
-      <Box sx={{ maxHeight: '55vh', overflowY: 'auto', pr: 1, pb: 2 }}>
-        {selectionTab === 0 ? (
+      <Box position="relative">
+        <Box 
+          ref={scrollRef} 
+          onScroll={handleScroll} 
+          sx={{ maxHeight: '55vh', overflowY: 'auto', pr: 1, pb: 2 }}
+        >
+          {selectionTab === 0 ? (
           <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
             {packages.map((pkg: PackageItem) => {
               const isSelected = selectedPackage === pkg._id;
@@ -172,7 +194,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                     position: 'relative', 
                     cursor: 'pointer',
                     borderColor: isSelected ? 'primary.main' : 'divider',
-                    bgcolor: isSelected ? 'primary.50' : 'background.paper',
+                    bgcolor: isSelected ? 'rgba(255,255,255,0.06)' : 'background.paper',
                     borderWidth: isSelected ? 2 : 1
                   }}
                   onClick={() => setSelectedPackage(pkg._id)}
@@ -197,7 +219,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                       </Box>
                       
                       {pkg.savings && billingCycle === "yearly" && (
-                        <Chip label={pkg.savings} size="small" sx={{ bgcolor: '#DEF7EC', color: '#03543F', fontWeight: 'bold', mb: 2 }} />
+                        <Chip label={pkg.savings} size="small" sx={{ bgcolor: 'rgba(16,185,129,0.18)', color: '#6ee7b7', fontWeight: 'bold', mb: 2 }} />
                       )}
 
                       <Box borderTop={1} borderColor="divider" pt={2} mt={2}>
@@ -227,9 +249,8 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                   key={mod.slug}
                   sx={{ 
                     cursor: 'pointer',
-                    borderColor: isSelected ? 'primary.main' : 'divider',
-                    bgcolor: isSelected ? 'primary.50' : 'background.paper',
-                    borderWidth: isSelected ? 2 : 1,
+                    borderLeft: isSelected ? '3px solid #0F6E56' : '3px solid transparent',
+                    bgcolor: isSelected ? 'rgba(15,110,86,0.12)' : 'background.paper',
                     position: 'relative'
                   }}
                   onClick={() => toggleModule(mod.slug)}
@@ -255,7 +276,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
                           ₹{billingCycle === "monthly" ? mod.pricing.monthly : mod.pricing.yearly}
                           <Typography component="span" variant="caption" color="text.secondary">/{billingCycle === "monthly" ? "mo" : "yr"}</Typography>
                         </Typography>
-                        {isSelected && <CheckCircleIcon color="primary" sx={{ mt: 0.5 }} />}
+                        {isSelected && <CheckCircleOutlineIcon sx={{ color: '#0F6E56', fontSize: '20px', mt: 0.5 }} />}
                       </Box>
                     </Box>
                   </CardActionArea>
@@ -263,6 +284,20 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
               );
             })}
           </Box>
+        )}
+        </Box>
+        {!isAtBottom && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              height: '48px',
+              background: 'linear-gradient(to top, rgba(10,26,22,0.95), transparent)',
+              pointerEvents: 'none'
+            }}
+          />
         )}
       </Box>
 

@@ -111,6 +111,15 @@ body {
       opacity: 1;
     }
   }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 @layer utilities {
@@ -136,6 +145,10 @@ body {
 
   .animate-glow {
     animation: glow 3s ease-in-out infinite;
+  }
+
+  .animate-marquee {
+    animation: marquee 32s linear infinite;
   }
 
   .glass {
@@ -178,6 +191,73 @@ body {
     @apply max-w-screen-2xl mx-auto;
   }
 
+  /* ─── KaeroPrescribe landing design system (Trust & Authority) ─── */
+  .font-heading {
+    font-family: var(--font-heading), system-ui, sans-serif;
+  }
+
+  .font-body {
+    font-family: var(--font-body), system-ui, sans-serif;
+  }
+
+  .lp-container {
+    @apply max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .lp-section {
+    @apply py-16 md:py-24 scroll-mt-20;
+  }
+
+  .lp-eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-300;
+  }
+
+  .lp-eyebrow-dark {
+    @apply inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-300;
+  }
+
+  .lp-h2 {
+    @apply font-heading text-3xl md:text-[2.6rem] md:leading-[1.15] font-bold tracking-tight text-white;
+  }
+
+  .lp-sub {
+    @apply text-base md:text-lg leading-relaxed text-slate-400;
+  }
+
+  .lp-card {
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur shadow-[0_8px_32px_-12px_rgba(2,6,23,0.6)];
+  }
+
+  .lp-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-8 py-4 text-sm md:text-base font-semibold text-white shadow-[0_10px_24px_-8px_rgba(2,132,199,0.55)] transition-all duration-200 hover:bg-sky-500 hover:shadow-[0_14px_32px_-8px_rgba(2,132,199,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 cursor-pointer;
+  }
+
+  .lp-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.15] bg-white/5 px-7 py-3.5 text-sm md:text-base font-semibold text-slate-200 backdrop-blur transition-all duration-200 hover:border-teal-400/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 cursor-pointer;
+  }
+
+  .lp-btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.15] bg-white/5 px-7 py-3.5 text-sm md:text-base font-semibold text-slate-200 backdrop-blur transition-all duration-200 hover:border-teal-400/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 cursor-pointer;
+  }
+
+  .lp-grid-pattern {
+    background-image: linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .lp-input {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-slate-500 transition-colors duration-200 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/20;
+  }
+
+  .lp-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-300;
+  }
+
+  .lp-section-divider {
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  }
+
   /* Phone Input Premium Styling */
   .phone-input-container .PhoneInput {
     @apply flex items-center w-full;
@@ -197,5 +277,22 @@ body {
 
   .phone-input-container .PhoneInputCountryIcon {
     @apply shadow-sm rounded-sm;
+  }
+}
+
+/* ─── Respect prefers-reduced-motion for CSS keyframe utilities ─── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-float,
+  .animate-glow,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-slide-up,
+  .animate-marquee,
+  .animate-ping {
+    animation: none !important;
   }
 }

@@ -18,9 +18,10 @@ import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
   data: OnboardingData;
+  updateData?: (newData: Partial<OnboardingData>) => void;
 }
 
-export function ProvisioningStatus({ data }: Props) {
+export function ProvisioningStatus({ data, updateData }: Props) {
   const [localSessionId, setLocalSessionId] = useState(data.sessionId);
   const [progress, setProgress] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
@@ -79,12 +80,14 @@ export function ProvisioningStatus({ data }: Props) {
   useEffect(() => {
     if (isProvisioned || isQuotePending) {
       clearAllStorageAndCookies();
+      if (updateData) updateData({ status: isProvisioned ? "provisioned" : "quote_pending" });
     } else if (isFailed) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("kaero_onboarding_session");
       }
+      if (updateData) updateData({ status: "failed" });
     }
-  }, [isProvisioned, isFailed, isQuotePending]);
+  }, [isProvisioned, isFailed, isQuotePending, updateData]);
 
   useEffect(() => {
     if (!localSessionId || isProvisioned || isFailed || isQuotePending) return;
@@ -146,12 +149,12 @@ export function ProvisioningStatus({ data }: Props) {
         maxWidth="md"
         mx="auto"
         sx={{
-          background: "rgba(255, 255, 255, 0.7)",
+          background: "rgba(255, 255, 255, 0.03)",
           backdropFilter: "blur(20px)",
           borderRadius: "24px",
-          border: "1px solid rgba(226, 232, 240, 0.8)",
+          border: "1px solid rgba(255,255,255,0.1)",
           p: { xs: 3, md: 5 },
-          boxShadow: "0 20px 40px -15px rgba(0,0,0,0.05)"
+          boxShadow: "0 30px 60px -20px rgba(2,6,23,0.8)"
         }}
       >
         <style>{`
@@ -180,7 +183,7 @@ export function ProvisioningStatus({ data }: Props) {
               width: 130,
               height: 130,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, #6366f1 0%, rgba(99, 102, 241, 0) 70%)',
+              background: 'radial-gradient(circle, #14b8a6 0%, rgba(20, 184, 166, 0) 70%)',
             }}
             className="pulse-circle"
           />
@@ -192,9 +195,9 @@ export function ProvisioningStatus({ data }: Props) {
               width: 90,
               height: 90,
               borderRadius: '50%',
-              bgcolor: '#e0e7ff',
-              color: '#4f46e5',
-              boxShadow: '0 8px 30px rgba(99, 102, 241, 0.2)',
+              bgcolor: 'rgba(20,184,166,0.15)',
+              color: '#5eead4',
+              boxShadow: '0 8px 30px rgba(20, 184, 166, 0.25)',
               zIndex: 1
             }}
           >
@@ -210,11 +213,11 @@ export function ProvisioningStatus({ data }: Props) {
         </Typography>
 
         {/* ECG Heartbeat Line */}
-        <Box width="100%" maxWidth="500px" mb={4} sx={{ background: 'rgba(99,102,241,0.03)', borderRadius: '12px', border: '1px solid rgba(99,102,241,0.1)', p: 1 }}>
+        <Box width="100%" maxWidth="500px" mb={4} sx={{ background: 'rgba(20,184,166,0.05)', borderRadius: '12px', border: '1px solid rgba(20,184,166,0.15)', p: 1 }}>
           <svg width="100%" height="60" viewBox="0 0 300 60" fill="none">
             <path
               d="M0,30 L60,30 L70,30 L75,20 L80,45 L85,5 L90,55 L95,30 L100,30 L160,30 L170,30 L175,20 L180,45 L185,5 L190,55 L195,30 L200,30 L260,30 L270,30 L275,20 L280,45 L285,5 L290,55 L295,30 L300,30"
-              stroke="#6366f1"
+              stroke="#2dd4bf"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -242,11 +245,10 @@ export function ProvisioningStatus({ data }: Props) {
             sx={{
               height: 8,
               borderRadius: 4,
-              bgcolor: '#e2e8f0',
+              bgcolor: 'rgba(255,255,255,0.1)',
               '& .MuiLinearProgress-bar': {
-                bgcolor: '#6366f1',
                 borderRadius: 4,
-                backgroundImage: 'linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)'
+                backgroundImage: 'linear-gradient(90deg, #2dd4bf 0%, #0ea5e9 100%)'
               }
             }}
           />
@@ -272,10 +274,10 @@ export function ProvisioningStatus({ data }: Props) {
                   p: 2.5,
                   borderRadius: "16px",
                   border: "1px solid",
-                  borderColor: mod.active ? "success.light" : "rgba(226, 232, 240, 0.6)",
-                  bgcolor: mod.active ? "rgba(240, 253, 244, 0.6)" : "rgba(248, 250, 252, 0.3)",
+                  borderColor: mod.active ? "rgba(45,212,191,0.45)" : "rgba(255,255,255,0.1)",
+                  bgcolor: mod.active ? "rgba(20,184,166,0.12)" : "rgba(255,255,255,0.03)",
                   transition: "all 0.5s ease",
-                  boxShadow: mod.active ? "0 4px 12px -2px rgba(34, 197, 94, 0.1)" : "none"
+                  boxShadow: mod.active ? "0 8px 20px -6px rgba(45, 212, 191, 0.3)" : "none"
                 }}
               >
                 <Box
@@ -286,8 +288,8 @@ export function ProvisioningStatus({ data }: Props) {
                     width: 44,
                     height: 44,
                     borderRadius: "12px",
-                    bgcolor: mod.active ? "#dcfce7" : "#f1f5f9",
-                    color: mod.active ? "success.main" : "text.secondary",
+                    bgcolor: mod.active ? "rgba(45,212,191,0.18)" : "rgba(255,255,255,0.06)",
+                    color: mod.active ? "#5eead4" : "text.secondary",
                     transition: "all 0.5s ease"
                   }}
                 >
@@ -361,10 +363,10 @@ export function ProvisioningStatus({ data }: Props) {
             p: 2,
             width: "100%",
             borderRadius: "16px",
-            border: "1px solid rgba(245, 158, 11, 0.3)",
-            bgcolor: "rgba(254, 243, 199, 0.4)",
-            color: "warning.dark",
-            boxShadow: "0 4px 12px -2px rgba(245, 158, 11, 0.05)",
+            border: "1px solid rgba(245, 158, 11, 0.35)",
+            bgcolor: "rgba(245, 158, 11, 0.12)",
+            color: "warning.light",
+            boxShadow: "0 4px 12px -2px rgba(245, 158, 11, 0.1)",
             textAlign: "left"
           }}
         >
@@ -384,7 +386,7 @@ export function ProvisioningStatus({ data }: Props) {
             <ErrorOutlineIcon sx={{ fontSize: 22 }} />
           </Box>
           <Box>
-            <Typography variant="body2" fontWeight="bold" sx={{ color: "amber.900", mb: 0.5 }}>
+            <Typography variant="body2" fontWeight="bold" sx={{ color: "#fbbf24", mb: 0.5 }}>
               Crucial: Setup Underway (Please Do Not Close, Refresh, or Go Back)
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>

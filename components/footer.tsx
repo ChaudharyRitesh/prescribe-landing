@@ -1,30 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import Divider from "@mui/material/Divider";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Stack from "@mui/material/Stack";
-import MuiLink from "@mui/material/Link";
-import CircularProgress from "@mui/material/CircularProgress";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import XIcon from "@mui/icons-material/X";
-import YouTubeIcon from "@mui/icons-material/YouTube";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import FavoriteIcon from "@mui/icons-material/Favorite";
+import { usePathname } from "next/navigation";
+import {
+  Mail,
+  MapPin,
+  Linkedin,
+  Twitter,
+  Youtube,
+  ArrowRight,
+  Heart,
+  Loader2,
+} from "lucide-react";
+import { BrandLogo } from "./brand-logo";
 
 const footerGroups = [
   {
@@ -61,7 +49,7 @@ const footerGroups = [
     title: "Company",
     links: [
       { label: "About Us", href: "#" },
-      { label: "Careers", href: "#" },
+      { label: "Careers", href: "/careers" },
       { label: "Contact", href: "#" },
       { label: "Partners Program", href: "/partner/register" },
     ],
@@ -77,7 +65,15 @@ const footerGroups = [
   },
 ];
 
+const socials = [
+  { icon: Linkedin, label: "LinkedIn", href: "#" },
+  { icon: Twitter, label: "Twitter", href: "#" },
+  { icon: Youtube, label: "YouTube", href: "#" },
+];
+
 export function Footer() {
+  const pathname = usePathname();
+  const isCareers = pathname.startsWith("/careers");
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [newsletterStatus, setNewsletterStatus] = useState<
@@ -121,340 +117,167 @@ export function Footer() {
   }
 
   return (
-    <Box component="footer" sx={{ background: "#0B1120" }}>
-      {/* Newsletter Section */}
-      <Box sx={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <Box
-          sx={{
-            maxWidth: 1280,
-            mx: "auto",
-            px: 2,
-            py: { xs: 4, md: 5 },
-          }}
-        >
-          <Grid
-            container
-            spacing={3}
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Grid size={{ xs: 12, lg: 5 }}>
-              <Typography
-                variant="h3"
-                sx={{ color: "#F1F5F9", mb: 0.5 }}
-              >
-                Stay Updated with KaeroPrescribe
-              </Typography>
-              <Typography variant="body2" sx={{ color: "#64748B" }}>
-                Get the latest updates on healthcare technology and product
-                features.
-              </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <Box
-                component="form"
-                onSubmit={onNewsletterSubmit}
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  gap: 1.5,
-                }}
-              >
-                <TextField
-                  type="email"
-                  placeholder="Enter your email"
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  size="small"
-                  required
-                  sx={{
-                    flex: 1,
-                    "& .MuiOutlinedInput-root": {
-                      background: "#1E293B",
-                      borderRadius: 2,
-                      "& fieldset": {
-                        borderColor: "rgba(255,255,255,0.1)",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: "rgba(255,255,255,0.2)",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#14B8A6",
-                      },
-                    },
-                    "& .MuiOutlinedInput-input": {
-                      color: "#F1F5F9",
-                      "&::placeholder": { color: "#64748B" },
-                    },
-                  }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={newsletterSubmitting}
-                  endIcon={
-                    newsletterSubmitting ? (
-                      <CircularProgress size={16} color="inherit" />
-                    ) : (
-                      <ArrowForwardIcon />
-                    )
-                  }
-                  sx={{ whiteSpace: "nowrap", minWidth: 130 }}
-                >
-                  Subscribe
-                </Button>
-              </Box>
-              {newsletterStatus && (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    mt: 1,
-                    fontSize: "0.75rem",
-                    color:
-                      newsletterStatus.type === "success"
-                        ? "#10B981"
-                        : "#EF4444",
-                  }}
-                >
-                  {newsletterStatus.message}
-                </Typography>
-              )}
-            </Grid>
-          </Grid>
-        </Box>
-      </Box>
-
-      {/* Main Footer — Desktop: Grid, Mobile: Accordions */}
-      <Box sx={{ maxWidth: 1280, mx: "auto", px: 2, py: { xs: 3, md: 6 } }}>
-        {/* Logo + tagline */}
-        <Box sx={{ mb: 3 }}>
-          <Box
-            component="img"
-            src="/logo.png"
-            sx={{ height: 28, mb: 1.5 }}
-            alt="KaeroPrescribe"
-          />
-          <Typography
-            variant="body2"
-            sx={{ color: "#64748B", maxWidth: 300, mb: 2 }}
-          >
-            The unified healthcare management platform for modern operations.
-          </Typography>
-
-          {/* Contact */}
-          <Stack spacing={1} sx={{ mb: 2 }}>
-            <MuiLink
-              href="mailto:support@kaerogroup.com"
-              underline="none"
-              sx={{
-                color: "#64748B",
-                fontSize: "0.8125rem",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                "&:hover": { color: "#2DD4BF" },
-              }}
+    <footer className="bg-ink-deep">
+      {/* Newsletter band */}
+      <div className="border-b border-white/[0.08]">
+        <div className="lp-container flex flex-col gap-6 py-10 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="font-heading text-lg font-bold text-white md:text-xl">
+              Stay Updated with KaeroPrescribe
+            </h3>
+            <p className="mt-1 text-sm text-slate-400">
+              Get the latest updates on healthcare technology and product
+              features.
+            </p>
+          </div>
+          <div className="w-full max-w-md">
+            <form
+              onSubmit={onNewsletterSubmit}
+              className="flex flex-col gap-3 sm:flex-row"
             >
-              <EmailOutlinedIcon sx={{ fontSize: 16, color: "primary.main" }} />
-              support@kaerogroup.com
-            </MuiLink>
-            <Box
-              sx={{
-                color: "#64748B",
-                fontSize: "0.8125rem",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 1,
-              }}
-            >
-              <LocationOnOutlinedIcon
-                sx={{ fontSize: 16, color: "primary.main", mt: 0.25 }}
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="newsletter-email"
+                type="email"
+                required
+                placeholder="Enter your email"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                className={`h-12 w-full flex-1 border border-white/10 bg-white/[0.06] px-4 text-sm text-white placeholder:text-slate-500 transition-colors duration-200 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/20 ${
+                  isCareers ? "rounded-md" : "rounded-xl"
+                }`}
               />
-              Kolkata, West Bengal
-            </Box>
-          </Stack>
-
-          {/* Social */}
-          <Stack direction="row" spacing={1}>
-            {[
-              { icon: <LinkedInIcon sx={{ fontSize: 18 }} />, label: "LinkedIn" },
-              { icon: <XIcon sx={{ fontSize: 16 }} />, label: "Twitter" },
-              { icon: <YouTubeIcon sx={{ fontSize: 18 }} />, label: "YouTube" },
-            ].map((s) => (
-              <IconButton
-                key={s.label}
-                aria-label={s.label}
-                href="#"
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 2,
-                  background: "#1E293B",
-                  color: "#94A3B8",
-                  "&:hover": {
-                    background: "#14B8A6",
-                    color: "#0B1120",
-                  },
-                }}
+              <button
+                type="submit"
+                disabled={newsletterSubmitting}
+                className={`inline-flex h-12 cursor-pointer items-center justify-center gap-2 whitespace-nowrap px-6 text-sm font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isCareers
+                    ? "rounded-md bg-teal-600 hover:bg-teal-500"
+                    : "rounded-xl bg-sky-700 hover:bg-sky-800"
+                }`}
               >
-                {s.icon}
-              </IconButton>
-            ))}
-          </Stack>
-        </Box>
+                Subscribe
+                {newsletterSubmitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : !isCareers ? (
+                  <ArrowRight size={16} />
+                ) : null}
+              </button>
+            </form>
+            {newsletterStatus && (
+              <p
+                className={`mt-2 text-xs font-medium ${
+                  newsletterStatus.type === "success"
+                    ? "text-emerald-400"
+                    : "text-rose-400"
+                }`}
+              >
+                {newsletterStatus.message}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
 
-        {/* Desktop grid */}
-        <Box sx={{ display: { xs: "none", md: "block" } }}>
-          <Grid container spacing={4}>
+      {/* Main footer */}
+      <div className="lp-container py-12 md:py-16">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,20rem)_1fr] lg:gap-16">
+          {/* Brand column */}
+          <div>
+            <BrandLogo mark={44} />
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
+              The unified healthcare management platform for modern operations.
+            </p>
+
+            <div className="mt-6 space-y-2.5">
+              <a
+                href="mailto:support@kaerogroup.com"
+                className="text-[13px] text-slate-400 transition-colors duration-200 hover:text-teal-300"
+              >
+                {!isCareers && <Mail size={15} className="mr-2.5 inline text-teal-400" />}
+                support@kaerogroup.com
+              </a>
+              <p className="text-[13px] text-slate-400">
+                {!isCareers && <MapPin size={15} className="mr-2.5 inline text-teal-400" />}
+                Kolkata, West Bengal
+              </p>
+            </div>
+
+            <div className={`mt-6 flex ${isCareers ? "gap-5" : "gap-2.5"}`}>
+              {socials.map(({ icon: Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className={
+                    isCareers
+                      ? "text-xs font-semibold text-slate-400 transition-colors hover:text-teal-300"
+                      : "flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-slate-400 transition-all duration-200 hover:border-teal-400/40 hover:bg-teal-400/10 hover:text-teal-300"
+                  }
+                >
+                  {isCareers ? label : <Icon size={17} />}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Link groups */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
             {footerGroups.map((group) => (
-              <Grid size={{ md: 2.4 }} key={group.title}>
-                <Typography
-                  sx={{
-                    color: "#F1F5F9",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    mb: 2,
-                  }}
-                >
+              <div key={group.title}>
+                <h4 className="font-heading text-sm font-semibold text-white">
                   {group.title}
-                </Typography>
-                <List dense disablePadding>
+                </h4>
+                <ul className="mt-4 space-y-2.5">
                   {group.links.map((link) => (
-                    <ListItem key={link.label} disablePadding sx={{ py: 0.4 }}>
-                      <MuiLink
+                    <li key={link.label}>
+                      <a
                         href={link.href}
-                        underline="none"
-                        sx={{
-                          color: "#64748B",
-                          fontSize: "0.8125rem",
-                          "&:hover": { color: "#2DD4BF" },
-                        }}
+                        className="text-[13px] text-slate-400 transition-colors duration-200 hover:text-teal-300"
                       >
                         {link.label}
-                      </MuiLink>
-                    </ListItem>
+                      </a>
+                    </li>
                   ))}
-                </List>
-              </Grid>
+                </ul>
+              </div>
             ))}
-          </Grid>
-        </Box>
-
-        {/* Mobile accordions */}
-        <Box sx={{ display: { xs: "block", md: "none" } }}>
-          {footerGroups.map((group) => (
-            <Accordion key={group.title} disableGutters>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: "#64748B" }} />}
-                sx={{ px: 0, minHeight: 48 }}
-              >
-                <Typography
-                  sx={{
-                    color: "#F1F5F9",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  {group.title}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: 0, pt: 0, pb: 1 }}>
-                <List dense disablePadding>
-                  {group.links.map((link) => (
-                    <ListItem key={link.label} disablePadding sx={{ py: 0.4 }}>
-                      <MuiLink
-                        href={link.href}
-                        underline="none"
-                        sx={{
-                          color: "#64748B",
-                          fontSize: "0.875rem",
-                          "&:hover": { color: "#2DD4BF" },
-                        }}
-                      >
-                        {link.label}
-                      </MuiLink>
-                    </ListItem>
-                  ))}
-                </List>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
 
       {/* Bottom bar */}
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
-      <Box
-        sx={{
-          maxWidth: 1280,
-          mx: "auto",
-          px: 2,
-          py: 2.5,
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 1.5,
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{ color: "#475569", fontSize: "0.75rem" }}
-        >
-          &copy; {new Date().getFullYear()} KaeroPrescribe by Kaero Group. All
-          rights reserved.
-        </Typography>
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          divider={
-            <Box
-              sx={{
-                width: 1,
-                height: 12,
-                background: "rgba(255,255,255,0.1)",
-              }}
-            />
-          }
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.75,
-              fontSize: "0.6875rem",
-              color: "#64748B",
-            }}
-          >
-            <FiberManualRecordIcon
-              sx={{
-                fontSize: 8,
-                color: "#10B981",
-                animation: "pulse 2s ease-in-out infinite",
-                "@keyframes pulse": {
-                  "0%, 100%": { opacity: 1 },
-                  "50%": { opacity: 0.4 },
-                },
-              }}
-            />
-            All Systems Operational
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-              fontSize: "0.6875rem",
-              color: "#64748B",
-            }}
-          >
-            Made with
-            <FavoriteIcon sx={{ fontSize: 10, color: "#EF4444" }} />
-            in India
-          </Box>
-        </Stack>
-      </Box>
-    </Box>
+      <div className="border-t border-white/[0.08]">
+        <div className="lp-container flex flex-col items-center justify-between gap-3 py-6 md:flex-row">
+          <p className="text-xs text-slate-500">
+            &copy; {new Date().getFullYear()} KaeroPrescribe by Kaero Group.
+            All rights reserved.
+          </p>
+          <div className="flex items-center gap-5">
+            <span className="flex items-center gap-2 text-[11px] text-slate-500">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              All Systems Operational
+            </span>
+            <span className="h-3 w-px bg-white/10" />
+            <span className="text-[11px] text-slate-500">
+              {isCareers ? (
+                "Built in India"
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  Made with
+                  <Heart size={11} className="fill-rose-500 text-rose-500" />
+                  in India
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }

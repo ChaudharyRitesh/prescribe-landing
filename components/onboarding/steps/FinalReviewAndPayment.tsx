@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PaymentIcon from "@mui/icons-material/Payment";
+import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import { AddressInput } from "@/components/ui/google-places-input";
@@ -24,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TermsAndConditionsModal } from "../TermsAndConditionsModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContactSchema, ContactFormValues } from "@/lib/validations/onboarding-schema";
+import { TERMS_VERSION } from "@/lib/legal";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -64,6 +66,8 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
   const [addressData, setAddressData] = useState<Address | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // ISO timestamp captured the instant the user ticks the consent box (audit trail)
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
 
   // GST Verification State
@@ -131,6 +135,14 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
       gstNumber: values.gstNumber,
       address: addressData || undefined,
       termsAccepted: termsAccepted,
+      // HIPAA/DPDP consent audit metadata
+      consent: {
+        termsAccepted: termsAccepted,
+        termsAcceptedAt: termsAcceptedAt || new Date().toISOString(),
+        termsVersion: TERMS_VERSION,
+        userAgent:
+          typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+      },
     };
 
     registerOrg(
@@ -264,18 +276,18 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
       )}
 
       {isCustomPackage && data.quotedPrice && (
-        <Box 
-          className="mb-6 p-6 rounded-[20px] border border-blue-100 bg-gradient-to-br from-blue-50/60 to-indigo-50/30 backdrop-blur-md"
+        <Box
+          className="mb-6 p-6 rounded-[20px] border border-teal-400/20 bg-gradient-to-br from-teal-500/10 to-sky-500/5 backdrop-blur-md"
           sx={{
-            boxShadow: '0 8px 32px 0 rgba(147, 197, 253, 0.08)',
+            boxShadow: '0 8px 32px 0 rgba(20, 184, 166, 0.1)',
           }}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div>
-              <span className="px-3 py-1 text-[11px] font-bold text-blue-700 bg-blue-100 rounded-full uppercase tracking-wider">
+              <span className="px-3 py-1 text-[11px] font-bold text-teal-300 bg-teal-400/15 rounded-full uppercase tracking-wider">
                 Approved Custom Proposal
               </span>
-              <h4 className="text-xl font-extrabold text-slate-800 mt-2">
+              <h4 className="text-xl font-extrabold text-white mt-2">
                 {activePkg?.label || "Kaero Prescribe Nexus"}
               </h4>
             </div>
@@ -283,48 +295,77 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
               <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main' }}>
                 ₹{data.quotedPrice.toLocaleString('en-IN')}
               </Typography>
-              <span className="text-xs font-semibold text-slate-500 capitalize block mt-0.5">
+              <span className="text-xs font-semibold text-slate-400 capitalize block mt-0.5">
                 Billed {data.billingCycle}
               </span>
             </div>
           </div>
 
-          <div className="h-px bg-slate-200/60 my-4" />
+          <div className="h-px bg-white/10 my-4" />
 
           <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
             Tailored Limits & Capacities
           </h5>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
-              <span className="text-[11px] text-slate-500 block">Doctor Accounts</span>
-              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxDoctors || 0} max</span>
+            <div className="bg-white/[0.04] rounded-xl p-3 border border-white/10">
+              <span className="text-[11px] text-slate-400 block">Doctor Accounts</span>
+              <span className="text-sm font-bold text-white">{data.customLimits?.maxDoctors || 0} max</span>
             </div>
-            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
-              <span className="text-[11px] text-slate-500 block">Receptionists</span>
-              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxReceptionists || 0} max</span>
+            <div className="bg-white/[0.04] rounded-xl p-3 border border-white/10">
+              <span className="text-[11px] text-slate-400 block">Receptionists</span>
+              <span className="text-sm font-bold text-white">{data.customLimits?.maxReceptionists || 0} max</span>
             </div>
-            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
-              <span className="text-[11px] text-slate-500 block">Lab Technicians</span>
-              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxLabTechs || 0} max</span>
+            <div className="bg-white/[0.04] rounded-xl p-3 border border-white/10">
+              <span className="text-[11px] text-slate-400 block">Lab Technicians</span>
+              <span className="text-sm font-bold text-white">{data.customLimits?.maxLabTechs || 0} max</span>
             </div>
-            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
-              <span className="text-[11px] text-slate-500 block">Pharmacists</span>
-              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxPharmacists || 0} max</span>
+            <div className="bg-white/[0.04] rounded-xl p-3 border border-white/10">
+              <span className="text-[11px] text-slate-400 block">Pharmacists</span>
+              <span className="text-sm font-bold text-white">{data.customLimits?.maxPharmacists || 0} max</span>
             </div>
-            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
-              <span className="text-[11px] text-slate-500 block">Admin Accounts</span>
-              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxAdmins || 0} max</span>
+            <div className="bg-white/[0.04] rounded-xl p-3 border border-white/10">
+              <span className="text-[11px] text-slate-400 block">Admin Accounts</span>
+              <span className="text-sm font-bold text-white">{data.customLimits?.maxAdmins || 0} max</span>
             </div>
-            <div className="bg-white/80 rounded-xl p-3 border border-slate-100/50 shadow-sm">
-              <span className="text-[11px] text-slate-500 block">Cloud Storage</span>
-              <span className="text-sm font-bold text-slate-800">{data.customLimits?.maxStorageGB || 0} GB</span>
+            <div className="bg-white/[0.04] rounded-xl p-3 border border-white/10">
+              <span className="text-[11px] text-slate-400 block">Cloud Storage</span>
+              <span className="text-sm font-bold text-white">{data.customLimits?.maxStorageGB || 0} GB</span>
             </div>
           </div>
         </Box>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        <Box sx={{ bgcolor: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '8px', p: '12px 16px', mb: 4 }}>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Facility Type</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>
+              {data.facilityType ? data.facilityType.charAt(0).toUpperCase() + data.facilityType.slice(1) : 'Organization'}
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Selected Plan</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>
+              {data.selectionType === 'package' ? (activePkg?.label || 'Custom Package') : `${data.selectedModules?.length || 0} Modules`}
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent="space-between" mb={data.quotedPrice ? 1 : 0}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Billing Cycle</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500, textTransform: 'capitalize' }}>
+              {data.billingCycle || 'Yearly'}
+            </Typography>
+          </Box>
+          {data.quotedPrice && (
+            <Box display="flex" justifyContent="space-between">
+              <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>Total Amount</Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>
+                ₹{data.quotedPrice.toLocaleString('en-IN')}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+
         <Box mb={3}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: "text.secondary" }}>
             Phone Number
@@ -341,9 +382,9 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
                     gap: 1,
                     p: '12px 14px',
                     border: '1px solid',
-                    borderColor: !!errors.contactPhone ? 'error.main' : 'rgba(0,0,0,0.23)',
+                    borderColor: !!errors.contactPhone ? 'error.main' : 'rgba(255,255,255,0.15)',
                     borderRadius: '12px',
-                    bgcolor: 'background.paper',
+                    bgcolor: 'rgba(255,255,255,0.04)',
                     '&:focus-within': {
                       borderColor: !!errors.contactPhone ? 'error.main' : 'primary.main',
                       borderWidth: '2px',
@@ -355,7 +396,17 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
                     outline: 'none',
                     fontSize: '1rem',
                     width: '100%',
-                    bgcolor: 'transparent'
+                    bgcolor: 'transparent',
+                    color: '#F1F5F9'
+                  },
+                  '& .PhoneInputInput::placeholder': {
+                    color: '#64748B'
+                  },
+                  '& .PhoneInputCountrySelect': {
+                    color: '#0B1426'
+                  },
+                  '& .PhoneInputCountryIcon': {
+                    boxShadow: '0 0 0 1px rgba(255,255,255,0.2)'
                   }
                 }}
               >
@@ -383,9 +434,15 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
             fullWidth
             placeholder="22AAAAA0000A1Z5"
             error={!!errors.gstNumber || gstStatus === "invalid"}
-            helperText={errors.gstNumber?.message || (gstStatus === "invalid" ? "GST identification failed existence check." : " ")}
+            helperText={data.gstNumber ? "Entered in Organization step · Edit there if needed" : (errors.gstNumber?.message || (gstStatus === "invalid" ? "GST identification failed existence check." : " "))}
             {...register("gstNumber")}
             InputProps={{
+              readOnly: !!data.gstNumber,
+              startAdornment: data.gstNumber ? (
+                <InputAdornment position="start">
+                  <LockIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                </InputAdornment>
+              ) : undefined,
               endAdornment: (
                 <InputAdornment position="end">
                   {gstStatus === "loading" && <CircularProgress size={20} />}
@@ -414,25 +471,29 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           )}
         </Box>
 
-        <Box mb={4} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+        <Box mb={4} className="p-4 bg-white/[0.04] border border-white/10 rounded-2xl">
           <div className="flex items-start gap-3">
             <Checkbox
               id="terms"
               checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(!!checked)}
-              className="mt-1 border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              onCheckedChange={(checked) => {
+                const accepted = !!checked;
+                setTermsAccepted(accepted);
+                setTermsAcceptedAt(accepted ? new Date().toISOString() : null);
+              }}
+              className="mt-1 border-white/30 data-[state=checked]:bg-sky-600 data-[state=checked]:border-sky-600"
             />
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="terms"
-                className="text-sm font-medium text-slate-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                className="text-sm font-medium text-slate-200 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
                 I agree to the Software License and Terms of Service
               </label>
               <button
                 type="button"
                 onClick={() => setTermsModalOpen(true)}
-                className="text-[12px] text-blue-600 font-bold hover:text-blue-700 underline underline-offset-4 text-left w-fit transition-all hover:scale-105 active:scale-95"
+                className="text-[12px] text-teal-300 font-bold hover:text-teal-200 underline underline-offset-4 text-left w-fit transition-all hover:scale-105 active:scale-95"
               >
                 Read detailed policies & refund terms
               </button>
@@ -450,9 +511,9 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
           sx={{
             mt: 2,
             mb: 2,
-            bgcolor: "#111827",
-            color: "white",
-            "&:hover": { bgcolor: "#030712" },
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            "&:hover": { bgcolor: "primary.dark" },
           }}
         >
           {razorpayLoading
