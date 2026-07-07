@@ -35,6 +35,7 @@ export interface ModuleItem {
   icon?: string;
   pricing: ModulePricing;
   specialties?: string[];
+  features?: string[];
   isHero?: boolean;
   isShared?: boolean;
   isActive: boolean;
@@ -50,6 +51,7 @@ export interface PackageItem {
   modules: string[]; // slugs
   pricing: ModulePricing;
   specialties?: string[];
+  features?: string[];
   savings?: string;
   badge?: string;
   isActive: boolean;

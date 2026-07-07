@@ -77,61 +77,58 @@ function moduleIcon(slug: string) {
 
 const fallbackPackages: PackageItem[] = [
   {
-    _id: "starter",
-    slug: "clinic-starter",
-    label: "Clinic Starter",
-    tagline: "Perfect for small clinics getting started",
-    modules: ["doctors", "receptionist"],
-    pricing: { monthly: 1199, yearly: 11990 },
-    savings: "Save ₹299/mo vs individual",
-    badge: "Most Popular",
+    _id: "starter-plan",
+    slug: "starter-plan",
+    label: "Starter Plan",
+    tagline: "Everything a growing clinic needs to run day one",
+    modules: ["reception-module", "pharmacy-module", "doctor-module", "pathlab-module"],
+    pricing: { monthly: 8096, yearly: 92294 },
+    badge: "Cheapest",
     isActive: true,
     order: 1,
   },
   {
-    _id: "pro",
-    slug: "clinic-pro",
-    label: "Clinic Pro",
-    tagline: "Complete outpatient care including pharmacy",
-    modules: ["doctors", "receptionist", "pharmacy"],
-    pricing: { monthly: 1999, yearly: 19990 },
-    savings: "Save ₹298/mo vs individual",
-    badge: "Best Value",
+    _id: "enterprise-plan",
+    slug: "enterprise-plan",
+    label: "Enterprise Plan",
+    tagline: "Scaled capacity for busy multi-department facilities",
+    modules: ["reception-module", "pharmacy-module", "doctor-module", "pathlab-module"],
+    pricing: { monthly: 15296, yearly: 183557 },
+    badge: "Most Popular",
     isActive: true,
     order: 2,
   },
   {
-    _id: "lab",
-    slug: "lab-focus",
-    label: "Lab & Diagnostics",
-    tagline: "Dedicated diagnostic center setup",
-    modules: ["pathlab", "receptionist"],
-    pricing: { monthly: 1199, yearly: 11990 },
-    savings: "Save ₹199/mo vs individual",
-    badge: "",
+    _id: "healthcare-premium",
+    slug: "healthcare-premium",
+    label: "Healthcare Premium",
+    tagline: "Full-suite premium tier for hospitals",
+    modules: ["reception-module", "pharmacy-module", "pathlab-module", "doctor-module"],
+    pricing: { monthly: 27599, yearly: 298069 },
+    badge: "Premium",
     isActive: true,
     order: 3,
   },
   {
-    _id: "full",
-    slug: "full-suite",
-    label: "Full Suite",
-    tagline: "Everything you need for a full hospital",
-    modules: ["doctors", "receptionist", "pharmacy", "pathlab", "ipd"],
-    pricing: { monthly: 3999, yearly: 39990 },
-    savings: "Save ₹696/mo vs individual",
-    badge: "",
+    _id: "kaero-nexus",
+    slug: "kaero-nexus",
+    label: "Kaero Nexus",
+    tagline: "For established hospitals & poly-clinics, single or multi-branch",
+    modules: ["pharmacy-module", "doctor-module", "reception-module"],
+    pricing: { monthly: 0, yearly: 0 },
+    features: ["All plans included in plus and enterprise", "upto 10K patients record"],
+    savings: "Save ₹2999/month",
+    isCustom: true,
     isActive: true,
     order: 4,
   },
 ];
 
 const fallbackModules: ModuleItem[] = [
-  { _id: "1", slug: "doctors", label: "Doctors & Consultation", description: "Digital prescriptions, EMR & consult notes", pricing: { monthly: 999, yearly: 9990 }, isActive: true, order: 1 },
-  { _id: "2", slug: "receptionist", label: "Reception & Queue", description: "Appointments, token queue & front-desk", pricing: { monthly: 499, yearly: 4990 }, isActive: true, order: 2 },
-  { _id: "3", slug: "pharmacy", label: "Pharmacy", description: "Inventory, billing & GST invoicing", pricing: { monthly: 799, yearly: 7990 }, isActive: true, order: 3 },
-  { _id: "4", slug: "pathlab", label: "Pathlab / Diagnostics", description: "Test orders, samples & result reports", pricing: { monthly: 899, yearly: 8990 }, isActive: true, order: 4 },
-  { _id: "5", slug: "ipd", label: "IPD Management", description: "Beds, admissions & in-patient workflow", pricing: { monthly: 1499, yearly: 14990 }, isActive: true, order: 5 },
+  { _id: "reception-module", slug: "reception-module", label: "Reception Module", features: ["Booking & appointments", "Queue management", "Patient history"], pricing: { monthly: 1999, yearly: 23988 }, isActive: true, order: 1 },
+  { _id: "doctor-module", slug: "doctor-module", label: "Doctor Module", features: ["Auto appointment", "Fees collection", "Prescribe assists"], pricing: { monthly: 2499, yearly: 29988 }, isActive: true, order: 2 },
+  { _id: "pharmacy-module", slug: "pharmacy-module", label: "Pharmacy Module", features: ["Inventory & billing", "GST invoicing", "Stock alerts"], pricing: { monthly: 2499, yearly: 29988 }, isActive: true, order: 3 },
+  { _id: "pathlab-module", slug: "pathlab-module", label: "Pathlab Module", features: ["Auto test query", "E-report generation", "Fees & billing"], pricing: { monthly: 1999, yearly: 23988 }, isActive: true, order: 4 },
 ];
 
 const highlights = [
@@ -382,7 +379,7 @@ export function PricingSection() {
           /*  Packages tab                                          */
           /* ------------------------------------------------------ */
           <div className="mt-10 lg:mt-12">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="flex flex-wrap justify-center gap-5">
               {packages.map((pkg, i) => {
                 const custom = isCustomPackage(pkg);
                 const isPro =
@@ -398,7 +395,11 @@ export function PricingSection() {
                     : yearlyMonthlyEquivalent;
 
                 return (
-                  <GsapReveal key={pkg._id} delay={0.06 * i} className="h-full">
+                  <GsapReveal
+                    key={pkg._id}
+                    delay={0.06 * i}
+                    className="h-full w-full sm:w-[calc(50%-10px)] xl:w-[calc(25%-15px)]"
+                  >
                     <div
                       className={`relative flex h-full flex-col rounded-2xl border p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 ${
                         isPro
@@ -552,7 +553,7 @@ export function PricingSection() {
               </Link>
             </GsapReveal>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="flex flex-wrap justify-center gap-4">
               {alacarteModules.map((mod, i) => {
                 const Icon = moduleIcon(mod.slug);
                 const price =
@@ -560,7 +561,11 @@ export function PricingSection() {
                     ? mod.pricing.monthly
                     : mod.pricing.yearly;
                 return (
-                  <GsapReveal key={mod._id || mod.slug} delay={0.04 * i} className="h-full">
+                  <GsapReveal
+                    key={mod._id || mod.slug}
+                    delay={0.04 * i}
+                    className="h-full w-full sm:w-[calc(50%-8px)] xl:w-[calc(33.333%-11px)]"
+                  >
                     <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-teal-400/40 hover:bg-white/[0.06]">
                       <div className="flex items-start justify-between gap-3">
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10 text-teal-300">
@@ -578,11 +583,20 @@ export function PricingSection() {
                       <h4 className="font-heading mt-4 text-base font-bold text-white">
                         {mod.label}
                       </h4>
-                      {mod.description && (
-                        <p className="mt-1 flex-1 text-[13px] leading-snug text-slate-400">
-                          {mod.description}
-                        </p>
-                      )}
+                      {(() => {
+                        const subtitle =
+                          mod.description ||
+                          (mod.features && mod.features.length
+                            ? mod.features.join(" · ")
+                            : "");
+                        return subtitle ? (
+                          <p className="mt-1 flex-1 text-[13px] leading-snug text-slate-400">
+                            {subtitle}
+                          </p>
+                        ) : (
+                          <div className="flex-1" />
+                        );
+                      })()}
                       <Link
                         href={`/onboarding?module=${mod.slug}`}
                         className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.15] py-2.5 text-sm font-bold text-slate-200 transition-all duration-200 hover:border-teal-400/50 hover:text-teal-300"
