@@ -65,7 +65,7 @@ export const useRecentMedicalRecordsQuery = () => {
           title: "Annual Physical",
           category: "General Health",
           provider: "Dr. Sarah Wilson",
-          status: "Complete",
+          status: "Completed",
         },
         {
           id: "rec_2",
@@ -81,7 +81,7 @@ export const useRecentMedicalRecordsQuery = () => {
           title: "Chest X-Ray",
           category: "Radiology",
           provider: "Dr. Elena Rodriguez",
-          status: "Complete",
+          status: "Pending",
         },
         {
           id: "rec_4",
@@ -89,7 +89,7 @@ export const useRecentMedicalRecordsQuery = () => {
           title: "Dermatology Consult",
           category: "Specialist",
           provider: "Dr. Michael Chen",
-          status: "Complete",
+          status: "Available",
         },
         {
           id: "rec_5",
@@ -97,7 +97,7 @@ export const useRecentMedicalRecordsQuery = () => {
           title: "Vaccination Record",
           category: "Immunization",
           provider: "Nurse Sarah",
-          status: "Complete",
+          status: "Corrected",
         }
       ]);
       setIsLoading(false);

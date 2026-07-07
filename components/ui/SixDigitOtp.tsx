@@ -4,11 +4,10 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSlot,
-  InputOTPSeparator
+  InputOTPSlot
 } from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@mui/material";
 import { RefreshCw, CheckCircle2, AlertCircle, X, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +31,7 @@ export function SixDigitOtp({
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  const submittedOtpRef = useRef("");
 
   useEffect(() => {
     let interval: any;
@@ -47,6 +47,8 @@ export function SixDigitOtp({
 
   const handleResend = () => {
     if (canResend) {
+      setOtp("");
+      submittedOtpRef.current = "";
       setTimer(30);
       setCanResend(false);
       onResend?.();
@@ -54,14 +56,32 @@ export function SixDigitOtp({
   };
 
   const handleChange = (value: string) => {
-    setOtp(value);
-    if (value.length === 6) {
-      onComplete?.(value);
+    const nextOtp = value.replace(/\D/g, "").slice(0, 6);
+
+    setOtp(nextOtp);
+
+    if (nextOtp.length < 6) {
+      submittedOtpRef.current = "";
+      return;
+    }
+
+    if (!isLoading && !success && submittedOtpRef.current !== nextOtp) {
+      submittedOtpRef.current = nextOtp;
+      onComplete?.(nextOtp);
     }
   };
 
+  useEffect(() => {
+    if (error) submittedOtpRef.current = "";
+  }, [error]);
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    handleChange(event.clipboardData.getData("text"));
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center p-10 bg-white rounded-2xl shadow-2xl border border-neutral-100 max-w-xl mx-auto relative">
+    <div className="relative mx-auto flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border border-neutral-100 bg-white p-5 shadow-2xl sm:p-10">
       {/* Close Button */}
       {onClose && (
         <button 
@@ -96,26 +116,29 @@ export function SixDigitOtp({
         </p>
       </motion.div>
 
-      <div className="mb-10">
+      <div className="mb-10 w-full max-w-sm">
         <InputOTP
           maxLength={6}
           value={otp}
           onChange={handleChange}
           disabled={isLoading || success}
+          pattern={REGEXP_ONLY_DIGITS}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          onPaste={handlePaste}
+          containerClassName="w-full justify-center"
         >
-          <InputOTPGroup className="gap-3 sm:gap-4">
+          <InputOTPGroup className="grid w-full grid-cols-6 gap-2 sm:gap-3">
             {[0, 1, 2, 3, 4, 5].map((index) => (
-              <React.Fragment key={index}>
-                <InputOTPSlot
-                  index={index}
-                  className={cn(
-                    "w-14 h-20 text-3xl font-bold rounded-lg border-2 transition-all duration-300",
-                    otp.length === index ? "border-[#0D9488] ring-4 ring-[#0D9488]/10 scale-105" : "border-neutral-200",
-                    success ? "border-green-500 bg-green-50" : error ? "border-red-500 bg-red-50" : "bg-neutral-50"
-                  )}
-                />
-                {index === 2 && <InputOTPSeparator className="text-neutral-300" />}
-              </React.Fragment>
+              <InputOTPSlot
+                key={index}
+                index={index}
+                className={cn(
+                  "h-14 w-full rounded-lg border-2 text-2xl font-bold transition-all duration-300 sm:h-20 sm:text-3xl",
+                  otp.length === index ? "border-[#0D9488] ring-4 ring-[#0D9488]/10 scale-105" : "border-neutral-200",
+                  success ? "border-green-500 bg-green-50" : error ? "border-red-500 bg-red-50" : "bg-neutral-50"
+                )}
+              />
             ))}
           </InputOTPGroup>
         </InputOTP>
@@ -158,7 +181,7 @@ export function SixDigitOtp({
       {/* Premium Background Accents */}
       <div className="absolute -z-10 top-0 left-0 w-full h-full overflow-hidden pointer-events-none rounded-3xl">
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#0D9488]/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#14B8A6]/5 rounded-full blur-3xl" />
       </div>
     </div>
   );

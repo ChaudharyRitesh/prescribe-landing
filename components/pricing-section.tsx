@@ -149,6 +149,7 @@ const highlights = [
 export function PricingSection() {
   const { data: catalog, isLoading } = useCatalogQuery();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [activeTab, setActiveTab] = useState<"packages" | "modules">("packages");
 
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -166,11 +167,15 @@ export function PricingSection() {
       catalog?.packages && catalog.packages.length > 0
         ? catalog.packages.filter((p) => p.isActive)
         : fallbackPackages;
-    // Standard packages only — custom/enterprise packages are handled by the quote band.
-    return list
-      .filter((p) => !p.isCustom && p.slug !== "kaero-nexus")
-      .sort((a, b) => a.order - b.order);
+    // Keep custom/enterprise packages (e.g. kaero-nexus) — rendered as a
+    // "Custom" card that routes to the quote band, sorted after standard ones.
+    return [...list].sort((a, b) => a.order - b.order);
   }, [catalog]);
+
+  const isCustomPackage = useCallback(
+    (p: PackageItem) => !!p.isCustom || p.slug === "kaero-nexus",
+    []
+  );
 
   const modules = useMemo(() => {
     if (catalog?.modules && catalog.modules.length > 0) {
@@ -329,119 +334,186 @@ export function PricingSection() {
           </div>
         </GsapReveal>
 
+        {/* Tab switcher */}
+        <GsapReveal className="mt-9 flex justify-center">
+          <div
+            className="inline-flex items-center rounded-2xl border border-white/10 bg-white/[0.04] p-1 backdrop-blur"
+            role="tablist"
+            aria-label="Pricing view"
+          >
+            <button
+              role="tab"
+              aria-selected={activeTab === "packages"}
+              onClick={() => setActiveTab("packages")}
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200 ${
+                activeTab === "packages"
+                  ? "bg-white/[0.09] text-white shadow-[0_4px_16px_-6px_rgba(2,6,23,0.9)]"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Boxes size={16} />
+              Packages
+              <span className="hidden rounded-md bg-teal-400/15 px-1.5 py-0.5 text-[10px] font-bold text-teal-300 sm:inline">
+                Save more
+              </span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === "modules"}
+              onClick={() => setActiveTab("modules")}
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200 ${
+                activeTab === "modules"
+                  ? "bg-white/[0.09] text-white shadow-[0_4px_16px_-6px_rgba(2,6,23,0.9)]"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Plus size={16} />
+              Individual Modules
+            </button>
+          </div>
+        </GsapReveal>
+
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 size={36} className="animate-spin text-teal-300" />
           </div>
-        ) : (
-          <>
-            {/* ------------------------------------------------------ */}
-            {/*  Bundled packages                                      */}
-            {/* ------------------------------------------------------ */}
-            <div className="mt-12 lg:mt-16">
-              <GsapReveal className="mb-7 flex items-end justify-between gap-4">
-                <div>
-                  <h3 className="font-heading text-xl font-bold text-white md:text-2xl">
-                    Ready-made bundles
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Curated module sets for common facility types — the fastest
-                    way to launch.
-                  </p>
-                </div>
-              </GsapReveal>
+        ) : activeTab === "packages" ? (
+          /* ------------------------------------------------------ */
+          /*  Packages tab                                          */
+          /* ------------------------------------------------------ */
+          <div className="mt-10 lg:mt-12">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              {packages.map((pkg, i) => {
+                const custom = isCustomPackage(pkg);
+                const isPro =
+                  !custom &&
+                  (pkg.slug === "clinic-pro" ||
+                    /best value/i.test(pkg.badge || ""));
+                const yearlyMonthlyEquivalent = Math.round(
+                  pkg.pricing.yearly / 12
+                );
+                const displayPrice =
+                  billingCycle === "monthly"
+                    ? pkg.pricing.monthly
+                    : yearlyMonthlyEquivalent;
 
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                {packages.map((pkg, i) => {
-                  const isPro =
-                    pkg.slug === "clinic-pro" ||
-                    /best value/i.test(pkg.badge || "");
-                  const monthlyPrice = pkg.pricing.monthly;
-                  const yearlyMonthlyEquivalent = Math.round(
-                    pkg.pricing.yearly / 12
-                  );
-                  const displayPrice =
-                    billingCycle === "monthly"
-                      ? monthlyPrice
-                      : yearlyMonthlyEquivalent;
+                return (
+                  <GsapReveal key={pkg._id} delay={0.06 * i} className="h-full">
+                    <div
+                      className={`relative flex h-full flex-col rounded-2xl border p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 ${
+                        isPro
+                          ? "border-teal-400/50 bg-white/[0.07] shadow-[0_0_48px_-12px_rgba(45,212,191,0.4)]"
+                          : custom
+                          ? "border-dashed border-white/20 bg-white/[0.02] hover:border-teal-400/40 hover:bg-white/[0.05]"
+                          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:shadow-[0_24px_48px_-20px_rgba(2,6,23,0.9)]"
+                      }`}
+                    >
+                      {pkg.badge && (
+                        <span
+                          className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                            isPro
+                              ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950"
+                              : "bg-white/10 text-slate-200 backdrop-blur"
+                          }`}
+                        >
+                          {pkg.badge}
+                        </span>
+                      )}
 
-                  return (
-                    <GsapReveal key={pkg._id} delay={0.06 * i} className="h-full">
-                      <div
-                        className={`relative flex h-full flex-col rounded-2xl border p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 ${
-                          isPro
-                            ? "border-teal-400/50 bg-white/[0.07] shadow-[0_0_48px_-12px_rgba(45,212,191,0.4)]"
-                            : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:shadow-[0_24px_48px_-20px_rgba(2,6,23,0.9)]"
-                        }`}
-                      >
-                        {pkg.badge && (
-                          <span
-                            className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
-                              isPro
-                                ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950"
-                                : "bg-white/10 text-slate-200 backdrop-blur"
-                            }`}
-                          >
-                            {pkg.badge}
-                          </span>
-                        )}
+                      <h4 className="font-heading text-lg font-bold text-white">
+                        {pkg.label}
+                      </h4>
+                      <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
+                        {pkg.tagline}
+                      </p>
 
-                        <h4 className="font-heading text-lg font-bold text-white">
-                          {pkg.label}
-                        </h4>
-                        <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
-                          {pkg.tagline}
-                        </p>
-
-                        <div className="mt-5 flex items-baseline">
-                          <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
-                            {inr(displayPrice)}
-                          </span>
-                          <span className="ml-1 text-sm font-medium text-slate-500">
-                            /month
-                          </span>
-                        </div>
-
-                        {billingCycle === "yearly" ? (
+                      {custom ? (
+                        <>
+                          <div className="mt-5 flex items-baseline">
+                            <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
+                              Custom
+                            </span>
+                          </div>
                           <p className="mt-1 text-xs font-medium text-slate-500">
-                            Billed annually at {inr(pkg.pricing.yearly)}
+                            Tailored quote for your scale
                           </p>
-                        ) : (
-                          <div className="mt-1 h-4" />
-                        )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="mt-5 flex items-baseline">
+                            <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
+                              {inr(displayPrice)}
+                            </span>
+                            <span className="ml-1 text-sm font-medium text-slate-500">
+                              /month
+                            </span>
+                          </div>
+                          {billingCycle === "yearly" ? (
+                            <p className="mt-1 text-xs font-medium text-slate-500">
+                              Billed annually at {inr(pkg.pricing.yearly)}
+                            </p>
+                          ) : (
+                            <div className="mt-1 h-4" />
+                          )}
+                          {pkg.savings && billingCycle === "yearly" && (
+                            <span className="mt-3 inline-flex self-start rounded-md border border-teal-400/30 bg-teal-400/10 px-2 py-0.5 text-[10px] font-bold text-teal-300">
+                              {pkg.savings}
+                            </span>
+                          )}
+                        </>
+                      )}
 
-                        {pkg.savings && billingCycle === "yearly" && (
-                          <span className="mt-3 inline-flex self-start rounded-md border border-teal-400/30 bg-teal-400/10 px-2 py-0.5 text-[10px] font-bold text-teal-300">
-                            {pkg.savings}
-                          </span>
-                        )}
+                      <hr className="my-5 border-white/[0.08]" />
 
-                        <hr className="my-5 border-white/[0.08]" />
+                      <div className="flex-1">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                          {custom
+                            ? "Everything, unlimited"
+                            : `${pkg.modules.length} modules included`}
+                        </p>
+                        <ul className="mt-3 space-y-2.5">
+                          {(custom && pkg.modules.length === 0
+                            ? [
+                                "Unlimited doctors & staff",
+                                "Dedicated account manager",
+                                "Custom integrations & SLAs",
+                              ]
+                            : pkg.modules.map((mSlug) => {
+                                const mod = modules.find(
+                                  (m) => m.slug === mSlug
+                                );
+                                return mod?.label || mSlug;
+                              })
+                          ).map((label) => (
+                            <li
+                              key={label}
+                              className="flex items-start gap-2.5"
+                            >
+                              <span
+                                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                                  custom
+                                    ? "bg-white/[0.08] text-slate-400"
+                                    : "bg-teal-400/15 text-teal-300"
+                                }`}
+                              >
+                                <Check size={12} strokeWidth={3} />
+                              </span>
+                              <span className="text-sm font-medium text-slate-300">
+                                {label}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-                        <div className="flex-1">
-                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            {pkg.modules.length} modules included
-                          </p>
-                          <ul className="mt-3 space-y-2.5">
-                            {pkg.modules.map((mSlug) => {
-                              const mod = modules.find((m) => m.slug === mSlug);
-                              return (
-                                <li
-                                  key={mSlug}
-                                  className="flex items-start gap-2.5"
-                                >
-                                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-400/15 text-teal-300">
-                                    <Check size={12} strokeWidth={3} />
-                                  </span>
-                                  <span className="text-sm font-medium text-slate-300">
-                                    {mod?.label || mSlug}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-
+                      {custom ? (
+                        <button
+                          onClick={scrollToCustomQuote}
+                          className="mt-6 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/20 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-white hover:text-slate-950"
+                        >
+                          Contact Sales
+                        </button>
+                      ) : (
                         <Link
                           href={`/onboarding?package=${pkg.slug}`}
                           className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-200 ${
@@ -453,86 +525,82 @@ export function PricingSection() {
                           Get Started
                           <ArrowRight size={16} />
                         </Link>
+                      )}
+                    </div>
+                  </GsapReveal>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          /* ------------------------------------------------------ */
+          /*  Individual modules tab                                */
+          /* ------------------------------------------------------ */
+          <div className="mt-10 lg:mt-12">
+            <GsapReveal className="mb-7 flex flex-wrap items-end justify-between gap-4">
+              <p className="max-w-xl text-sm text-slate-400">
+                Pick only the modules you need and pay per module. Prices shown
+                are per {billingCycle === "monthly" ? "month" : "year"}. Bundle
+                2+ into a package to save up to 20%.
+              </p>
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.15] px-5 py-2.5 text-sm font-bold text-slate-200 transition-all duration-200 hover:border-teal-400/50 hover:text-teal-300"
+              >
+                <Plus size={16} />
+                Build a custom bundle
+              </Link>
+            </GsapReveal>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {alacarteModules.map((mod, i) => {
+                const Icon = moduleIcon(mod.slug);
+                const price =
+                  billingCycle === "monthly"
+                    ? mod.pricing.monthly
+                    : mod.pricing.yearly;
+                return (
+                  <GsapReveal key={mod._id || mod.slug} delay={0.04 * i} className="h-full">
+                    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-teal-400/40 hover:bg-white/[0.06]">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10 text-teal-300">
+                          <Icon size={20} />
+                        </span>
+                        <div className="text-right">
+                          <p className="font-heading text-xl font-extrabold text-white">
+                            {inr(price)}
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-500">
+                            /{billingCycle === "monthly" ? "month" : "year"}
+                          </p>
+                        </div>
                       </div>
-                    </GsapReveal>
-                  );
-                })}
-              </div>
+                      <h4 className="font-heading mt-4 text-base font-bold text-white">
+                        {mod.label}
+                      </h4>
+                      {mod.description && (
+                        <p className="mt-1 flex-1 text-[13px] leading-snug text-slate-400">
+                          {mod.description}
+                        </p>
+                      )}
+                      <Link
+                        href={`/onboarding?module=${mod.slug}`}
+                        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.15] py-2.5 text-sm font-bold text-slate-200 transition-all duration-200 hover:border-teal-400/50 hover:text-teal-300"
+                      >
+                        Add module
+                        <ArrowRight size={15} />
+                      </Link>
+                    </div>
+                  </GsapReveal>
+                );
+              })}
             </div>
 
-            {/* ------------------------------------------------------ */}
-            {/*  À-la-carte individual modules                         */}
-            {/* ------------------------------------------------------ */}
-            <div className="mt-14 lg:mt-20">
-              <GsapReveal className="mb-7 flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <h3 className="font-heading text-xl font-bold text-white md:text-2xl">
-                    Or build your own
-                  </h3>
-                  <p className="mt-1 max-w-xl text-sm text-slate-400">
-                    Prefer full control? Pick only the modules you need and pay
-                    per module. Prices shown are per{" "}
-                    {billingCycle === "monthly" ? "month" : "year"}.
-                  </p>
-                </div>
-                <Link
-                  href="/onboarding"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.15] px-5 py-2.5 text-sm font-bold text-slate-200 transition-all duration-200 hover:border-teal-400/50 hover:text-teal-300"
-                >
-                  <Plus size={16} />
-                  Build a custom bundle
-                </Link>
-              </GsapReveal>
-
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
-                <ul className="divide-y divide-white/[0.06]">
-                  {alacarteModules.map((mod, i) => {
-                    const Icon = moduleIcon(mod.slug);
-                    const price =
-                      billingCycle === "monthly"
-                        ? mod.pricing.monthly
-                        : mod.pricing.yearly;
-                    return (
-                      <GsapReveal key={mod._id || mod.slug} delay={0.04 * i}>
-                        <li className="flex items-center gap-4 px-5 py-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-6">
-                          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10 text-teal-300">
-                            <Icon size={20} />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-heading text-sm font-bold text-white sm:text-base">
-                              {mod.label}
-                            </p>
-                            {mod.description && (
-                              <p className="mt-0.5 truncate text-xs text-slate-400 sm:text-[13px]">
-                                {mod.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <p className="font-heading text-base font-extrabold text-white sm:text-lg">
-                              {inr(price)}
-                            </p>
-                            <p className="text-[11px] font-medium text-slate-500">
-                              /{billingCycle === "monthly" ? "month" : "year"}
-                            </p>
-                          </div>
-                        </li>
-                      </GsapReveal>
-                    );
-                  })}
-                </ul>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] bg-white/[0.02] px-5 py-3.5 sm:px-6">
-                  <p className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                    <Sparkles size={13} className="text-teal-300" />
-                    Bundle 2+ modules into a package to save up to 20%.
-                  </p>
-                  <span className="text-[11px] font-medium text-slate-500">
-                    GST applicable · billed via secure Razorpay
-                  </span>
-                </div>
-              </div>
-            </div>
-          </>
+            <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-slate-500">
+              <Sparkles size={13} className="text-teal-300" />
+              GST applicable · billed via secure Razorpay · switch or cancel anytime
+            </p>
+          </div>
         )}
 
         {/* ------------------------------------------------------ */}
