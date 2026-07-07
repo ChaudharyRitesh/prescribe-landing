@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -20,6 +20,20 @@ import {
 } from "@mui/material";
 import { Phone, Mail, ArrowLeft, ShieldCheck, HeartPulse } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+
+const PRIMARY_BUTTON_SX = {
+  mt: 4,
+  height: 52,
+  bgcolor: "#0D9488",
+  color: "#FFFFFF",
+  "&:hover": { bgcolor: "#0F766E" },
+  textTransform: "none",
+  fontSize: "1rem",
+  fontWeight: 700,
+  borderRadius: 2,
+};
 
 // Custom Hooks for Mutations (Mocked for this exercise)
 const useRequestOtpMutation = () => {
@@ -159,16 +173,7 @@ const IdentifierForm = ({ onSuccess }: { onSuccess: (id: string, type: "mobile" 
         fullWidth
         variant="contained"
         disabled={isPending || !identifier}
-        sx={{
-          mt: 4,
-          height: 52,
-          bgcolor: "#0877C9",
-          "&:hover": { bgcolor: "#0563AA" },
-          textTransform: "none",
-          fontSize: "1rem",
-          fontWeight: 600,
-          borderRadius: 2,
-        }}
+        sx={PRIMARY_BUTTON_SX}
       >
         {isPending ? <CircularProgress size={24} color="inherit" /> : "Send OTP"}
       </Button>
@@ -184,6 +189,7 @@ const OtpVerificationForm = ({ identifier, type, onBack }: { identifier: string;
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(30);
   const { mutate, isPending, error } = useVerifyOtpMutation();
+  const submittedOtpRef = useRef("");
 
   useEffect(() => {
     if (countdown > 0) {
@@ -192,14 +198,44 @@ const OtpVerificationForm = ({ identifier, type, onBack }: { identifier: string;
     }
   }, [countdown]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const verifyOtp = async (nextOtp: string) => {
+    if (nextOtp.length !== 6 || isPending || submittedOtpRef.current === nextOtp) return;
+
+    submittedOtpRef.current = nextOtp;
+
     try {
-      await mutate(otp);
+      await mutate(nextOtp);
     } catch (err) {
       // Error handled by hook
     }
   };
+
+  const handleOtpChange = (value: string) => {
+    const nextOtp = value.replace(/\D/g, "").slice(0, 6);
+
+    setOtp(nextOtp);
+
+    if (nextOtp.length < 6) {
+      submittedOtpRef.current = "";
+      return;
+    }
+
+    void verifyOtp(nextOtp);
+  };
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    handleOtpChange(event.clipboardData.getData("text"));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await verifyOtp(otp);
+  };
+
+  useEffect(() => {
+    if (error) submittedOtpRef.current = "";
+  }, [error]);
 
   const displayId = type === "mobile" ? `+91 ******${identifier.slice(-4)}` : identifier.replace(/^(.)(.*)(.@.*)$/, "$1***$3");
 
@@ -219,38 +255,40 @@ const OtpVerificationForm = ({ identifier, type, onBack }: { identifier: string;
 
       {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Enter 6-digit OTP"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        disabled={isPending}
-        required
-        inputProps={{
-          inputMode: "numeric",
-          pattern: "[0-9]*",
-          maxLength: 6,
-          style: { letterSpacing: "0.5em", textAlign: "center", fontSize: "1.25rem", fontWeight: 600 }
-        }}
-        InputProps={{ sx: { height: 56, borderRadius: 2 } }}
-      />
+      <Box sx={{ width: "100%" }}>
+        <InputOTP
+          maxLength={6}
+          value={otp}
+          onChange={handleOtpChange}
+          disabled={isPending}
+          pattern={REGEXP_ONLY_DIGITS}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          onPaste={handlePaste}
+          containerClassName="w-full justify-center"
+        >
+          <InputOTPGroup className="grid w-full grid-cols-6 gap-2 sm:gap-3">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <InputOTPSlot
+                key={index}
+                index={index}
+                className={[
+                  "h-14 w-full rounded-lg border-2 bg-white text-2xl font-bold text-slate-900 transition-all duration-200 sm:h-16",
+                  otp.length === index ? "border-[#0D9488] ring-4 ring-[#0D9488]/10" : "border-slate-200",
+                  error ? "border-red-500 bg-red-50" : "",
+                ].join(" ")}
+              />
+            ))}
+          </InputOTPGroup>
+        </InputOTP>
+      </Box>
 
       <Button
         type="submit"
         fullWidth
         variant="contained"
         disabled={isPending || otp.length !== 6}
-        sx={{
-          mt: 4,
-          height: 52,
-          bgcolor: "#0877C9",
-          "&:hover": { bgcolor: "#0563AA" },
-          textTransform: "none",
-          fontSize: "1rem",
-          fontWeight: 600,
-          borderRadius: 2,
-        }}
+        sx={PRIMARY_BUTTON_SX}
       >
         {isPending ? <CircularProgress size={24} color="inherit" /> : "Verify and continue"}
       </Button>
@@ -261,7 +299,18 @@ const OtpVerificationForm = ({ identifier, type, onBack }: { identifier: string;
             Resend code in 00:{countdown.toString().padStart(2, "0")}
           </Typography>
         ) : (
-          <MuiLink component="button" type="button" variant="body2" underline="hover" onClick={() => setCountdown(30)}>
+          <MuiLink
+            component="button"
+            type="button"
+            variant="body2"
+            underline="hover"
+            onClick={() => {
+              setOtp("");
+              submittedOtpRef.current = "";
+              setCountdown(30);
+            }}
+            sx={{ color: "#0D9488", fontWeight: 700 }}
+          >
             Resend OTP
           </MuiLink>
         )}
@@ -306,7 +355,7 @@ export default function PatientPortalAuth() {
                 "Bills and payments"
               ].map((item, idx) => (
                 <Box key={idx} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Box sx={{ bgcolor: "rgba(14, 165, 233, 0.15)", p: 1, borderRadius: "50%", display: "flex", color: "#38bdf8" }}>
+                  <Box sx={{ bgcolor: "rgba(13, 148, 136, 0.16)", p: 1, borderRadius: "50%", display: "flex", color: "#5EEAD4" }}>
                     <ShieldCheck size={20} />
                   </Box>
                   <Typography variant="body1" color="#E2E8F0" fontWeight="500">{item}</Typography>
