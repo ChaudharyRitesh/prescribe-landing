@@ -27,7 +27,6 @@ export default function HeroPage() {
           preload="auto"
           disableRemotePlayback
           poster={POSTER}
-          // @ts-expect-error non-standard mobile playback attributes
           webkit-playsinline="true"
           x5-playsinline="true"
         >
