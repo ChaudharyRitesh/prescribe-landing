@@ -132,17 +132,25 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <Link
-                href={isCareers ? "/careers#roles" : "/onboarding"}
-                className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 ${
-                  isCareers
-                    ? "h-11 bg-teal-600 hover:bg-teal-500"
-                    : "min-h-10 bg-sky-600 shadow-[0_8px_20px_-6px_rgba(2,132,199,0.6)] hover:bg-sky-500"
-                }`}
-              >
-                {isCareers ? "Open roles" : "Get Started Free"}
-                {!isCareers && <ArrowRight size={16} />}
-              </Link>
+              <>
+                <Link
+                  href="/patient-portal"
+                  className="inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-slate-300 transition-colors duration-200 hover:bg-white/5 hover:text-white"
+                >
+                  Patient Zone
+                </Link>
+                <Link
+                  href={isCareers ? "/careers#roles" : "/onboarding"}
+                  className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 ${
+                    isCareers
+                      ? "h-11 bg-teal-600 hover:bg-teal-500"
+                      : "min-h-10 bg-sky-600 shadow-[0_8px_20px_-6px_rgba(2,132,199,0.6)] hover:bg-sky-500"
+                  }`}
+                >
+                  {isCareers ? "Open roles" : "Get Started Free"}
+                  {!isCareers && <ArrowRight size={16} />}
+                </Link>
+              </>
             )}
           </div>
 
@@ -224,16 +232,25 @@ export default function Header() {
                     Logout
                   </button>
                 ) : (
-                  <Link
-                    href={isCareers ? "/careers#roles" : "/onboarding"}
-                    onClick={() => setOpen(false)}
-                    className={`inline-flex h-12 w-full items-center justify-center rounded-md px-6 text-sm font-bold text-white ${
-                      isCareers ? "bg-teal-600" : "bg-sky-600"
-                    }`}
-                  >
-                    {isCareers ? "Open roles" : "Get Started Free"}
-                    {!isCareers && <ArrowRight size={18} />}
-                  </Link>
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      href="/patient-portal"
+                      onClick={() => setOpen(false)}
+                      className="inline-flex h-12 w-full items-center justify-center rounded-md border border-white/10 px-6 text-sm font-bold text-slate-200 hover:bg-white/5"
+                    >
+                      Patient Zone
+                    </Link>
+                    <Link
+                      href={isCareers ? "/careers#roles" : "/onboarding"}
+                      onClick={() => setOpen(false)}
+                      className={`inline-flex h-12 w-full items-center justify-center rounded-md px-6 text-sm font-bold text-white ${
+                        isCareers ? "bg-teal-600" : "bg-sky-600"
+                      }`}
+                    >
+                      {isCareers ? "Open roles" : "Get Started Free"}
+                      {!isCareers && <ArrowRight size={18} />}
+                    </Link>
+                  </div>
                 )}
                 <p className="flex items-center justify-center gap-1.5 pt-1 text-xs text-slate-500">
                   {!isCareers && (

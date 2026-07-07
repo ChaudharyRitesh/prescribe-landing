@@ -13,6 +13,13 @@ import {
   Mail,
   Building2,
   MessageSquare,
+  Stethoscope,
+  ConciergeBell,
+  Pill,
+  FlaskConical,
+  BedDouble,
+  Boxes,
+  Plus,
 } from "lucide-react";
 import { GsapReveal } from "./gsap-reveal";
 import { GsapTextReveal } from "./animation-primitives";
@@ -44,6 +51,24 @@ function validateOrgName(value: string): string | null {
   if (value.trim().length < 2) return "Must be at least 2 characters";
   if (value.trim().length > 120) return "Must be 120 characters or fewer";
   return null;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Formatting + icons                                                 */
+/* ------------------------------------------------------------------ */
+
+const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
+/** Map a module slug to a representative icon. */
+function moduleIcon(slug: string) {
+  const key = slug.toLowerCase();
+  if (key.includes("doctor")) return Stethoscope;
+  if (key.includes("recept") || key.includes("queue")) return ConciergeBell;
+  if (key.includes("pharm")) return Pill;
+  if (key.includes("path") || key.includes("lab") || key.includes("diag"))
+    return FlaskConical;
+  if (key.includes("ipd") || key.includes("bed")) return BedDouble;
+  return Boxes;
 }
 
 /* ------------------------------------------------------------------ */
@@ -102,11 +127,11 @@ const fallbackPackages: PackageItem[] = [
 ];
 
 const fallbackModules: ModuleItem[] = [
-  { _id: "1", slug: "doctors", label: "Doctors & Consultation", pricing: { monthly: 999, yearly: 9990 }, isActive: true, order: 1 },
-  { _id: "2", slug: "receptionist", label: "Reception & Queue", pricing: { monthly: 499, yearly: 4990 }, isActive: true, order: 2 },
-  { _id: "3", slug: "pharmacy", label: "Pharmacy", pricing: { monthly: 799, yearly: 7990 }, isActive: true, order: 3 },
-  { _id: "4", slug: "pathlab", label: "Pathlab / Diagnostics", pricing: { monthly: 899, yearly: 8990 }, isActive: true, order: 4 },
-  { _id: "5", slug: "ipd", label: "IPD Management", pricing: { monthly: 1499, yearly: 14990 }, isActive: true, order: 5 },
+  { _id: "1", slug: "doctors", label: "Doctors & Consultation", description: "Digital prescriptions, EMR & consult notes", pricing: { monthly: 999, yearly: 9990 }, isActive: true, order: 1 },
+  { _id: "2", slug: "receptionist", label: "Reception & Queue", description: "Appointments, token queue & front-desk", pricing: { monthly: 499, yearly: 4990 }, isActive: true, order: 2 },
+  { _id: "3", slug: "pharmacy", label: "Pharmacy", description: "Inventory, billing & GST invoicing", pricing: { monthly: 799, yearly: 7990 }, isActive: true, order: 3 },
+  { _id: "4", slug: "pathlab", label: "Pathlab / Diagnostics", description: "Test orders, samples & result reports", pricing: { monthly: 899, yearly: 8990 }, isActive: true, order: 4 },
+  { _id: "5", slug: "ipd", label: "IPD Management", description: "Beds, admissions & in-patient workflow", pricing: { monthly: 1499, yearly: 14990 }, isActive: true, order: 5 },
 ];
 
 const highlights = [
@@ -137,10 +162,14 @@ export function PricingSection() {
   const customQuoteRef = useRef<HTMLDivElement | null>(null);
 
   const packages = useMemo(() => {
-    if (catalog?.packages && catalog.packages.length > 0) {
-      return catalog.packages.filter((p) => p.isActive).sort((a, b) => a.order - b.order);
-    }
-    return fallbackPackages;
+    const list =
+      catalog?.packages && catalog.packages.length > 0
+        ? catalog.packages.filter((p) => p.isActive)
+        : fallbackPackages;
+    // Standard packages only — custom/enterprise packages are handled by the quote band.
+    return list
+      .filter((p) => !p.isCustom && p.slug !== "kaero-nexus")
+      .sort((a, b) => a.order - b.order);
   }, [catalog]);
 
   const modules = useMemo(() => {
@@ -149,6 +178,15 @@ export function PricingSection() {
     }
     return fallbackModules;
   }, [catalog]);
+
+  // À-la-carte list: individual purchasable modules, cheapest first.
+  const alacarteModules = useMemo(
+    () =>
+      [...modules]
+        .filter((m) => m.isActive !== false && !m.isCustom)
+        .sort((a, b) => a.pricing.monthly - b.pricing.monthly),
+    [modules]
+  );
 
   const errors = useMemo(
     () => ({
@@ -244,8 +282,9 @@ export function PricingSection() {
             segments="Plans Designed to Scale with You"
           />
           <p className="lp-sub mt-4">
-            Choose a standard package suited to your facility type, or design a
-            custom workflow. Select a plan below to fast-track your setup.
+            Start with a ready-made bundle for your facility, or pick individual
+            modules à la carte. No setup fees, no lock-in — switch or scale
+            anytime.
           </p>
 
           {/* Billing toggle */}
@@ -290,163 +329,215 @@ export function PricingSection() {
           </div>
         </GsapReveal>
 
-        {/* Cards */}
-        <div className="mt-12 lg:mt-16">
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 size={36} className="animate-spin text-teal-300" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-              {packages.map((pkg, i) => {
-                const isPro = pkg.slug === "clinic-pro";
-                const monthlyPrice = pkg.pricing.monthly;
-                const yearlyMonthlyEquivalent = Math.round(pkg.pricing.yearly / 12);
-
-                return (
-                  <GsapReveal key={pkg._id} delay={0.06 * i} className="h-full">
-                    <div
-                      className={`relative flex h-full flex-col rounded-2xl border p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 ${
-                        isPro
-                          ? "border-teal-400/50 bg-white/[0.07] shadow-[0_0_48px_-12px_rgba(45,212,191,0.4)]"
-                          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:shadow-[0_24px_48px_-20px_rgba(2,6,23,0.9)]"
-                      }`}
-                    >
-                      {pkg.badge && (
-                        <span
-                          className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
-                            isPro
-                              ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950"
-                              : "bg-white/10 text-slate-200 backdrop-blur"
-                          }`}
-                        >
-                          {pkg.badge}
-                        </span>
-                      )}
-
-                      <h3 className="font-heading text-lg font-bold text-white">
-                        {pkg.label}
-                      </h3>
-                      <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
-                        {pkg.tagline}
-                      </p>
-
-                      <div className="mt-5 flex items-baseline">
-                        <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
-                          ₹{billingCycle === "monthly" ? monthlyPrice : yearlyMonthlyEquivalent}
-                        </span>
-                        <span className="ml-1 text-sm font-medium text-slate-500">
-                          /month
-                        </span>
-                      </div>
-
-                      {billingCycle === "yearly" ? (
-                        <p className="mt-1 text-xs font-medium text-slate-500">
-                          Billed annually at ₹{pkg.pricing.yearly}
-                        </p>
-                      ) : (
-                        <div className="mt-1 h-4" />
-                      )}
-
-                      {pkg.savings && billingCycle === "yearly" && (
-                        <span className="mt-3 inline-flex self-start rounded-md border border-teal-400/30 bg-teal-400/10 px-2 py-0.5 text-[10px] font-bold text-teal-300">
-                          {pkg.savings}
-                        </span>
-                      )}
-
-                      <hr className="my-5 border-white/[0.08]" />
-
-                      <div className="flex-1">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                          Included modules
-                        </p>
-                        <ul className="mt-3 space-y-2.5">
-                          {pkg.modules.map((mSlug) => {
-                            const mod = modules.find((m) => m.slug === mSlug);
-                            return (
-                              <li key={mSlug} className="flex items-start gap-2.5">
-                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-400/15 text-teal-300">
-                                  <Check size={12} strokeWidth={3} />
-                                </span>
-                                <span className="text-sm font-medium text-slate-300">
-                                  {mod?.label || mSlug}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-
-                      <Link
-                        href={`/onboarding?package=${pkg.slug}`}
-                        className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-200 ${
-                          isPro
-                            ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950 shadow-[0_10px_24px_-8px_rgba(45,212,191,0.6)] hover:shadow-[0_14px_32px_-8px_rgba(45,212,191,0.75)]"
-                            : "border border-white/[0.15] text-slate-200 hover:border-teal-400/50 hover:text-teal-300"
-                        }`}
-                      >
-                        Get Started
-                        <ArrowRight size={16} />
-                      </Link>
-                    </div>
-                  </GsapReveal>
-                );
-              })}
-
-              {/* Enterprise card */}
-              <GsapReveal delay={0.24} className="h-full">
-                <div className="flex h-full flex-col rounded-2xl border border-dashed border-white/20 bg-white/[0.02] p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-teal-400/40 hover:bg-white/[0.05]">
-                  <h3 className="font-heading text-lg font-bold text-white">
-                    Enterprise Suite
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 size={36} className="animate-spin text-teal-300" />
+          </div>
+        ) : (
+          <>
+            {/* ------------------------------------------------------ */}
+            {/*  Bundled packages                                      */}
+            {/* ------------------------------------------------------ */}
+            <div className="mt-12 lg:mt-16">
+              <GsapReveal className="mb-7 flex items-end justify-between gap-4">
+                <div>
+                  <h3 className="font-heading text-xl font-bold text-white md:text-2xl">
+                    Ready-made bundles
                   </h3>
-                  <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
-                    SaaS environment customized for large hospital chains and networks.
+                  <p className="mt-1 text-sm text-slate-400">
+                    Curated module sets for common facility types — the fastest
+                    way to launch.
                   </p>
-
-                  <div className="mt-5 flex items-baseline">
-                    <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
-                      Custom
-                    </span>
-                  </div>
-                  <div className="mt-1 h-4" />
-
-                  <hr className="my-5 border-white/[0.08]" />
-
-                  <div className="flex-1">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Ultimate capacity
-                    </p>
-                    <ul className="mt-3 space-y-2.5">
-                      {[
-                        "Unlimited doctors & staff",
-                        "Dedicated account manager",
-                        "Custom integrations & SLAs",
-                      ].map((f) => (
-                        <li key={f} className="flex items-start gap-2.5">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-slate-400">
-                            <Check size={12} strokeWidth={3} />
-                          </span>
-                          <span className="text-sm font-medium text-slate-300">
-                            {f}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <button
-                    onClick={scrollToCustomQuote}
-                    className="mt-6 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/20 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-white hover:text-slate-950"
-                  >
-                    Contact Sales
-                  </button>
                 </div>
               </GsapReveal>
-            </div>
-          )}
-        </div>
 
-        {/* Custom quote */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                {packages.map((pkg, i) => {
+                  const isPro =
+                    pkg.slug === "clinic-pro" ||
+                    /best value/i.test(pkg.badge || "");
+                  const monthlyPrice = pkg.pricing.monthly;
+                  const yearlyMonthlyEquivalent = Math.round(
+                    pkg.pricing.yearly / 12
+                  );
+                  const displayPrice =
+                    billingCycle === "monthly"
+                      ? monthlyPrice
+                      : yearlyMonthlyEquivalent;
+
+                  return (
+                    <GsapReveal key={pkg._id} delay={0.06 * i} className="h-full">
+                      <div
+                        className={`relative flex h-full flex-col rounded-2xl border p-6 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 ${
+                          isPro
+                            ? "border-teal-400/50 bg-white/[0.07] shadow-[0_0_48px_-12px_rgba(45,212,191,0.4)]"
+                            : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:shadow-[0_24px_48px_-20px_rgba(2,6,23,0.9)]"
+                        }`}
+                      >
+                        {pkg.badge && (
+                          <span
+                            className={`absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                              isPro
+                                ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950"
+                                : "bg-white/10 text-slate-200 backdrop-blur"
+                            }`}
+                          >
+                            {pkg.badge}
+                          </span>
+                        )}
+
+                        <h4 className="font-heading text-lg font-bold text-white">
+                          {pkg.label}
+                        </h4>
+                        <p className="mt-1.5 min-h-[2.5rem] text-[13px] leading-snug text-slate-400">
+                          {pkg.tagline}
+                        </p>
+
+                        <div className="mt-5 flex items-baseline">
+                          <span className="font-heading text-[2.1rem] font-extrabold tracking-tight text-white">
+                            {inr(displayPrice)}
+                          </span>
+                          <span className="ml-1 text-sm font-medium text-slate-500">
+                            /month
+                          </span>
+                        </div>
+
+                        {billingCycle === "yearly" ? (
+                          <p className="mt-1 text-xs font-medium text-slate-500">
+                            Billed annually at {inr(pkg.pricing.yearly)}
+                          </p>
+                        ) : (
+                          <div className="mt-1 h-4" />
+                        )}
+
+                        {pkg.savings && billingCycle === "yearly" && (
+                          <span className="mt-3 inline-flex self-start rounded-md border border-teal-400/30 bg-teal-400/10 px-2 py-0.5 text-[10px] font-bold text-teal-300">
+                            {pkg.savings}
+                          </span>
+                        )}
+
+                        <hr className="my-5 border-white/[0.08]" />
+
+                        <div className="flex-1">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            {pkg.modules.length} modules included
+                          </p>
+                          <ul className="mt-3 space-y-2.5">
+                            {pkg.modules.map((mSlug) => {
+                              const mod = modules.find((m) => m.slug === mSlug);
+                              return (
+                                <li
+                                  key={mSlug}
+                                  className="flex items-start gap-2.5"
+                                >
+                                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-400/15 text-teal-300">
+                                    <Check size={12} strokeWidth={3} />
+                                  </span>
+                                  <span className="text-sm font-medium text-slate-300">
+                                    {mod?.label || mSlug}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+
+                        <Link
+                          href={`/onboarding?package=${pkg.slug}`}
+                          className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all duration-200 ${
+                            isPro
+                              ? "bg-gradient-to-r from-teal-400 to-sky-500 text-slate-950 shadow-[0_10px_24px_-8px_rgba(45,212,191,0.6)] hover:shadow-[0_14px_32px_-8px_rgba(45,212,191,0.75)]"
+                              : "border border-white/[0.15] text-slate-200 hover:border-teal-400/50 hover:text-teal-300"
+                          }`}
+                        >
+                          Get Started
+                          <ArrowRight size={16} />
+                        </Link>
+                      </div>
+                    </GsapReveal>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ------------------------------------------------------ */}
+            {/*  À-la-carte individual modules                         */}
+            {/* ------------------------------------------------------ */}
+            <div className="mt-14 lg:mt-20">
+              <GsapReveal className="mb-7 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <h3 className="font-heading text-xl font-bold text-white md:text-2xl">
+                    Or build your own
+                  </h3>
+                  <p className="mt-1 max-w-xl text-sm text-slate-400">
+                    Prefer full control? Pick only the modules you need and pay
+                    per module. Prices shown are per{" "}
+                    {billingCycle === "monthly" ? "month" : "year"}.
+                  </p>
+                </div>
+                <Link
+                  href="/onboarding"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/[0.15] px-5 py-2.5 text-sm font-bold text-slate-200 transition-all duration-200 hover:border-teal-400/50 hover:text-teal-300"
+                >
+                  <Plus size={16} />
+                  Build a custom bundle
+                </Link>
+              </GsapReveal>
+
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
+                <ul className="divide-y divide-white/[0.06]">
+                  {alacarteModules.map((mod, i) => {
+                    const Icon = moduleIcon(mod.slug);
+                    const price =
+                      billingCycle === "monthly"
+                        ? mod.pricing.monthly
+                        : mod.pricing.yearly;
+                    return (
+                      <GsapReveal key={mod._id || mod.slug} delay={0.04 * i}>
+                        <li className="flex items-center gap-4 px-5 py-4 transition-colors duration-200 hover:bg-white/[0.04] sm:px-6">
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10 text-teal-300">
+                            <Icon size={20} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-heading text-sm font-bold text-white sm:text-base">
+                              {mod.label}
+                            </p>
+                            {mod.description && (
+                              <p className="mt-0.5 truncate text-xs text-slate-400 sm:text-[13px]">
+                                {mod.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="font-heading text-base font-extrabold text-white sm:text-lg">
+                              {inr(price)}
+                            </p>
+                            <p className="text-[11px] font-medium text-slate-500">
+                              /{billingCycle === "monthly" ? "month" : "year"}
+                            </p>
+                          </div>
+                        </li>
+                      </GsapReveal>
+                    );
+                  })}
+                </ul>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] bg-white/[0.02] px-5 py-3.5 sm:px-6">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                    <Sparkles size={13} className="text-teal-300" />
+                    Bundle 2+ modules into a package to save up to 20%.
+                  </p>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    GST applicable · billed via secure Razorpay
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ------------------------------------------------------ */}
+        {/*  Enterprise + custom quote                             */}
+        {/* ------------------------------------------------------ */}
         <div ref={customQuoteRef} className="mt-16 md:mt-24">
           <GsapReveal>
             <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_48px_96px_-40px_rgba(2,6,23,0.95)] backdrop-blur">
@@ -458,11 +549,12 @@ export function PricingSection() {
                 <div className="border-b border-white/10 bg-gradient-to-br from-teal-500/[0.12] via-transparent to-sky-600/[0.10] p-7 md:p-10 lg:border-b-0 lg:border-r">
                   <span className="lp-eyebrow">Enterprise &amp; Custom</span>
                   <h3 className="font-heading mt-5 text-2xl font-bold tracking-tight text-white md:text-[1.75rem]">
-                    Why Custom Pricing?
+                    Running at hospital scale?
                   </h3>
                   <p className="mt-3 leading-relaxed text-slate-400">
-                    Rather than locking you into rigid tiers, we work with you
-                    to scope only what you need — so you never overpay for
+                    For large hospital chains and multi-location networks, we
+                    scope only what you need — unlimited staff, custom
+                    integrations, and dedicated SLAs — so you never overpay for
                     capacity you won&apos;t use.
                   </p>
                   <ul className="mt-8 space-y-3.5">
