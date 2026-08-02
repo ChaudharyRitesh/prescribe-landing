@@ -13,8 +13,9 @@ const config: Config = {
         'xs': '480px',
       },
       fontFamily: {
-        heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-space-grotesk)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-space-grotesk)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-ibm-plex-mono)', 'monospace'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

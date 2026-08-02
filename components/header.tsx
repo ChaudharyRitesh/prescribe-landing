@@ -19,7 +19,8 @@ const navLinks = [
   { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/#pricing" },
   { label: "Compliance", href: "/compliance" },
-  { label: "Careers", href: "/careers" },
+  // { label: "Careers", href: "/careers" },
+  { label: "Download App", href: "/download-app" },
 ];
 
 export default function Header() {
@@ -70,17 +71,15 @@ export default function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 w-full border-b bg-[#07111F]/95 backdrop-blur-xl transition-all duration-300 ${
-          scrolled
-            ? "border-teal-300/15 shadow-[0_14px_36px_-18px_rgba(2,6,23,0.95)]"
-            : "border-white/10 shadow-[0_8px_24px_-20px_rgba(2,6,23,0.8)]"
-        }`}
+        className={`sticky top-0 z-50 w-full border-b bg-[#07111F]/95 backdrop-blur-xl transition-all duration-300 ${scrolled
+          ? "border-teal-300/15 shadow-[0_14px_36px_-18px_rgba(2,6,23,0.95)]"
+          : "border-white/10 shadow-[0_8px_24px_-20px_rgba(2,6,23,0.8)]"
+          }`}
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-300/45 to-transparent" />
         <div
-          className={`lp-container flex items-center justify-between transition-all duration-300 ${
-            scrolled ? "h-16" : "h-[4.5rem] md:h-20"
-          }`}
+          className={`lp-container flex items-center justify-between transition-all duration-300 ${scrolled ? "h-16" : "h-[4.5rem] md:h-20"
+            }`}
         >
           {/* Brand lockup — teal mark + theme-colored wordmark */}
           <Link
@@ -121,11 +120,10 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-5 text-sm font-semibold text-white transition-colors duration-200 ${
-                    isCareers
-                      ? "h-11 bg-teal-600 hover:bg-teal-500"
-                      : "min-h-10 bg-sky-600 hover:bg-sky-500"
-                  }`}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-md px-5 text-sm font-semibold text-white transition-colors duration-200 ${isCareers
+                    ? "h-11 bg-teal-600 hover:bg-teal-500"
+                    : "min-h-10 bg-sky-600 hover:bg-sky-500"
+                    }`}
                 >
                   {!isCareers && <LogOut size={16} />}
                   Logout
@@ -141,11 +139,10 @@ export default function Header() {
                 </Link>
                 <Link
                   href={isCareers ? "/careers#roles" : "/onboarding"}
-                  className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 ${
-                    isCareers
-                      ? "h-11 bg-teal-600 hover:bg-teal-500"
-                      : "min-h-10 bg-sky-600 shadow-[0_8px_20px_-6px_rgba(2,132,199,0.6)] hover:bg-sky-500"
-                  }`}
+                  className={`inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 ${isCareers
+                    ? "h-11 bg-teal-600 hover:bg-teal-500"
+                    : "min-h-10 bg-sky-600 shadow-[0_8px_20px_-6px_rgba(2,132,199,0.6)] hover:bg-sky-500"
+                    }`}
                 >
                   {isCareers ? "Open roles" : "Get Started Free"}
                   {!isCareers && <ArrowRight size={16} />}
@@ -243,9 +240,8 @@ export default function Header() {
                     <Link
                       href={isCareers ? "/careers#roles" : "/onboarding"}
                       onClick={() => setOpen(false)}
-                      className={`inline-flex h-12 w-full items-center justify-center rounded-md px-6 text-sm font-bold text-white ${
-                        isCareers ? "bg-teal-600" : "bg-sky-600"
-                      }`}
+                      className={`inline-flex h-12 w-full items-center justify-center rounded-md px-6 text-sm font-bold text-white ${isCareers ? "bg-teal-600" : "bg-sky-600"
+                        }`}
                     >
                       {isCareers ? "Open roles" : "Get Started Free"}
                       {!isCareers && <ArrowRight size={18} />}

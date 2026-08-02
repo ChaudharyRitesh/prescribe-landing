@@ -9,6 +9,7 @@ import { PricingSectionWrapper } from "@/components/pricing-section-wrapper";
 import { CTASectionWrapper } from "@/components/cta-section-wrapper";
 import { TrustSectionWrapper } from "@/components/trust-section-wrapper";
 import { Footer } from "@/components/footer";
+import DownloadSection from "@/components/download-section";
 
 export default function Home() {
 
@@ -25,7 +26,8 @@ export default function Home() {
         <FeaturesSectionWrapper />
         <ComparisonSectionWrapper />
         <PricingSectionWrapper />
-        <CTASectionWrapper />
+        {/* <CTASectionWrapper /> */}
+        {/* <DownloadSection /> */}
         <TrustSectionWrapper />
       </main>
       <Footer />
