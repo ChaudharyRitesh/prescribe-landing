@@ -33,7 +33,11 @@ function OnboardingContent() {
       if (data.status === "provisioned" || data.status === "quote_pending" || data.status === "failed") {
         localStorage.removeItem("kaero_onboarding_session");
       } else {
-        localStorage.setItem("kaero_onboarding_session", JSON.stringify(data));
+        // P1-2: never persist the onboarding JWT to localStorage. Keep verifiedToken in
+        // memory only; a refresh drops it and the user re-verifies (durable resume is Phase 2).
+        const persistable = { ...data };
+        delete persistable.verifiedToken;
+        localStorage.setItem("kaero_onboarding_session", JSON.stringify(persistable));
       }
     }
   }, [data]);
