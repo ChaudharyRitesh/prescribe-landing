@@ -1,18 +1,9 @@
 import React from "react";
-import { Check, Smartphone } from "lucide-react";
+import { Check, Smartphone, Download, ShieldCheck, ArrowRight } from "lucide-react";
 
-const QR_SRC = "/qr-code.png";
+import QRCode from "react-qr-code";
 
-const c = {
-    ink: "#101E28",
-    paper: "#F4F6F5",
-    teal: "#2E8F82",
-    tealSoft: "#C9E6E1",
-    amber: "#C98A2E",
-    muted: "rgba(244,246,245,0.62)",
-    cardHair: "#D8DBD6",
-    caption: "#6C7570",
-};
+const APK_URL = "https://pub-cb9254a2fac64ceb96d2a7118124cd3b.r2.dev/kaero-one-v1.0.2.apk";
 
 const FEATURES = [
     "One app for your role — Pharmacy, Lab, Doctor, Reception, Nursing, OT or Blood Bank",
@@ -28,144 +19,125 @@ export default function DownloadSection() {
     });
 
     return (
-        <section id="download" style={{ background: c.ink }} className="relative w-full overflow-hidden py-24 px-6 sm:px-10 lg:px-16">
-            <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                    opacity: 0.05,
-                    backgroundImage: `linear-gradient(${c.paper} 1px, transparent 1px), linear-gradient(90deg, ${c.paper} 1px, transparent 1px)`,
-                    backgroundSize: "44px 44px",
-                }}
-            />
-
-            <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
-                {/* Left: copy */}
-                <div>
-                    <div className="mb-7 flex items-center gap-3">
-                        <span
-                            style={{ fontFamily: "var(--font-ibm-plex-mono)", color: c.teal, letterSpacing: "0.14em" }}
-                            className="text-xs uppercase"
+        <section id="download" className="relative w-full bg-[#FAFAFA] py-24 px-6 sm:px-10 lg:px-16 selection:bg-brand-primary-soft">
+            <div className="mx-auto max-w-6xl">
+                {/* Header Row */}
+                <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div className="mb-4 flex items-center gap-3">
+                            <span
+                                style={{ fontFamily: "var(--font-ibm-plex-mono)", letterSpacing: "0.14em" }}
+                                className="text-xs font-semibold uppercase text-teal-700"
+                            >
+                                Kaero · Prescribe
+                            </span>
+                            <span className="h-1 w-1 rounded-full bg-teal-600" />
+                            <span
+                                style={{ fontFamily: "var(--font-ibm-plex-mono)", letterSpacing: "0.14em" }}
+                                className="text-xs uppercase text-zinc-500"
+                            >
+                                Internal build · Android
+                            </span>
+                        </div>
+                        <h2
+                            style={{ fontFamily: "Space Grotesk", lineHeight: 1.08 }}
+                            className="text-4xl font-semibold text-zinc-900 sm:text-5xl tracking-tight"
                         >
-                            Kaero · Prescribe
-                        </span>
-                        <span style={{ background: c.teal }} className="h-1 w-1 rounded-full" />
-                        <span
-                            style={{ fontFamily: "var(--font-ibm-plex-mono)", color: c.muted, letterSpacing: "0.14em" }}
-                            className="text-xs uppercase"
-                        >
-                            Internal build · Android
-                        </span>
+                            Your ward, <br className="hidden sm:block" />
+                            in your pocket.
+                        </h2>
                     </div>
-
-                    <h2
-                        style={{ fontFamily: "Space Grotesk", color: c.paper, lineHeight: 1.08 }}
-                        className="mb-6 text-4xl font-semibold sm:text-5xl"
-                    >
-                        Your ward,
-                        <br />
-                        in your pocket.
-                    </h2>
-
-                    <p
-                        style={{ fontFamily: "Inter", color: c.muted, lineHeight: 1.7 }}
-                        className="mb-9 max-w-md text-base sm:text-lg"
-                    >
-                        Scan the code with your work phone to install the Kaero
-                        Prescribe staff app directly. This build is distributed
-                        internally to hospital staff only — it isn't on the Play Store.
+                    <p style={{ fontFamily: "Inter" }} className="max-w-sm text-zinc-500 md:text-right">
+                        Scan the code with your work phone to install the Kaero Prescribe staff app directly. 
+                        This build is distributed internally.
                     </p>
-
-                    <ul className="mb-10 space-y-3">
-                        {FEATURES.map((t) => (
-                            <li key={t} className="flex items-start gap-3">
-                                <span
-                                    style={{ background: c.tealSoft }}
-                                    className="mt-1 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full"
-                                >
-                                    <Check size={10} color={c.ink} strokeWidth={3} />
-                                </span>
-                                <span style={{ fontFamily: "Inter", color: c.paper }} className="text-sm sm:text-base">
-                                    {t}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-
-                    <div className="flex items-start gap-2" style={{ color: c.muted }}>
-                        <Smartphone size={15} className="mt-0.5 flex-shrink-0" />
-                        <span style={{ fontFamily: "Inter" }} className="text-xs leading-relaxed">
-                            Your phone will ask you to allow "install unknown apps" the
-                            first time — that's expected for internal distribution
-                            outside the Play Store.
-                        </span>
-                    </div>
                 </div>
 
-                {/* Right: staff-badge QR card */}
-                <div className="flex justify-center lg:justify-end">
-                    <div className="relative" style={{ transform: "rotate(-1.2deg)" }}>
-                        {/* lanyard hole */}
-                        <div
-                            style={{ background: c.ink }}
-                            className="absolute left-1/2 top-0 z-10 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                        />
-                        <div
-                            style={{ borderColor: c.ink }}
-                            className="absolute left-1/2 top-0 z-10 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                        />
-
-                        {/* access ribbon */}
-                        <div
-                            style={{
-                                background: c.teal,
-                                color: c.paper,
-                                fontFamily: "var(--font-ibm-plex-mono)",
-                                letterSpacing: "0.16em",
-                                fontSize: "10px",
-                                boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
-                            }}
-                            className="absolute -right-3 -top-3 z-10 rounded-full px-3 py-1 font-semibold uppercase"
-                        >
-                            Staff access
+                {/* Bento Grid */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
+                    
+                    {/* Block 1: Feature List (Large) */}
+                    <div className="col-span-1 rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md md:col-span-7 flex flex-col justify-between">
+                        <div>
+                            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+                                <ShieldCheck size={24} />
+                            </div>
+                            <h3 style={{ fontFamily: "Space Grotesk" }} className="mb-6 text-2xl font-semibold text-zinc-900">
+                                Seamless staff access
+                            </h3>
+                            <ul className="space-y-4">
+                                {FEATURES.map((t, idx) => (
+                                    <li key={idx} className="flex items-start gap-4">
+                                        <span className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+                                            <Check size={12} strokeWidth={3} />
+                                        </span>
+                                        <span style={{ fontFamily: "Inter" }} className="text-zinc-600">
+                                            {t}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-
-                        <div
-                            style={{ background: c.paper, boxShadow: "0 30px 60px rgba(0,0,0,0.45)" }}
-                            className="flex w-72 flex-col items-center rounded-2xl px-9 pb-8 pt-10 sm:w-80"
-                        >
-                            <p
-                                style={{ fontFamily: "var(--font-ibm-plex-mono)", color: c.caption, letterSpacing: "0.14em" }}
-                                className="mb-5 text-xs uppercase"
-                            >
-                                Kaero Prescribe — Employee App
-                            </p>
-
-                            <img
-                                src={QR_SRC}
-                                alt="QR code to install the Kaero Prescribe internal staff app"
-                                className="h-48 w-48 sm:h-52 sm:w-52"
-                            />
-
-                            <div className="my-6 w-full border-t border-dashed" style={{ borderColor: c.cardHair }} />
-
-                            <p
-                                style={{ fontFamily: "var(--font-ibm-plex-mono)", color: c.ink, letterSpacing: "0.16em" }}
-                                className="text-xs uppercase"
-                            >
-                                Scan to install
-                            </p>
-                            <p style={{ fontFamily: "Inter", color: c.caption }} className="mt-2 text-center text-xs">
-                                Open your phone's camera and point it at the code
-                            </p>
-                        </div>
-
-                        <p
-                            style={{ fontFamily: "var(--font-ibm-plex-mono)", color: c.muted, letterSpacing: "0.12em" }}
-                            className="mt-4 text-center text-xs"
-                        >
-                            Internal build · {stamp} · v1.0.2
-                        </p>
                     </div>
+
+                    {/* Block 2: QR Code (Medium) */}
+                    <div className="col-span-1 rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md md:col-span-5 flex flex-col items-center justify-center text-center">
+                        <div className="mb-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+                            <QRCode
+                                value={APK_URL}
+                                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                className="h-40 w-40 sm:h-48 sm:w-48"
+                            />
+                        </div>
+                        <p style={{ fontFamily: "var(--font-ibm-plex-mono)", letterSpacing: "0.1em" }} className="mb-2 text-sm font-semibold uppercase text-zinc-900">
+                            Scan to install
+                        </p>
+                        <p style={{ fontFamily: "Inter" }} className="text-sm text-zinc-500 mb-4">
+                            Open your camera and point it at the code
+                        </p>
+                        <div style={{ fontFamily: "var(--font-ibm-plex-mono)" }} className="mt-auto pt-4 border-t border-zinc-100 w-full text-[10px] text-zinc-400">
+                            v1.0.2 · {stamp}
+                        </div>
+                    </div>
+
+                    {/* Block 3: Android Notice (Small) */}
+                    <div className="col-span-1 rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md md:col-span-5">
+                        <div className="flex items-start gap-4">
+                            <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-warning/10 text-brand-warning">
+                                <Smartphone size={20} />
+                            </div>
+                            <div>
+                                <h4 style={{ fontFamily: "Inter" }} className="mb-2 font-semibold text-zinc-900">
+                                    Unknown Apps Prompt
+                                </h4>
+                                <p style={{ fontFamily: "Inter" }} className="text-sm text-zinc-500 leading-relaxed">
+                                    Your phone will ask you to allow "install unknown apps" the first time. That's expected for internal distribution outside the Play Store.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Block 4: Direct Download CTA (Medium) */}
+                    <div className="col-span-1 rounded-3xl bg-zinc-900 p-8 text-white shadow-sm transition-all hover:bg-zinc-800 md:col-span-7 flex flex-col justify-center relative overflow-hidden group">
+                        {/* Decorative background element */}
+                        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-zinc-800 opacity-50 blur-3xl transition-transform group-hover:scale-110" />
+                        
+                        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div>
+                                <h4 style={{ fontFamily: "Space Grotesk" }} className="mb-2 text-xl font-semibold">
+                                    Viewing on mobile?
+                                </h4>
+                                <p style={{ fontFamily: "Inter" }} className="text-sm text-zinc-400">
+                                    Skip the QR code and download the APK directly.
+                                </p>
+                            </div>
+                            <a href="/download-app" className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-teal-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-400">
+                                <Download size={16} />
+                                Download APK
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>

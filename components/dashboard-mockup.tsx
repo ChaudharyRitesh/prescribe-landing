@@ -18,7 +18,7 @@ export function DashboardMockup({ variant = 'pharmacy' }: { variant?: 'pharmacy'
       title: 'Hospital Dashboard',
       stats: [
         { label: 'Patients', value: '1,247', icon: Users, color: 'bg-blue-100 text-blue-600' },
-        { label: 'Beds Occupied', value: '89%', icon: Package, color: 'bg-red-100 text-red-600' },
+        { label: 'Beds Occupied', value: '89%', icon: Package, color: 'bg-red-100 text-brand-error' },
         { label: 'Appointments', value: '342', icon: Clock, color: 'bg-green-100 text-green-600' },
         { label: 'Revenue', value: '$45.2K', icon: BarChart3, color: 'bg-purple-100 text-purple-600' },
       ],
@@ -30,7 +30,7 @@ export function DashboardMockup({ variant = 'pharmacy' }: { variant?: 'pharmacy'
         { label: 'Queue Length', value: '23', icon: Users, color: 'bg-blue-100 text-blue-600' },
         { label: 'Avg Wait', value: '12 min', icon: Clock, color: 'bg-orange-100 text-orange-600' },
         { label: 'Check-ins', value: '287', icon: TrendingUp, color: 'bg-green-100 text-green-600' },
-        { label: 'No-shows', value: '3', icon: AlertCircle, color: 'bg-red-100 text-red-600' },
+        { label: 'No-shows', value: '3', icon: AlertCircle, color: 'bg-red-100 text-brand-error' },
       ],
       chart: [30, 35, 28, 42, 38, 45, 40],
     },
@@ -53,7 +53,7 @@ export function DashboardMockup({ variant = 'pharmacy' }: { variant?: 'pharmacy'
       {/* Header */}
       <div className="mb-6 pb-4 border-b border-slate-700">
         <h3 className="text-lg font-semibold">{config.title}</h3>
-        <p className="text-xs text-slate-400 mt-1">Real-time analytics & insights</p>
+        <p className="text-xs text-brand-text-muted mt-1">Real-time analytics & insights</p>
       </div>
 
       {/* Stats Grid */}
@@ -65,7 +65,7 @@ export function DashboardMockup({ variant = 'pharmacy' }: { variant?: 'pharmacy'
               <div className={`w-8 h-8 rounded-lg ${stat.color} flex items-center justify-center mb-2`}>
                 <Icon size={16} />
               </div>
-              <p className="text-xs text-slate-400">{stat.label}</p>
+              <p className="text-xs text-brand-text-muted">{stat.label}</p>
               <p className="text-lg font-bold text-white">{stat.value}</p>
             </div>
           );
@@ -83,7 +83,7 @@ export function DashboardMockup({ variant = 'pharmacy' }: { variant?: 'pharmacy'
             />
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-3">Last 7 days performance</p>
+        <p className="text-xs text-brand-text-muted mt-3">Last 7 days performance</p>
       </div>
     </div>
   );
