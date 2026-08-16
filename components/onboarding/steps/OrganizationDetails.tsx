@@ -1,42 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useSubdomainCheckMutation, useReserveSubdomainMutation } from "@/hooks/queries/useOnboarding";
-import { ReserveSubdomainResponse, CheckSubdomainResponse } from "@/lib/api/types/onboarding.types";
-import { Box, Typography, TextField, Button, InputAdornment, FormHelperText } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import BusinessIcon from "@mui/icons-material/Business";
-import LanguageIcon from "@mui/icons-material/Language";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { CircularProgress } from "@mui/material";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import BadgeIcon from "@mui/icons-material/Badge";
-import { OnboardingData } from "../OnboardingWizard";
-import { useEffect, useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useVerifyMRMutation, useVerifyGstMutation } from "@/hooks/queries/useOnboarding";
-import { FormControlLabel, Checkbox, Collapse } from "@mui/material";
-import VerifiedIcon from "@mui/icons-material/Verified";
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
-import GavelIcon from '@mui/icons-material/Gavel';
+import {
+  useSubdomainCheckMutation,
+  useReserveSubdomainMutation,
+  useVerifyMRMutation,
+  useVerifyGstMutation,
+} from "@/hooks/queries/useOnboarding";
+import { CheckSubdomainResponse, ReserveSubdomainResponse } from "@/lib/api/types/onboarding.types";
+import { OnboardingData } from "../OnboardingWizard";
 
-// Extended schema to capture Admin Name and optional GST
-const ExtendedIdentitySchema = z.object({
+const Schema = z.object({
   orgName: z.string().min(2, "Organization name must be at least 2 characters"),
-  subdomain: z.string()
-    .min(3, "Subdomain must be at least 3 characters")
-    .max(30, "Subdomain must be under 30 characters")
-    .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed"),
-  contactName: z.string().min(2, "Admin name is required to setup the profile"),
+  subdomain: z
+    .string()
+    .min(3, "Workspace URL must be at least 3 characters")
+    .max(30, "Workspace URL must be under 30 characters")
+    .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers, and hyphens only"),
+  contactName: z.string().min(2, "Administrator name is required"),
   referralCode: z.string().optional(),
   gstNumber: z.string().optional(),
 });
-
-type IdentityFormValues = z.infer<typeof ExtendedIdentitySchema>;
+type Values = z.infer<typeof Schema>;
 
 interface Props {
   onNext: () => void;
@@ -45,6 +34,9 @@ interface Props {
   data: OnboardingData;
 }
 
+type Status = "idle" | "loading" | "available" | "taken" | "invalid";
+type VerifyStatus = "idle" | "loading" | "valid" | "invalid";
+
 export function OrganizationDetails({ onNext, onBack, updateData, data }: Props) {
   const {
     register,
@@ -52,138 +44,82 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
     watch,
     setValue,
     formState: { errors, isValid },
-  } = useForm<IdentityFormValues>({
-    resolver: zodResolver(ExtendedIdentitySchema),
+  } = useForm<Values>({
+    resolver: zodResolver(Schema),
     mode: "onChange",
     defaultValues: {
       orgName: data.orgName || "",
       subdomain: data.subdomain || "",
       contactName: data.contactName || "",
       referralCode: data.referralCode || "",
-      gstNumber: data.gstNumber || ""
+      gstNumber: data.gstNumber || "",
     },
   });
 
-  const subdomainValue = watch("subdomain");
-  const debouncedSubdomain = useDebounce(subdomainValue, 500);
-
-  const [subdomainStatus, setSubdomainStatus] = useState<"idle" | "loading" | "available" | "taken" | "invalid">("idle");
+  const subdomain = watch("subdomain");
+  const dSub = useDebounce(subdomain, 500);
+  const [subStatus, setSubStatus] = useState<Status>("idle");
   const { mutate: checkSubdomain } = useSubdomainCheckMutation();
   const { mutate: reserveSubdomain, isPending: reserving } = useReserveSubdomainMutation();
 
-  // MR Referral State
-  const [hasReferral, setHasReferral] = useState(!!data.referralCode);
-  const referralValue = watch("referralCode");
-  const debouncedReferral = useDebounce(referralValue, 600);
-  const [mrStatus, setMrStatus] = useState<"idle" | "loading" | "valid" | "invalid">("idle");
-  const [verifiedMrName, setVerifiedMrName] = useState<string | null>(null);
+  const referral = watch("referralCode");
+  const dRef = useDebounce(referral, 600);
+  const [mrStatus, setMrStatus] = useState<VerifyStatus>("idle");
+  const [mrName, setMrName] = useState<string | null>(null);
   const { mutate: verifyMR } = useVerifyMRMutation();
 
-  // GST Verification State
-  const gstValue = watch("gstNumber");
-  const debouncedGst = useDebounce(gstValue, 700);
-  const [gstStatus, setGstStatus] = useState<"idle" | "loading" | "valid" | "invalid">("idle");
-  const [verifiedLegalName, setVerifiedLegalName] = useState<string | null>(null);
+  const gst = watch("gstNumber");
+  const dGst = useDebounce(gst, 700);
+  const [gstStatus, setGstStatus] = useState<VerifyStatus>("idle");
+  const [legalName, setLegalName] = useState<string | null>(null);
   const { mutate: verifyGst } = useVerifyGstMutation();
 
   useEffect(() => {
-    if (!debouncedReferral || !hasReferral) {
-      setMrStatus("idle");
-      setVerifiedMrName(null);
-      return;
-    }
+    if (!dSub) { setSubStatus("idle"); return; }
+    if (dSub.length < 3 || dSub.length > 30 || !/^[a-z0-9-]+$/.test(dSub)) { setSubStatus("invalid"); return; }
+    setSubStatus("loading");
+    checkSubdomain(dSub, {
+      onSuccess: (res: CheckSubdomainResponse) => setSubStatus(res.success || res.available ? "available" : "taken"),
+      onError: () => setSubStatus("invalid"),
+    });
+  }, [dSub, checkSubdomain]);
 
+  useEffect(() => {
+    if (!dRef) { setMrStatus("idle"); setMrName(null); return; }
+    if (dRef.length < 4) { setMrStatus("invalid"); setMrName(null); return; }
     setMrStatus("loading");
-    verifyMR(debouncedReferral, {
-      onSuccess: (res) => {
-        if (res.success && res.exists) {
-          setMrStatus("valid");
-          setVerifiedMrName(res.name || "Verified");
-        } else {
-          setMrStatus("invalid");
-          setVerifiedMrName(null);
-        }
+    verifyMR(dRef, {
+      onSuccess: (r) => {
+        if (r.success && r.exists) { setMrStatus("valid"); setMrName(r.name || "Verified"); }
+        else { setMrStatus("invalid"); setMrName(null); }
       },
-      onError: () => {
-        setMrStatus("invalid");
-        setVerifiedMrName(null);
-      }
+      onError: () => { setMrStatus("invalid"); setMrName(null); },
     });
-  }, [debouncedReferral, hasReferral, verifyMR]);
+  }, [dRef, verifyMR]);
 
   useEffect(() => {
-    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-    if (!debouncedGst) {
-      setGstStatus("idle");
-      setVerifiedLegalName(null);
-      return;
-    }
-
-    if (!gstRegex.test(debouncedGst.toUpperCase())) {
-      setGstStatus("invalid");
-      setVerifiedLegalName(null);
-      return;
-    }
-
+    const rx = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!dGst) { setGstStatus("idle"); setLegalName(null); return; }
+    if (!rx.test(dGst.toUpperCase())) { setGstStatus("invalid"); setLegalName(null); return; }
     setGstStatus("loading");
-    verifyGst(debouncedGst, {
-      onSuccess: (res) => {
-        if (res.success && res.exists) {
+    verifyGst(dGst, {
+      onSuccess: (r) => {
+        if (r.success && r.exists) {
           setGstStatus("valid");
-          setVerifiedLegalName(res.legalName || "Verified Entity");
-          // Optionally update org name if it's empty
-          if (!watch("orgName")) {
-            setValue("orgName", res.legalName || "");
-          }
-        } else {
-          setGstStatus("invalid");
-          setVerifiedLegalName(null);
-        }
+          setLegalName(r.legalName || "Verified Entity");
+          if (!watch("orgName")) setValue("orgName", r.legalName || "");
+        } else { setGstStatus("invalid"); setLegalName(null); }
       },
-      onError: () => {
-        setGstStatus("invalid");
-        setVerifiedLegalName(null);
-      }
+      onError: () => { setGstStatus("invalid"); setLegalName(null); },
     });
-  }, [debouncedGst, verifyGst, watch, setValue]);
+  }, [dGst, verifyGst, watch, setValue]);
 
-  // Disable "Next" if a referral code is entered but invalid
-  const isReferralInvalid = hasReferral && !!referralValue && mrStatus === "invalid";
-  const isReferralLoading = hasReferral && !!referralValue && mrStatus === "loading";
-  const isGstInvalid = !!gstValue && gstStatus === "invalid";
+  const refInvalid = !!referral && mrStatus === "invalid";
+  const gstInvalid = !!gst && gstStatus === "invalid";
 
-  useEffect(() => {
-    if (!debouncedSubdomain) {
-      setSubdomainStatus("idle");
-      return;
-    }
-
-    if (debouncedSubdomain.length < 3 || debouncedSubdomain.length > 30 || !/^[a-z0-9-]+$/.test(debouncedSubdomain)) {
-      setSubdomainStatus("invalid");
-      return;
-    }
-
-    setSubdomainStatus("loading");
-    checkSubdomain(debouncedSubdomain, {
-      onSuccess: (res: CheckSubdomainResponse) => {
-        if (res.success || res.available) setSubdomainStatus("available");
-        else setSubdomainStatus("taken");
-      },
-      onError: () => setSubdomainStatus("invalid"),
-    });
-  }, [debouncedSubdomain, checkSubdomain]);
-
-  const onSubmit = (values: IdentityFormValues) => {
-    if (subdomainStatus !== "available") return;
-    if (isGstInvalid) return;
-    if (isReferralInvalid) return;
-
-    if (!data.verifiedToken) {
-      alert("Session expired. Please start over.");
-      window.location.reload();
-      return;
-    }
-
+  const onSubmit = (values: Values) => {
+    if (subStatus !== "available" || gstInvalid || refInvalid) return;
+    if (!data.verifiedToken) { alert("Session expired. Please start over."); window.location.reload(); return; }
     reserveSubdomain(
       { subdomain: values.subdomain, token: data.verifiedToken },
       {
@@ -194,268 +130,105 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
               subdomain: values.subdomain,
               contactName: values.contactName,
               referralCode: values.referralCode,
-              gstNumber: values.gstNumber
+              gstNumber: values.gstNumber,
             });
             onNext();
           } else {
-            setSubdomainStatus("taken");
+            setSubStatus("taken");
             alert(res.message || "This URL is no longer available. Please choose another one.");
           }
         },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message || err.message || "Failed to reserve the workspace URL.";
-          alert(msg);
-        }
+        onError: (err: unknown) => {
+          const e = err as { response?: { data?: { message?: string } }; message?: string };
+          alert(e?.response?.data?.message || e?.message || "Failed to reserve the workspace URL.");
+        },
       }
     );
   };
 
+  const canContinue =
+    isValid && subStatus === "available" && !reserving && !gstInvalid && !refInvalid && gstStatus !== "loading" && mrStatus !== "loading";
+
+  let subHint = "Lowercase letters, numbers, and hyphens only.";
+  let subHintClass = "";
+  if (subStatus === "loading") subHint = "Checking availability…";
+  else if (subStatus === "available") { subHint = `"${subdomain}.kaeroprescribe.com" is available.`; subHintClass = "field__hint--valid"; }
+  else if (subStatus === "taken") { subHint = `"${subdomain}.kaeroprescribe.com" is already taken. Try another.`; subHintClass = "field__hint--error"; }
+  else if (subStatus === "invalid" || errors.subdomain) { subHint = "Minimum 3 characters — lowercase letters, numbers, hyphens."; subHintClass = "field__hint--error"; }
+
   return (
-    <Box className="animate-fade-up">
-      <Box mb={4}>
-        <Button
-          onClick={onBack}
-          startIcon={<ArrowBackIcon />}
-          sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}
-          size="small"
-        >
-          Back to Verification
-        </Button>
-        <Typography variant="h4" color="text.primary" gutterBottom>
-          {data.facilityType === 'diagnostic' ? 'Diagnostic Center Identity' :
-            data.facilityType === 'hospital' ? 'Hospital Identity' :
-              'Organization Identity'}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Let's set up your {data.facilityType || 'clinic'}'s workspace and administrator profile.
-        </Typography>
-      </Box>
+    <section className="screen">
+      <div className="screen__container screen__container--wide">
+        <p className="eyebrow">Step 3</p>
+        <h1 className="screen__title">Tell us about your organization</h1>
+        <p className="screen__subtitle">This information appears on prescriptions, invoices, and patient-facing documents.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* MR Referral Toggle */}
+        <form className="form form--grid" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="field">
+            <label className="field__label" htmlFor="contactName">Administrator name</label>
+            <input id="contactName" className={`field__input ${errors.contactName ? "is-invalid" : ""}`} placeholder="Dr. John Doe" {...register("contactName")} />
+            {errors.contactName && <p className="field__hint field__hint--error">{errors.contactName.message}</p>}
+          </div>
 
+          <div className="field">
+            <label className="field__label" htmlFor="orgName">Organization name</label>
+            <input id="orgName" className={`field__input ${errors.orgName ? "is-invalid" : ""}`} placeholder="Apollo Health Clinic" {...register("orgName")} />
+            {errors.orgName && <p className="field__hint field__hint--error">{errors.orgName.message}</p>}
+          </div>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            gap: 1,
-          }}
-        >
-          {/* Admin Name */}
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-              {data.facilityType === 'hospital' ? 'Chief Administrator Full Name' : 'Administrator Full Name'}
-            </Typography>
-            <TextField
-              fullWidth
-              id="contactName"
-              placeholder={data.facilityType === 'dental' ? 'Dr. John Smith (BDS)' : 'Dr. John Doe'}
-              error={!!errors.contactName}
-              helperText={errors.contactName?.message || " "}
-              {...register("contactName")}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonOutlineIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
+          <div className="field">
+            <label className="field__label">Specialization</label>
+            <input className="field__input" disabled value={data.specialization || "—"} readOnly />
+          </div>
 
-          {/* Removed previous referral code box from here as it's now a toggle */}
-
-          {/* Org Name */}
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-              Clinic / Organization Name
-            </Typography>
-            <TextField
-              fullWidth
-              id="orgName"
-              placeholder="Apollo Health Clinic"
-              error={!!errors.orgName}
-              helperText={errors.orgName?.message || " "}
-              {...register("orgName")}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <BusinessIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
-
-          {/* GST Number with Verification */}
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-              GST Number (Optional)
-            </Typography>
-            <TextField
-              fullWidth
+          <div className="field">
+            <label className="field__label" htmlFor="gstNumber">
+              GST number <span className="field__optional">Optional</span>
+            </label>
+            <input
               id="gstNumber"
+              maxLength={15}
+              className={`field__input ${gstStatus === "valid" ? "is-valid" : gstInvalid ? "is-invalid" : ""}`}
               placeholder="27AAACR1234R1Z5"
-              error={gstStatus === "invalid"}
               {...register("gstNumber")}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <GavelIcon color={gstStatus === "valid" ? "success" : "action"} />
-                  </InputAdornment>
-                ),
-                endAdornment: gstStatus === "loading" ? (
-                  <InputAdornment position="end">
-                    <CircularProgress size={16} />
-                  </InputAdornment>
-                ) : null
-              }}
             />
-            <Box mt={0.5} minHeight={20}>
-              {gstStatus === "valid" && (
-                <Typography variant="caption" color="success.main" sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                  <VerifiedIcon fontSize="inherit" sx={{ mr: 0.5 }} /> Verified: {verifiedLegalName}
-                </Typography>
-              )}
-              {gstStatus === "invalid" && gstValue && (
-                <Typography variant="caption" color="error.main" sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                  <HighlightOffIcon fontSize="inherit" sx={{ mr: 0.5 }} /> Invalid GST Format
-                </Typography>
-              )}
-            </Box>
-          </Box>
+            {gstStatus === "loading" && <p className="field__hint">Verifying GSTIN…</p>}
+            {gstStatus === "valid" && <p className="field__hint field__hint--valid">Verified: {legalName}</p>}
+            {gstInvalid && <p className="field__hint field__hint--error">This doesn&apos;t match a valid GSTIN.</p>}
+          </div>
 
-          {/* Subdomain */}
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.secondary' }}>
-              Workspace Name
-            </Typography>
-            <TextField
-              fullWidth
-              id="subdomain"
-              placeholder="apollo"
-              error={subdomainStatus === "taken" || subdomainStatus === "invalid" || !!errors.subdomain}
-              {...register("subdomain")}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LanguageIcon color="action" />
+          <div className="field field--span2">
+            <label className="field__label" htmlFor="subdomain">Workspace URL</label>
+            <div className="subdomain-input">
+              <input id="subdomain" className="field__input" placeholder="apollo" {...register("subdomain")} />
+              <span className="subdomain-suffix">.kaeroprescribe.com</span>
+            </div>
+            <p className={`field__hint ${subHintClass}`}>{subHint}</p>
+          </div>
 
-                  </InputAdornment>
-                ),
-              }}
+          <div className="field field--span2">
+            <label className="field__label" htmlFor="referralCode">
+              Referral code <span className="field__optional">Optional</span>
+            </label>
+            <input
+              id="referralCode"
+              className={`field__input ${mrStatus === "valid" ? "is-valid" : refInvalid ? "is-invalid" : ""}`}
+              placeholder="Enter a code if you have one"
+              {...register("referralCode")}
             />
-            {subdomainValue && (
-              <FormHelperText sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', mt: 1 }}>
-                Your workspace URL: kaero.io/{subdomainValue.toLowerCase().replace(/[^a-z0-9-]/g, '')}
-              </FormHelperText>
-            )}
-          </Box>
-        </Box>
+            {mrStatus === "loading" && <p className="field__hint">Checking referral…</p>}
+            {mrStatus === "valid" && <p className="field__hint field__hint--valid">Verified: MR {mrName} — we&apos;ll apply this at checkout.</p>}
+            {refInvalid && <p className="field__hint field__hint--error">Referral code not recognized.</p>}
+          </div>
 
-        <Box mb={1} minHeight={24} display="flex" alignItems="center" px={1}>
-          {subdomainStatus === "loading" && (
-            <Typography variant="caption" color="text.secondary" display="flex" alignItems="center">
-              <CircularProgress size={12} sx={{ mr: 1 }} /> Checking availability...
-            </Typography>
-          )}
-          {subdomainStatus === "available" && (
-            <Typography variant="caption" color="success.main" display="flex" alignItems="center" fontWeight={600}>
-              <CheckCircleOutlineIcon fontSize="small" sx={{ mr: 0.5 }} /> URL is available!
-            </Typography>
-          )}
-          {subdomainStatus === "taken" && (
-            <Typography variant="caption" color="error.main" display="flex" alignItems="center" fontWeight={600}>
-              <ErrorOutlineIcon fontSize="small" sx={{ mr: 0.5 }} /> URL is taken.
-            </Typography>
-          )}
-          {subdomainStatus === "invalid" && (
-            <Typography variant="caption" color="error.main" fontWeight={600}>
-              Must be lowercase letters, numbers, hyphens.
-            </Typography>
-          )}
-          {subdomainStatus === "idle" && errors.subdomain && (
-            <Typography variant="caption" color="error.main">
-              {errors.subdomain?.message}
-            </Typography>
-          )}
-        </Box>
-
-        <Box mb={1}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={hasReferral}
-                onChange={(e) => {
-                  setHasReferral(e.target.checked);
-                  if (!e.target.checked) updateData({ referralCode: "" });
-                }}
-              />
-            }
-            label={
-              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
-                I have a referral code
-              </Typography>
-            }
-          />
-
-          <Collapse in={hasReferral}>
-            <Box sx={{ mt: 2, maxWidth: 400 }}>
-              <TextField
-                fullWidth
-                id="referralCode"
-                label="Referral Code / EMP ID"
-                placeholder="KRP-XXXX"
-                {...register("referralCode")}
-                error={mrStatus === "invalid"}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <BadgeIcon color={mrStatus === "valid" ? "success" : "action"} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: mrStatus === "loading" ? (
-                    <InputAdornment position="end">
-                      <CircularProgress size={16} />
-                    </InputAdornment>
-                  ) : null
-                }}
-              />
-              <Box mt={1} minHeight={20}>
-                {mrStatus === "valid" && (
-                  <Typography variant="caption" color="success.main" sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                    <VerifiedIcon fontSize="inherit" sx={{ mr: 0.5 }} /> Verified: MR {verifiedMrName}
-                  </Typography>
-                )}
-                {mrStatus === "invalid" && (
-                  <Typography variant="caption" color="error.main" sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                    <HighlightOffIcon fontSize="inherit" sx={{ mr: 0.5 }} /> Invalid referral code
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          </Collapse>
-        </Box>
-
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="large"
-          disabled={!isValid || subdomainStatus !== "available" || reserving || isReferralInvalid || isReferralLoading || isGstInvalid || gstStatus === "loading"}
-          endIcon={reserving ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
-          sx={{ mb: 1 }}
-        >
-          {reserving ? "Reserving..." : "Next: Configure Modules"}
-        </Button>
-        {(!isValid || subdomainStatus !== "available" || reserving || isReferralInvalid || isReferralLoading || isGstInvalid || gstStatus === "loading") && (
-          <Typography variant="caption" sx={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '12px', textAlign: 'center' }}>
-            Fill in all required fields to continue
-          </Typography>
-        )}
-      </form>
-    </Box>
+          <div className="screen__actions screen__actions--span2">
+            <button className="btn btn--secondary" type="button" onClick={onBack}>Back</button>
+            <button className="btn btn--primary" type="submit" disabled={!canContinue}>
+              {reserving ? <><span className="spinner" /> Reserving…</> : "Continue"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }

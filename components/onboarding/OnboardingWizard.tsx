@@ -1,25 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Fragment, useEffect, useState } from "react";
 import {
-  Building2,
-  Mail,
-  ShieldCheck,
-  FileText,
-  LayoutGrid,
-  CreditCard,
-  Rocket,
-  Check,
-  Lock,
-  LifeBuoy,
-} from "lucide-react";
+  RAIL_STEPS,
+  SCREEN_ORDER,
+  SCREEN_RAIL,
+  ScreenId,
+  hasSpecialization,
+} from "./onboardingConfig";
 import { FacilityTypeSelection } from "./steps/FacilityTypeSelection";
+import { SpecializationSelection } from "./steps/SpecializationSelection";
 import { EmailInitiation } from "./steps/EmailInitiation";
 import { OtpVerification } from "./steps/OtpVerification";
 import { OrganizationDetails } from "./steps/OrganizationDetails";
 import { ModuleCatalogSelection } from "./steps/ModuleCatalogSelection";
-import { FinalReviewAndPayment } from "./steps/FinalReviewAndPayment";
+import { ReviewStep } from "./steps/ReviewStep";
+import { PaymentStep } from "./steps/PaymentStep";
 import { ProvisioningStatus } from "./steps/ProvisioningStatus";
 
 export type OnboardingData = {
@@ -33,6 +29,7 @@ export type OnboardingData = {
   referralCode?: string;
   gstNumber?: string;
   facilityType?: string;
+  specialization?: string;
   selectionType?: 'package' | 'individual';
   packageId?: string;
   selectedModules?: string[];
@@ -40,6 +37,8 @@ export type OnboardingData = {
   subscriptionPlan?: string;
   status?: string;
   quotedPrice?: number;
+  termsAccepted?: boolean;
+  termsAcceptedAt?: string;
   customLimits?: {
     maxDoctors?: number;
     maxReceptionists?: number;
@@ -58,194 +57,103 @@ export type OnboardingData = {
   };
 };
 
-const steps = [
-  { label: "Facility Type", caption: "Pick your facility", icon: Building2 },
-  { label: "Email Entry", caption: "Enter work email", icon: Mail },
-  { label: "Verification", caption: "Confirm the code", icon: ShieldCheck },
-  { label: "Organization", caption: "Workspace identity", icon: FileText },
-  { label: "Modules & Services", caption: "Choose your tools", icon: LayoutGrid },
-  { label: "Review & Payment", caption: "Billing details", icon: CreditCard },
-  { label: "Complete", caption: "Launch workspace", icon: Rocket },
-];
-
 interface OnboardingWizardProps {
   externalData?: OnboardingData;
   externalUpdateData?: (newData: Partial<OnboardingData>) => void;
 }
 
 export function OnboardingWizard({ externalData, externalUpdateData }: OnboardingWizardProps) {
-  const [activeStep, setActiveStep] = useState(0);
-  const prefersReduced = useReducedMotion();
-
-  // Use external data if provided, otherwise fallback to local (though page should provide it)
   const [localData, setLocalData] = useState<OnboardingData>({});
-
   const data = externalData || localData;
-  const updateData = externalUpdateData || ((newData: Partial<OnboardingData>) => setLocalData(prev => ({ ...prev, ...newData })));
+  const updateData =
+    externalUpdateData || ((newData: Partial<OnboardingData>) => setLocalData((p) => ({ ...p, ...newData })));
 
-  const nextStep = () => setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const prevStep = () => setActiveStep((prev) => Math.max(prev - 1, 0));
+  const [screen, setScreen] = useState<ScreenId>('facility');
 
-  // Automatically fast-forward to payment step if session is pending payment
+  // Resume a mid-flight session to the correct screen.
   useEffect(() => {
-    if (data.sessionId && (data.status === 'pending_payment' || data.status === 'provisioned' || data.status === 'provisioning')) {
-      if (data.status === 'provisioned' || data.status === 'provisioning') {
-        setActiveStep(6);
-      } else {
-        setActiveStep(5);
-      }
+    if (!data.sessionId) return;
+    if (
+      data.status === 'provisioned' ||
+      data.status === 'provisioning' ||
+      data.status === 'quote_pending' ||
+      data.status === 'failed'
+    ) {
+      setScreen('provisioning');
+    } else if (data.status === 'pending_payment') {
+      setScreen('review');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.sessionId, data.status]);
 
-  // Render the appropriate step component
-  const renderStepContent = (stepIndex: number) => {
-    switch (stepIndex) {
-      case 0:
-        return <FacilityTypeSelection onNext={nextStep} updateData={updateData} data={data} />;
-      case 1:
-        return <EmailInitiation onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
-      case 2:
-        return <OtpVerification onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
-      case 3:
-        return <OrganizationDetails onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
-      case 4:
-        return <ModuleCatalogSelection onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
-      case 5:
-        return <FinalReviewAndPayment onNext={nextStep} onBack={prevStep} updateData={updateData} data={data} />;
-      case 6:
-        return <ProvisioningStatus data={data} updateData={updateData} />;
-      default:
-        return <p className="text-slate-400">Unknown step</p>;
+  const goTo = (s: ScreenId) => {
+    setScreen(s);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const step = (dir: 1 | -1) => {
+    let idx = SCREEN_ORDER.indexOf(screen);
+    while (idx + dir >= 0 && idx + dir < SCREEN_ORDER.length) {
+      idx += dir;
+      const candidate = SCREEN_ORDER[idx];
+      if (candidate === 'specialization' && !hasSpecialization(data.facilityType)) continue;
+      goTo(candidate);
+      return;
     }
   };
 
-  const pct = Math.round((activeStep / (steps.length - 1)) * 100);
-  const current = steps[activeStep];
+  const onNext = () => step(1);
+  const onBack = () => step(-1);
+  const stepProps = { onNext, onBack, updateData, data };
+
+  const currentRail = SCREEN_RAIL[screen];
+  const currentLabel = RAIL_STEPS.find((s) => s.rail === currentRail)?.label;
 
   return (
-    <div className="grid min-h-[640px] grid-cols-1 lg:grid-cols-[clamp(280px,26%,340px)_1fr]">
-      {/* ── Desktop step rail ─────────────────────────────────────────── */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-white/10 bg-white/[0.02] p-8 lg:flex">
-        {/* ambient glow */}
-        <div className="pointer-events-none absolute -left-16 top-1/3 h-64 w-64 rounded-full bg-teal-500/10 blur-[90px]" />
+    <div className="obv2">
+      <header className="app-header">
+        <div className="app-header__inner">
+          <a href="/" className="logo">Kaero <span className="logo__product">Prescribe</span></a>
+          <a href="mailto:support@kaerogroup.com" className="help-link">Need help?</a>
+        </div>
+      </header>
 
-        <div className="relative">
-          <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
-            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-teal-400" />
-            Setup Progress
-          </div>
-          <div className="mb-7 flex items-baseline gap-2">
-            <span className="font-heading text-3xl font-extrabold text-white">{pct}%</span>
-            <span className="text-sm text-slate-400">complete</span>
-          </div>
-
-          {/* vertical step list */}
-          <ol className="space-y-0">
-            {steps.map((s, i) => {
-              const Icon = s.icon;
-              const state = i < activeStep ? "done" : i === activeStep ? "active" : "todo";
-              const isLast = i === steps.length - 1;
-              return (
-                <li key={s.label} className="flex gap-4">
-                  {/* node + connector */}
-                  <div className="flex flex-col items-center">
-                    <span
-                      className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
-                        state === "active"
-                          ? "border-transparent bg-gradient-to-br from-teal-400 to-sky-500 text-slate-950 shadow-[0_0_22px_-4px_rgba(45,212,191,0.7)]"
-                          : state === "done"
-                          ? "border-teal-400/40 bg-teal-400/15 text-teal-300"
-                          : "border-white/10 bg-white/[0.04] text-slate-500"
-                      }`}
-                    >
-                      {state === "done" ? (
-                        <Check size={16} strokeWidth={3} />
-                      ) : (
-                        <Icon size={16} />
-                      )}
-                      {state === "active" && (
-                        <span className="absolute inset-0 rounded-xl ring-2 ring-teal-400/30" />
-                      )}
-                    </span>
-                    {!isLast && (
-                      <span
-                        className={`my-1 w-px flex-1 transition-colors duration-300 ${
-                          i < activeStep ? "bg-teal-400/50" : "bg-white/10"
-                        }`}
-                      />
-                    )}
+      <nav className="step-rail" aria-label="Onboarding progress">
+        <div className="step-rail__inner">
+          {RAIL_STEPS.map((s, i) => {
+            const stateClass = s.rail < currentRail ? 'is-complete' : s.rail === currentRail ? 'is-current' : '';
+            const isLast = i === RAIL_STEPS.length - 1;
+            return (
+              <Fragment key={s.rail}>
+                <div className={`rail-step ${stateClass}`}>
+                  <div className="rail-step__marker-wrap">
+                    <div className="rail-step__marker">{s.rail < currentRail ? '✓' : s.rail}</div>
+                    <div className="rail-step__label">{s.label}</div>
                   </div>
-
-                  {/* label */}
-                  <div className={`pb-7 pt-1 ${isLast ? "pb-0" : ""}`}>
-                    <p
-                      className={`text-sm font-semibold leading-tight transition-colors duration-300 ${
-                        state === "active"
-                          ? "text-white"
-                          : state === "done"
-                          ? "text-slate-300"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      {s.label}
-                    </p>
-                    <p className="mt-0.5 text-xs text-slate-500">{s.caption}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+                </div>
+                {!isLast && <div className="rail-step__line" />}
+              </Fragment>
+            );
+          })}
         </div>
-
-        {/* trust footer */}
-        <div className="relative mt-8 space-y-3 border-t border-white/10 pt-6">
-          <p className="flex items-center gap-2 text-xs text-slate-400">
-            <Lock size={13} className="text-teal-400" />
-            256-bit encrypted &middot; HIPAA &amp; DPDP aligned
-          </p>
-          <p className="flex items-center gap-2 text-xs text-slate-500">
-            <LifeBuoy size={13} className="text-slate-400" />
-            Need help? support@kaerogroup.com
-          </p>
-        </div>
-      </aside>
-
-      {/* ── Mobile compact progress ───────────────────────────────────── */}
-      <div className="border-b border-white/10 bg-white/[0.02] p-5 lg:hidden">
-        <div className="flex items-center justify-between text-xs font-medium text-slate-400">
-          <span>
-            Step {activeStep + 1} of {steps.length}
-          </span>
-          <span className="font-semibold text-teal-300">{pct}%</span>
-        </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-teal-400 to-sky-500 transition-[width] duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <p className="mt-3 flex items-center gap-2 font-heading text-base font-bold text-white">
-          <current.icon size={16} className="text-teal-300" />
-          {current.label}
+        <p className="step-rail__mobile">
+          Step {currentRail} of {RAIL_STEPS.length} — <strong>{currentLabel}</strong>
         </p>
-      </div>
+      </nav>
 
-      {/* ── Step content ──────────────────────────────────────────────── */}
-      <div className="flex flex-col justify-center p-6 sm:p-8 md:p-10 lg:p-12">
-        <div className="mx-auto w-full max-w-2xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeStep}
-              initial={prefersReduced ? { opacity: 0 } : { opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={prefersReduced ? { opacity: 0 } : { opacity: 0, x: -24 }}
-              transition={{ duration: prefersReduced ? 0.15 : 0.32, ease: "easeOut" }}
-            >
-              {renderStepContent(activeStep)}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
+      <main className="onboarding">
+        {screen === 'facility' && (
+          <FacilityTypeSelection onNext={onNext} updateData={updateData} data={data} />
+        )}
+        {screen === 'specialization' && <SpecializationSelection {...stepProps} />}
+        {screen === 'email' && <EmailInitiation {...stepProps} />}
+        {screen === 'otp' && <OtpVerification {...stepProps} />}
+        {screen === 'details' && <OrganizationDetails {...stepProps} />}
+        {screen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
+        {screen === 'review' && <ReviewStep {...stepProps} goTo={goTo} />}
+        {screen === 'payment' && <PaymentStep {...stepProps} />}
+        {screen === 'provisioning' && <ProvisioningStatus data={data} updateData={updateData} />}
+      </main>
     </div>
   );
 }

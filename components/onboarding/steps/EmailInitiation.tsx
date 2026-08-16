@@ -1,19 +1,11 @@
 "use client";
 
-import { useState } from "react";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InitiateSchema, InitiateFormValues } from "@/lib/validations/onboarding-schema";
 import { useInitiateMutation } from "@/hooks/queries/useOnboarding";
 import { InitiateResponse } from "@/lib/api/types/onboarding.types";
-import { Box, Typography, TextField, Button, InputAdornment, Link } from "@mui/material";
-import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { CircularProgress } from "@mui/material";
 import { OnboardingData } from "../OnboardingWizard";
-import { TermsAndConditionsModal } from "../TermsAndConditionsModal";
 
 interface Props {
   onNext: () => void;
@@ -33,7 +25,6 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
   });
 
   const { mutate, isPending, error } = useInitiateMutation();
-  const [showTerms, setShowTerms] = useState(false);
 
   const onSubmit = (values: InitiateFormValues) => {
     mutate(
@@ -44,11 +35,7 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
             alert(res.message);
             if (res.dashboardUrl) window.location.href = res.dashboardUrl;
           } else if (res.canResume) {
-            updateData({
-              email: values.email,
-              sessionId: res.sessionId,
-              verifiedToken: res.verifiedToken,
-            });
+            updateData({ email: values.email, sessionId: res.sessionId, verifiedToken: res.verifiedToken });
             onNext();
           } else {
             updateData({ email: values.email, sessionId: res.sessionId });
@@ -59,79 +46,43 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
     );
   };
 
+  const serverError = error ? (error as Error).message : null;
+  const hasError = !!errors.email || !!serverError;
+
   return (
-    <Box className="animate-fade-up">
-      <Box mb={4}>
-        <Button
-          onClick={onBack}
-          startIcon={<ArrowBackIcon />}
-          sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}
-          size="small"
-        >
-          Back to Facility Type
-        </Button>
-        <Typography variant="h4" color="text.primary" gutterBottom>
-          Welcome to Kaero Prescribe
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Enter your work email address to begin your clinic's setup.
-        </Typography>
-      </Box>
+    <section className="screen">
+      <div className="screen__container screen__container--narrow">
+        <p className="eyebrow">Step 2</p>
+        <h1 className="screen__title">Verify your work email</h1>
+        <p className="screen__subtitle">We&apos;ll send a verification code to confirm this is you.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Box mb={3}>
-          <TextField
-            fullWidth
-            id="email"
-            label="Work Email Address"
-            variant="outlined"
-            placeholder="admin@myclinic.com"
-            type="email"
-            autoComplete="email"
-            disabled={isPending}
-            error={!!errors.email || !!error}
-            helperText={errors.email?.message || error?.message || " "}
-            {...register("email")}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <MailOutlineIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+        <form className="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="field">
+            <label className="field__label" htmlFor="email">Work email</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="admin@myclinic.com"
+              className={`field__input ${hasError ? "is-invalid" : ""}`}
+              disabled={isPending}
+              {...register("email")}
+            />
+            <p className={`field__hint ${hasError ? "field__hint--error" : ""}`}>
+              {errors.email?.message ||
+                serverError ||
+                "We recommend using an email you check regularly — this becomes your admin login."}
+            </p>
+          </div>
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="large"
-          disabled={isPending}
-          endIcon={isPending ? <CircularProgress size={20} color="inherit" /> : <ArrowForwardIcon />}
-          sx={{ mb: 3 }}
-        >
-          {isPending ? "Initiating..." : "Continue"}
-        </Button>
-
-        <Typography variant="body2" align="center" color="text.disabled">
-          By continuing, you agree to our{" "}
-          <Link 
-            component="button" 
-            type="button"
-            onClick={() => setShowTerms(true)}
-            sx={{ fontWeight: 600, color: 'primary.main', textDecoration: 'underline', verticalAlign: 'baseline' }}
-          >
-            Terms of Service and Privacy Policy
-          </Link>.
-        </Typography>
-      </form>
-
-      <TermsAndConditionsModal 
-        open={showTerms} 
-        onOpenChange={setShowTerms} 
-      />
-    </Box>
+          <div className="screen__actions">
+            <button className="btn btn--secondary" type="button" onClick={onBack}>Back</button>
+            <button className="btn btn--primary" type="submit" disabled={isPending}>
+              {isPending ? <><span className="spinner" /> Sending…</> : "Continue"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }
