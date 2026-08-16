@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
+import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
 import { orgTypeName } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
@@ -22,6 +22,8 @@ const isAdmin = (m: ModuleItem) => m.slug === "admin" || m.entitlementKey === "a
 export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Props) {
   // Full active catalog — org type never filters "Build your own" (mock rule).
   const { data: catalog, isLoading, error } = useCatalogQuery();
+  const { data: orgTypesRes } = useOrgTypesQuery();
+  const orgTypes = orgTypesRes?.data;
 
   const [mode, setMode] = useState<Mode>(data.selectionType === "package" ? "package" : "individual");
   const [selectedModules, setSelectedModules] = useState<string[]>(data.selectedModules || []);
@@ -145,7 +147,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
           <>
             {recommended.length > 0 && (
               <div className="recommend-card">
-                <p className="recommend-card__context">Based on: <strong>{[orgTypeName(data.facilityType), data.specialization].filter(Boolean).join(" · ")}</strong></p>
+                <p className="recommend-card__context">Based on: <strong>{[orgTypeName(orgTypes, data.facilityType), data.specialization].filter(Boolean).join(" · ")}</strong></p>
                 <p className="recommend-card__heading">Recommended setup</p>
                 <div className="recommend-card__modules">
                   {recommended.map((m) => <div key={m.slug} className="recommend-card__module">{m.label}</div>)}

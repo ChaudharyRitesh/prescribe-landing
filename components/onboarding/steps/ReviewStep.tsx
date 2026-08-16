@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
-import { computePricing, inr } from "../pricing";
+import { useMemo, useState } from "react";
+import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
+import { inr, moduleCountLabel, selectionHeaderName, useOrderPricing } from "../pricing";
 import { orgTypeName, ScreenId } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
 
@@ -16,6 +16,7 @@ interface Props {
 
 export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
   const { data: catalog } = useCatalogQuery();
+  const { data: orgTypesRes } = useOrgTypesQuery();
 
   const [address, setAddress] = useState(data.address?.street || "");
   const [city, setCity] = useState(data.address?.city || "");
@@ -23,22 +24,32 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
   const [phone, setPhone] = useState(data.contactPhone || "");
   const [terms, setTerms] = useState(!!data.termsAccepted);
 
-  const pricing = computePricing(data, catalog);
+  const pricing = useOrderPricing(data);
 
   const modules = catalog?.modules || [];
+  const packages = catalog?.packages || [];
   const label = (slug: string) => modules.find((m) => m.slug === slug)?.label || slug;
-  let selectedLabels: string[] = [];
-  if (data.selectionType === "package" && data.packageId) {
-    const p = (catalog?.packages || []).find((x) => x._id === data.packageId);
-    selectedLabels = p?.isCustom ? ["Custom configuration"] : (p?.modules || []).map(label);
-  } else {
-    selectedLabels = (data.selectedModules || []).map(label);
-  }
 
-  const orgTypeLine = [orgTypeName(data.facilityType), data.specialization].filter(Boolean).join(" · ");
+  const isPackage = data.selectionType === "package";
+  const activePackage = isPackage ? packages.find((p) => p._id === data.packageId) : undefined;
+
+  const selectionLabels = useMemo(() => {
+    if (isPackage) return (activePackage?.modules || []).map((slug) => ({ label: label(slug) }));
+    return (data.selectedModules || []).map((slug) => ({ label: label(slug) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPackage, activePackage, data.selectedModules, modules]);
+
+  const headerName = isPackage
+    ? (activePackage?.label || "Package")
+    : selectionHeaderName(selectionLabels);
+  const countLabel = moduleCountLabel(selectionLabels.length, isPackage);
+
+  const orgTypeLine = [orgTypeName(orgTypesRes?.data, data.facilityType), data.specialization].filter(Boolean).join(" · ");
+
+  const canContinue = terms && (pricing.isCustom || !!pricing.money);
 
   const continueToPayment = () => {
-    if (!terms) return;
+    if (!canContinue) return;
     updateData({
       address: { ...(data.address || {}), street: address, city, postalCode: pin },
       contactPhone: phone,
@@ -81,7 +92,9 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
                 <button className="link-btn" type="button" onClick={() => goTo?.("modules")}>Edit</button>
               </div>
               <ul className="review-list">
-                {selectedLabels.length ? selectedLabels.map((l, i) => <li key={i}>{l}</li>) : <li>No modules selected</li>}
+                {selectionLabels.length
+                  ? selectionLabels.map((l, i) => <li key={i}>{l.label}</li>)
+                  : <li>No modules selected</li>}
               </ul>
             </div>
 
@@ -111,32 +124,53 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
           <aside className="review-side">
             <div className="price-card">
               <h2 className="price-card__title">Order summary</h2>
+
+              <div className="price-card__module-row">
+                <div>
+                  <p className="price-card__module-name">{headerName}</p>
+                  <p className="price-card__module-count">{countLabel}</p>
+                </div>
+                {!pricing.isCustom && pricing.money && (
+                  <p className="price-card__module-price">
+                    {inr(pricing.money.subtotal)} <span>/ {pricing.cycle === "yearly" ? "year" : "month"}</span>
+                  </p>
+                )}
+              </div>
+              <div className="price-card__divider" />
+
               {pricing.isCustom ? (
-                <>
-                  <div className="price-card__row"><span>Plan</span><span>Custom</span></div>
-                  <div className="price-card__divider" />
-                  <div className="price-card__row price-card__row--total"><span>Total</span><span>Custom quote</span></div>
-                  <p className="price-card__cycle">Our team will confirm pricing.</p>
-                </>
+                <p className="price-card__cycle" style={{ margin: 0 }}>
+                  This configuration requires a custom quote. Our team will confirm pricing and reach out directly.
+                </p>
+              ) : pricing.isLoading ? (
+                <p className="price-card__loading"><span className="spinner" /> Calculating price…</p>
+              ) : pricing.isError || !pricing.money ? (
+                <p className="field__hint field__hint--error">Couldn&apos;t calculate pricing. Please go back and try again.</p>
               ) : (
                 <>
-                  <div className="price-card__row"><span>Subtotal</span><span>{inr(pricing.subtotal)}</span></div>
-                  <div className="price-card__row"><span>GST (18%)</span><span>{inr(pricing.gst)}</span></div>
-                  {pricing.referralDiscount > 0 && (
-                    <div className="price-card__row price-card__row--discount"><span>Referral discount</span><span>−{inr(pricing.referralDiscount)}</span></div>
-                  )}
+                  <div className="price-card__row"><span>Subtotal</span><span>{inr(pricing.money.subtotal)}</span></div>
+                  <div className="price-card__row"><span>GST ({Math.round(pricing.money.gstRate * 100)}%)</span><span>{inr(pricing.money.gst)}</span></div>
                   <div className="price-card__divider" />
-                  <div className="price-card__row price-card__row--total"><span>Total</span><span>{inr(pricing.total)}</span></div>
-                  <p className="price-card__cycle">Billed {pricing.cycle === "yearly" ? "yearly" : "monthly"}</p>
+                  <div className="price-card__row price-card__row--total"><span>Total due today</span><span>{inr(pricing.money.total)}</span></div>
+
+                  <div className="price-card__recurring">
+                    <div className="price-card__row"><span>Recurring charge</span><span>{inr(pricing.money.total)} / {pricing.cycle === "yearly" ? "year" : "month"}</span></div>
+                    <div className="price-card__row"><span>Next billing date</span><span>Billing starts after successful payment</span></div>
+                  </div>
                 </>
               )}
+
+              <ul className="price-card__perks">
+                <li>Admin workspace included</li>
+                {!pricing.isCustom && <li>Secure payment via Razorpay</li>}
+              </ul>
 
               <label className="checkbox">
                 <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
                 <span>I agree to the Terms of Service and Privacy Policy</span>
               </label>
 
-              <button className="btn btn--primary btn--full" type="button" disabled={!terms} onClick={continueToPayment}>
+              <button className="btn btn--primary btn--full" type="button" disabled={!canContinue} onClick={continueToPayment}>
                 {pricing.isCustom ? "Continue" : "Continue to secure payment"}
               </button>
             </div>

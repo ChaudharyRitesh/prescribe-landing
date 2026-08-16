@@ -37,6 +37,7 @@ apiClient.interceptors.request.use(
         config.url.includes('/resend-verification-otp') ||
         config.url.includes('/onboarding/initiate') ||
         config.url.includes('/onboarding/catalog') ||
+        config.url.includes('/onboarding/org-types') ||
         config.url.includes('/onboarding/check-subdomain') ||
         config.url.includes('/onboarding/verify-mr') ||
         config.url.includes('/onboarding/verify-gst')

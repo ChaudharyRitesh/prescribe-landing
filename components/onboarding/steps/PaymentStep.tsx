@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRegisterOrgMutation, useCatalogQuery } from "@/hooks/queries/useOnboarding";
+import { useRegisterOrgMutation } from "@/hooks/queries/useOnboarding";
 import { loadRazorpayScript } from "@/lib/services/razorpay.service";
 import { TERMS_VERSION } from "@/lib/legal";
 import { FacilityType, RegisterPayload, RegisterResponse } from "@/lib/api/types/onboarding.types";
-import { computePricing, inr } from "../pricing";
+import { inr, useOrderPricing } from "../pricing";
 import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
@@ -28,8 +28,7 @@ interface RzpInstance {
 type RzpConstructor = new (options: Record<string, unknown>) => RzpInstance;
 
 export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
-  const { data: catalog } = useCatalogQuery();
-  const pricing = computePricing(data, catalog);
+  const pricing = useOrderPricing(data);
   const { mutate: registerOrg, isPending: registering } = useRegisterOrgMutation();
   const [rzpLoading, setRzpLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -58,6 +57,7 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
       referralCode: data.referralCode,
       facilityType: data.facilityType as FacilityType | undefined,
       organizationType: data.facilityType,
+      multiBranchEnabled: !!data.multiBranchEnabled,
       termsAccepted: !!data.termsAccepted,
       consent: {
         termsAccepted: !!data.termsAccepted,
@@ -160,10 +160,12 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
 
           <div className="payment-card__total">
             <span className="payment-card__total-label">{pricing.isCustom ? "Estimated" : "Total due today"}</span>
-            <span className="payment-card__total-amount">{pricing.isCustom ? "Custom quote" : inr(pricing.total)}</span>
+            <span className="payment-card__total-amount">
+              {pricing.isCustom ? "Custom quote" : pricing.money ? inr(pricing.money.total) : "—"}
+            </span>
           </div>
 
-          <button className="btn btn--primary btn--full" type="button" disabled={processing} onClick={submit}>
+          <button className="btn btn--primary btn--full" type="button" disabled={processing || (!pricing.isCustom && !pricing.money)} onClick={submit}>
             {processing
               ? <><span className="spinner" /> {rzpLoading ? "Finalising…" : "Processing…"}</>
               : pricing.isCustom ? "Submit quote request" : "Continue to secure payment"}

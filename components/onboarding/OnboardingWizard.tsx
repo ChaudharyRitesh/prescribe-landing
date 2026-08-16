@@ -1,22 +1,26 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
+import { useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import {
   RAIL_STEPS,
   SCREEN_ORDER,
   SCREEN_RAIL,
   ScreenId,
   hasSpecialization,
+  isMultiBranchEligible,
 } from "./onboardingConfig";
 import { FacilityTypeSelection } from "./steps/FacilityTypeSelection";
 import { SpecializationSelection } from "./steps/SpecializationSelection";
 import { EmailInitiation } from "./steps/EmailInitiation";
 import { OtpVerification } from "./steps/OtpVerification";
 import { OrganizationDetails } from "./steps/OrganizationDetails";
+import { BranchSetupSelection } from "./steps/BranchSetupSelection";
 import { ModuleCatalogSelection } from "./steps/ModuleCatalogSelection";
 import { ReviewStep } from "./steps/ReviewStep";
 import { PaymentStep } from "./steps/PaymentStep";
 import { ProvisioningStatus } from "./steps/ProvisioningStatus";
+import { PricingSnapshot } from "@/lib/api/types/onboarding.types";
 
 export type OnboardingData = {
   sessionId?: string;
@@ -30,6 +34,7 @@ export type OnboardingData = {
   gstNumber?: string;
   facilityType?: string;
   specialization?: string;
+  multiBranchEnabled?: boolean;
   selectionType?: 'package' | 'individual';
   packageId?: string;
   selectedModules?: string[];
@@ -37,6 +42,9 @@ export type OnboardingData = {
   subscriptionPlan?: string;
   status?: string;
   quotedPrice?: number;
+  /** Already-computed server pricing, present only when resuming a session that has
+   *  already called register() once (pending_payment reload, or an approved custom quote). */
+  pricingSnapshot?: PricingSnapshot;
   termsAccepted?: boolean;
   termsAcceptedAt?: string;
   customLimits?: {
@@ -69,6 +77,8 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     externalUpdateData || ((newData: Partial<OnboardingData>) => setLocalData((p) => ({ ...p, ...newData })));
 
   const [screen, setScreen] = useState<ScreenId>('facility');
+  const { data: orgTypesRes } = useOrgTypesQuery();
+  const orgTypes = orgTypesRes?.data;
 
   // Resume a mid-flight session to the correct screen.
   useEffect(() => {
@@ -96,7 +106,8 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     while (idx + dir >= 0 && idx + dir < SCREEN_ORDER.length) {
       idx += dir;
       const candidate = SCREEN_ORDER[idx];
-      if (candidate === 'specialization' && !hasSpecialization(data.facilityType)) continue;
+      if (candidate === 'specialization' && !hasSpecialization(orgTypes, data.facilityType)) continue;
+      if (candidate === 'branchSetup' && !isMultiBranchEligible(orgTypes, data.facilityType)) continue;
       goTo(candidate);
       return;
     }
@@ -149,6 +160,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
         {screen === 'email' && <EmailInitiation {...stepProps} />}
         {screen === 'otp' && <OtpVerification {...stepProps} />}
         {screen === 'details' && <OrganizationDetails {...stepProps} />}
+        {screen === 'branchSetup' && <BranchSetupSelection {...stepProps} />}
         {screen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
         {screen === 'review' && <ReviewStep {...stepProps} goTo={goTo} />}
         {screen === 'payment' && <PaymentStep {...stepProps} />}

@@ -12,9 +12,9 @@ export type OnboardingStatus =
   | 'failed';
 
 
-export type FacilityType =
-  | 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic'
-  | 'doctor' | 'pharmacy' | 'other';
+// Free-form org-type slug from the live OrganizationTypeCatalog (super-admin managed) — no
+// longer a fixed union, see OrgType/useOrgTypesQuery.
+export type FacilityType = string;
 
 // --- Base Response Interface ---
 export interface BaseResponse {
@@ -81,6 +81,68 @@ export interface PackageItem {
 export interface CatalogResponse extends BaseResponse {
   modules: ModuleItem[];
   packages: PackageItem[];
+}
+
+// --- Price Preview (server-authoritative, non-mutating) ---
+export interface PricePreviewPayload {
+  organizationType?: string;
+  selectionType: SelectionType;
+  packageId?: string;
+  selectedModules?: string[];
+  billingCycle?: BillingCycle;
+}
+
+export interface PricePreviewLineItem {
+  slug: string;
+  label: string;
+  unitPrice: number;
+}
+
+export interface PricePreviewData {
+  isCustom: boolean;
+  packageLabel?: string;
+  billingCycle?: BillingCycle;
+  currency?: string;
+  catalogVersion?: number;
+  lineItems?: PricePreviewLineItem[];
+  subtotal?: number;
+  gstRate?: number;
+  gst?: number;
+  total?: number;
+}
+
+export interface PricePreviewResponse extends BaseResponse {
+  data: PricePreviewData;
+}
+
+/** Already-computed pricing stored on a session at register() time (rupees). */
+export interface PricingSnapshot {
+  subtotal: number;
+  gstRate: number;
+  gst: number;
+  total: number;
+  currency: string;
+}
+
+// --- Organization Type Catalog ---
+export interface OrgSubType {
+  id: string;
+  label: string;
+}
+
+export interface OrgType {
+  _id: string;
+  slug: string;
+  label: string;
+  description?: string;
+  subTypes?: OrgSubType[];
+  multiBranchEligible: boolean;
+  isActive: boolean;
+  order: number;
+}
+
+export interface OrgTypesResponse extends BaseResponse {
+  data: OrgType[];
 }
 
 // --- Endpoint Payloads & Responses ---
@@ -187,6 +249,9 @@ export interface RegisterPayload {
   facilityType?: FacilityType;
   /** Org context sent to the backend (mirrors facilityType). */
   organizationType?: string;
+  /** Explicit opt-in, only meaningful when the selected org type's catalog entry has
+   *  multiBranchEligible:true. Validated server-side against the live catalog at registration. */
+  multiBranchEnabled?: boolean;
   /** Consent audit metadata (HIPAA/DPDP) */
   termsAccepted?: boolean;
   consent?: ConsentMeta;
