@@ -12,7 +12,9 @@ export type OnboardingStatus =
   | 'failed';
 
 
-export type FacilityType = 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic';
+export type FacilityType =
+  | 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic'
+  | 'doctor' | 'pharmacy' | 'other';
 
 // --- Base Response Interface ---
 export interface BaseResponse {
@@ -25,6 +27,16 @@ export interface BaseResponse {
 export interface ModulePricing {
   monthly: number;
   yearly: number;
+}
+
+/** GATE-2 catalog seat/storage limits (all optional). */
+export interface CatalogLimits {
+  maxDoctors?: number;
+  maxReceptionists?: number;
+  maxLabTechs?: number;
+  maxPharmacists?: number;
+  maxAdmins?: number;
+  maxStorageGB?: number;
 }
 
 export interface ModuleItem {
@@ -41,6 +53,13 @@ export interface ModuleItem {
   isActive: boolean;
   order: number;
   isCustom?: boolean;
+  // GATE-2 commercial config (live from Super-Admin catalog)
+  category?: string;
+  recommendedFor?: string[];
+  entitlementKey?: string;
+  kind?: 'product' | 'addon' | 'hospital_module';
+  requires?: string[];
+  defaultLimits?: CatalogLimits;
 }
 
 export interface PackageItem {
@@ -166,6 +185,8 @@ export interface RegisterPayload {
   subscriptionPlan?: string;
   referralCode?: string;
   facilityType?: FacilityType;
+  /** Org context sent to the backend (mirrors facilityType). */
+  organizationType?: string;
   /** Consent audit metadata (HIPAA/DPDP) */
   termsAccepted?: boolean;
   consent?: ConsentMeta;

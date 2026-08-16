@@ -1,19 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useCatalogQuery } from "@/hooks/queries/useOnboarding";
-import { OnboardingData } from "../OnboardingWizard";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
-import { 
-  Box, Typography, Button, Tabs, Tab, Card, CardContent, 
-  CardActionArea, CircularProgress, Chip 
-} from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import ScienceIcon from "@mui/icons-material/Science";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import { orgTypeName } from "../onboardingConfig";
+import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
   onNext: () => void;
@@ -22,304 +13,259 @@ interface Props {
   data: OnboardingData;
 }
 
+type Mode = "individual" | "package" | "custom";
+type Cycle = "monthly" | "yearly";
+
+const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+const isAdmin = (m: ModuleItem) => m.slug === "admin" || m.entitlementKey === "admin";
+
 export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Props) {
-  const { data: catalog, isLoading, error } = useCatalogQuery(data.facilityType);
+  // Full active catalog — org type never filters "Build your own" (mock rule).
+  const { data: catalog, isLoading, error } = useCatalogQuery();
 
-  const [selectionTab, setSelectionTab] = useState(0); // 0 = Packages, 1 = Modules
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
-  const [selectedModules, setSelectedModules] = useState<string[]>([]);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(data.billingCycle || "yearly");
+  const [mode, setMode] = useState<Mode>(data.selectionType === "package" ? "package" : "individual");
+  const [selectedModules, setSelectedModules] = useState<string[]>(data.selectedModules || []);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(data.packageId || null);
+  const [cycle, setCycle] = useState<Cycle>(data.billingCycle || "monthly");
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [isAtBottom, setIsAtBottom] = useState(false);
+  const modules = useMemo(
+    () => (catalog?.modules || []).filter((m) => !isAdmin(m)),
+    [catalog]
+  );
+  const packages = useMemo(() => (catalog?.packages || []).filter((p) => !p.isCustom), [catalog]);
+  const customPackages = useMemo(() => (catalog?.packages || []).filter((p) => p.isCustom), [catalog]);
 
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      setIsAtBottom(scrollHeight - scrollTop - clientHeight < 5);
-    }
+  const moduleBySlug = useMemo(() => {
+    const map: Record<string, ModuleItem> = {};
+    modules.forEach((m) => { map[m.slug] = m; });
+    return map;
+  }, [modules]);
+
+  const categories = useMemo(() => {
+    const groups: Record<string, ModuleItem[]> = {};
+    modules.forEach((m) => {
+      const cat = m.category?.trim() || "Modules";
+      (groups[cat] = groups[cat] || []).push(m);
+    });
+    return Object.entries(groups);
+  }, [modules]);
+
+  const recommended = useMemo(
+    () => modules.filter((m) => m.isHero || (data.facilityType && m.recommendedFor?.includes(data.facilityType))),
+    [modules, data.facilityType]
+  );
+
+  const priceOf = (m?: ModuleItem) => (m ? (cycle === "yearly" ? m.pricing?.yearly || 0 : m.pricing?.monthly || 0) : 0);
+  const pkgPrice = (p: PackageItem) => (cycle === "yearly" ? p.pricing?.yearly || 0 : p.pricing?.monthly || 0);
+
+  const toggleModule = (slug: string) =>
+    setSelectedModules((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
+
+  const applyRecommended = () => {
+    setSelectedModules(recommended.map((m) => m.slug));
+    setMode("individual");
   };
+  const recommendedApplied =
+    recommended.length > 0 &&
+    recommended.every((m) => selectedModules.includes(m.slug)) &&
+    selectedModules.length === recommended.length;
 
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener("resize", handleScroll);
-    return () => window.removeEventListener("resize", handleScroll);
-  }, [selectionTab, catalog]);
+  const individualSubtotal = selectedModules.reduce((sum, slug) => sum + priceOf(moduleBySlug[slug]), 0);
+  const activePackage = packages.find((p) => p._id === selectedPackage) || customPackages.find((p) => p._id === selectedPackage);
 
-  // Pre-select package from URL parameter or existing onboarding state once catalog loads
-  useEffect(() => {
-    if (catalog?.packages && catalog.packages.length > 0) {
-      if (data.packageId) {
-        setSelectedPackage(data.packageId);
-      } else if (data.subscriptionPlan) {
-        const found = catalog.packages.find((p: PackageItem) => p.slug === data.subscriptionPlan);
-        if (found) {
-          setSelectedPackage(found._id);
-        }
-      }
-    }
-  }, [catalog, data.packageId, data.subscriptionPlan]);
+  let summaryMeta = "No modules selected yet";
+  let summaryAmount = inr(0);
+  let isCustomSelection = false;
+  let canContinue = false;
 
-  if (isLoading) {
-    return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" py={8} className="animate-fade-in">
-        <CircularProgress size={48} sx={{ mb: 2 }} />
-        <Typography color="text.secondary">Loading catalog...</Typography>
-      </Box>
-    );
+  if (mode === "individual") {
+    summaryMeta = selectedModules.length === 0 ? "No modules selected yet" : `${selectedModules.length} module${selectedModules.length > 1 ? "s" : ""} selected`;
+    summaryAmount = inr(individualSubtotal);
+    canContinue = selectedModules.length > 0;
+  } else if (mode === "package") {
+    summaryMeta = activePackage ? activePackage.label : "Select a package";
+    summaryAmount = activePackage ? inr(pkgPrice(activePackage)) : inr(0);
+    canContinue = !!selectedPackage;
+  } else {
+    isCustomSelection = true;
+    summaryMeta = activePackage ? activePackage.label : "Custom plan";
+    summaryAmount = "Custom quote";
+    canContinue = !!selectedPackage;
   }
 
-  if (error || !catalog) {
-    return (
-      <Box py={8} textAlign="center">
-        <Typography color="error">Failed to load catalog. Please try again.</Typography>
-      </Box>
-    );
-  }
-
-  const { packages, modules } = catalog;
-
-  // Persona-based module recommendations using backend signals
-  const isRecommended = (mod: ModuleItem) => {
-    if (mod.isHero) return true;
-    if (data.facilityType && mod.specialties?.includes(data.facilityType)) return true;
-    return false;
-  };
-
-  // Filter or Sort modules based on recommendation
-  const sortedModules = [...modules].sort((a, b) => {
-    const aRec = isRecommended(a);
-    const bRec = isRecommended(b);
-    if (aRec && !bRec) return -1;
-    if (!aRec && bRec) return 1;
-    return 0;
-  });
-
-  const toggleModule = (slug: string) => {
-    setSelectedModules((prev) =>
-      prev.includes(slug) ? prev.filter((m) => m !== slug) : [...prev, slug]
-    );
-  };
-
-  const handleCompleteSetup = () => {
-    if (!data.verifiedToken || !data.orgName || !data.subdomain) {
-      alert("Missing core identity details. Please go back.");
-      return;
+  const handleContinue = () => {
+    if (!canContinue) return;
+    if (mode === "individual") {
+      updateData({ selectionType: "individual", selectedModules, packageId: undefined, subscriptionPlan: "individual", billingCycle: cycle });
+    } else {
+      const pkg = activePackage;
+      updateData({ selectionType: "package", packageId: selectedPackage || undefined, selectedModules: undefined, subscriptionPlan: pkg?.slug, billingCycle: cycle });
     }
-    
-    const selectedPkgObj = selectedPackage ? packages.find((p: PackageItem) => p._id === selectedPackage) : null;
-    const resolvedPlanName = selectedPkgObj ? selectedPkgObj.slug : 'individual';
-
-    updateData({
-      selectionType: selectionTab === 0 ? "package" : "individual",
-      packageId: selectedPackage || undefined,
-      selectedModules: selectedModules.length > 0 ? selectedModules : undefined,
-      billingCycle,
-      subscriptionPlan: resolvedPlanName,
-    } as any);
-
     onNext();
   };
 
-  const isNextDisabled = selectionTab === 0 ? !selectedPackage : selectedModules.length === 0;
+  if (isLoading) {
+    return (
+      <section className="screen">
+        <div className="screen__container screen__container--wide">
+          <p className="screen__subtitle"><span className="spinner" /> Loading catalog…</p>
+        </div>
+      </section>
+    );
+  }
+  if (error || !catalog) {
+    return (
+      <section className="screen">
+        <div className="screen__container screen__container--wide">
+          <p className="screen__title">Couldn&apos;t load the catalog</p>
+          <p className="screen__subtitle">Please go back and try again.</p>
+          <div className="screen__actions"><button className="btn btn--secondary" type="button" onClick={onBack}>Back</button></div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <Box className="animate-fade-up">
-      <Box mb={2} display="flex" justifyContent="space-between" alignItems="flex-start">
-        <Box>
-          <Button
-            onClick={onBack}
-            startIcon={<ArrowBackIcon />}
-            sx={{ mb: 1, color: "text.secondary", fontWeight: 500 }}
-            size="small"
-          >
-            Back to Identity
-          </Button>
-          <Typography variant="h4" color="text.primary" gutterBottom>
-            Select Modules
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {data.facilityType ? `Recommended tools for your ${data.facilityType} setup.` : 'Choose what tools your team needs to operate efficiently.'}
-          </Typography>
-        </Box>
-        <Box bgcolor="background.default" p={0.5} borderRadius={2} display="flex" gap={0.5}>
-          <Button
-            size="small"
-            variant={billingCycle === "monthly" ? "contained" : "text"}
-            onClick={() => setBillingCycle("monthly")}
-            sx={{ 
-              color: billingCycle === "monthly" ? "text.primary" : "text.secondary",
-              bgcolor: billingCycle === "monthly" ? 'background.paper' : 'transparent',
-              boxShadow: billingCycle === "monthly" ? 1 : 0
-            }}
-          >
-            Monthly
-          </Button>
-          <Button
-            size="small"
-            variant={billingCycle === "yearly" ? "contained" : "text"}
-            onClick={() => setBillingCycle("yearly")}
-            sx={{ 
-              color: billingCycle === "yearly" ? "text.primary" : "text.secondary",
-              bgcolor: billingCycle === "yearly" ? 'background.paper' : 'transparent',
-              boxShadow: billingCycle === "yearly" ? 1 : 0
-            }}
-          >
-            Yearly <Typography component="span" fontSize="0.7rem" color="success.main" fontWeight="bold" ml={0.5}>-20%</Typography>
-          </Button>
-        </Box>
-      </Box>
+    <section className="screen">
+      <div className="screen__container screen__container--wide">
+        <p className="eyebrow">Step 4</p>
+        <h1 className="screen__title">Configure your workspace</h1>
+        <p className="screen__subtitle">Start with a recommended setup, pick exactly the tools you need, or choose a package.</p>
 
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-        <Tabs value={selectionTab} onChange={(_, val) => setSelectionTab(val)} textColor="primary" indicatorColor="primary">
-          <Tab label="Packages (Save more)" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '1rem' }} />
-          <Tab label="Individual Modules" sx={{ fontWeight: 600, textTransform: 'none', fontSize: '1rem' }} />
-        </Tabs>
-      </Box>
+        <div className="segmented" role="tablist" aria-label="Selection mode">
+          <button type="button" role="tab" aria-selected={mode === "individual"} className={`segmented__option ${mode === "individual" ? "is-active" : ""}`} onClick={() => setMode("individual")}>Individual modules</button>
+          {packages.length > 0 && (
+            <button type="button" role="tab" aria-selected={mode === "package"} className={`segmented__option ${mode === "package" ? "is-active" : ""}`} onClick={() => setMode("package")}>Packages</button>
+          )}
+          <button type="button" role="tab" aria-selected={mode === "custom"} className={`segmented__option ${mode === "custom" ? "is-active" : ""}`} onClick={() => { setMode("custom"); setSelectedPackage(null); }}>Custom plan</button>
+        </div>
 
-      <Box position="relative">
-        <Box 
-          ref={scrollRef} 
-          onScroll={handleScroll} 
-          sx={{ maxHeight: '55vh', overflowY: 'auto', pr: 1, pb: 2 }}
-        >
-          {selectionTab === 0 ? (
-          <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
-            {packages.map((pkg: PackageItem) => {
-              const isSelected = selectedPackage === pkg._id;
-              return (
-                <Card 
-                  key={pkg._id} 
-                  sx={{ 
-                    position: 'relative', 
-                    cursor: 'pointer',
-                    borderColor: isSelected ? 'primary.main' : 'divider',
-                    bgcolor: isSelected ? 'rgba(255,255,255,0.06)' : 'background.paper',
-                    borderWidth: isSelected ? 2 : 1
-                  }}
-                  onClick={() => setSelectedPackage(pkg._id)}
-                >
-                  <CardActionArea sx={{ height: '100%' }}>
-                    <CardContent>
-                      {pkg.badge && (
-                        <Chip label={pkg.badge} color="primary" size="small" sx={{ position: 'absolute', top: 12, right: 12, fontWeight: 'bold' }} />
-                      )}
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>{pkg.label}</Typography>
-                      <Typography variant="body2" color="text.secondary" mb={2} minHeight={40}>{pkg.tagline}</Typography>
-                      
-                      <Box display="flex" alignItems="baseline" mb={0.5}>
-                        <Typography variant="h4" fontWeight="900" color="text.primary">
-                          {(pkg.isCustom || pkg.slug === 'kaero-nexus') ? "Custom Quote" : `₹${billingCycle === "monthly" ? pkg.pricing.monthly : pkg.pricing.yearly}`}
-                        </Typography>
-                        {!(pkg.isCustom || pkg.slug === 'kaero-nexus') && (
-                          <Typography variant="body2" color="text.secondary" ml={0.5}>
-                            /{billingCycle === "monthly" ? "mo" : "yr"}
-                          </Typography>
-                        )}
-                      </Box>
-                      
-                      {pkg.savings && billingCycle === "yearly" && (
-                        <Chip label={pkg.savings} size="small" sx={{ bgcolor: 'rgba(16,185,129,0.18)', color: '#6ee7b7', fontWeight: 'bold', mb: 2 }} />
-                      )}
-
-                      <Box borderTop={1} borderColor="divider" pt={2} mt={2}>
-                        {pkg.modules.map((mSlug: string) => {
-                          const mod = modules.find((m: ModuleItem) => m.slug === mSlug);
-                          return (
-                            <Typography key={mSlug} variant="body2" color="text.secondary" display="flex" alignItems="center" mb={1}>
-                              <CheckCircleIcon color="primary" sx={{ fontSize: 18, mr: 1 }} />
-                              {mod?.label || mSlug}
-                            </Typography>
-                          );
-                        })}
-                      </Box>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              );
-            })}
-          </Box>
-        ) : (
-          <Box display="flex" flexDirection="column" gap={2}>
-            {sortedModules.map((mod: ModuleItem) => {
-              const isSelected = selectedModules.includes(mod.slug);
-              const recommended = isRecommended(mod);
-              return (
-                <Card 
-                  key={mod.slug}
-                  sx={{ 
-                    cursor: 'pointer',
-                    borderLeft: isSelected ? '3px solid #0F6E56' : '3px solid transparent',
-                    bgcolor: isSelected ? 'rgba(15,110,86,0.12)' : 'background.paper',
-                    position: 'relative'
-                  }}
-                  onClick={() => toggleModule(mod.slug)}
-                >
-                  <CardActionArea sx={{ p: 2 }}>
-                    <Box display="flex" alignItems="center" justifyContent="space-between">
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <Box p={1} bgcolor={isSelected ? 'primary.main' : 'background.default'} borderRadius={2} color={isSelected ? 'white' : 'text.secondary'}>
-                          {mod.icon === 'doctors' ? <LocalHospitalIcon /> : <ScienceIcon />}
-                        </Box>
-                        <Box>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="subtitle1" fontWeight="bold">{mod.label}</Typography>
-                            {recommended && (
-                              <Chip label="Recommended" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700 }} />
-                            )}
-                          </Box>
-                          <Typography variant="body2" color="text.secondary">{mod.description}</Typography>
-                        </Box>
-                      </Box>
-                      <Box textAlign="right">
-                        <Typography variant="h6" fontWeight="bold">
-                          ₹{billingCycle === "monthly" ? mod.pricing.monthly : mod.pricing.yearly}
-                          <Typography component="span" variant="caption" color="text.secondary">/{billingCycle === "monthly" ? "mo" : "yr"}</Typography>
-                        </Typography>
-                        {isSelected && <CheckCircleOutlineIcon sx={{ color: '#0F6E56', fontSize: '20px', mt: 0.5 }} />}
-                      </Box>
-                    </Box>
-                  </CardActionArea>
-                </Card>
-              );
-            })}
-          </Box>
-        )}
-        </Box>
-        {!isAtBottom && (
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              width: '100%',
-              height: '48px',
-              background: 'linear-gradient(to top, rgba(10,26,22,0.95), transparent)',
-              pointerEvents: 'none'
-            }}
-          />
-        )}
-      </Box>
-
-      <Box mt={3} pt={3} borderTop={1} borderColor="divider" display="flex" alignItems="center" justifyContent="space-between">
-         <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            {selectionTab === 0 ? (
-              selectedPackage ? "1 Package selected" : "Select a package"
-            ) : (
-              `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''} selected`
+        {/* Individual: recommended preset + full catalog */}
+        {mode === "individual" && (
+          <>
+            {recommended.length > 0 && (
+              <div className="recommend-card">
+                <p className="recommend-card__context">Based on: <strong>{[orgTypeName(data.facilityType), data.specialization].filter(Boolean).join(" · ")}</strong></p>
+                <p className="recommend-card__heading">Recommended setup</p>
+                <div className="recommend-card__modules">
+                  {recommended.map((m) => <div key={m.slug} className="recommend-card__module">{m.label}</div>)}
+                </div>
+                <div className="recommend-card__footer">
+                  <span className="recommend-card__price"><strong>{inr(recommended.reduce((s, m) => s + priceOf(m), 0))}</strong> / {cycle === "yearly" ? "year" : "month"}</span>
+                  {recommendedApplied
+                    ? <span className="recommend-card__applied">✓ Applied — adjust anything below</span>
+                    : <button type="button" className="btn btn--primary" onClick={applyRecommended}>Use this setup</button>}
+                </div>
+              </div>
             )}
-         </Typography>
-         <Button
-            onClick={handleCompleteSetup}
-            variant="contained"
-            color="primary"
-            size="large"
-            disabled={isNextDisabled}
-            endIcon={(() => { const p = packages.find((x: PackageItem) => x._id === selectedPackage); return p?.isCustom || p?.slug === 'kaero-nexus'; })() ? undefined : <WorkspacePremiumIcon />}
-          >
-            {(() => { const p = packages.find((x: PackageItem) => x._id === selectedPackage); return p?.isCustom || p?.slug === 'kaero-nexus'; })() ? "Continue to Quote" : "Continue to Payment"}
-          </Button>
-      </Box>
-    </Box>
+
+            <div className="module-categories">
+              {categories.map(([cat, mods]) => (
+                <div className="module-category" key={cat}>
+                  <div className="module-category__title">{cat}</div>
+                  {mods.map((m) => {
+                    const rec = m.isHero || (data.facilityType && m.recommendedFor?.includes(data.facilityType));
+                    return (
+                      <div className="module-row" key={m.slug}>
+                        <div className="module-row__info">
+                          <span className="module-row__name">
+                            {m.label}
+                            {rec && <span className="module-row__rec">Recommended</span>}
+                          </span>
+                          <span className="module-row__price">{m.isCustom ? "Custom pricing" : `${inr(priceOf(m))} / ${cycle === "yearly" ? "year" : "month"}`}</span>
+                        </div>
+                        <label className="toggle">
+                          <input type="checkbox" checked={selectedModules.includes(m.slug)} onChange={() => toggleModule(m.slug)} aria-label={m.label} />
+                          <span className="toggle__track" />
+                          <span className="toggle__thumb" />
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Packages */}
+        {mode === "package" && (
+          <div className="package-grid">
+            {packages.map((p) => {
+              const isSel = selectedPackage === p._id;
+              return (
+                <button type="button" key={p._id} className={`package-card ${isSel ? "is-selected" : ""}`} onClick={() => setSelectedPackage(p._id)}>
+                  {p.badge && <span className="package-card__badge">{p.badge}</span>}
+                  <span className="package-card__name">{p.label}</span>
+                  {p.tagline && <span className="package-card__tagline">{p.tagline}</span>}
+                  <span className="package-card__price"><strong>{inr(pkgPrice(p))}</strong> <span>/ {cycle === "yearly" ? "yr" : "mo"}</span></span>
+                  <span className="package-card__modules">
+                    {(p.modules || []).map((s) => moduleBySlug[s]?.label || s).join(" · ") || "—"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Custom plan */}
+        {mode === "custom" && (
+          <div className="custom-card">
+            <p className="custom-card__heading">Enterprise &amp; custom needs</p>
+            <p className="custom-card__body">For multi-city or multi-branch operations, large staff counts, or negotiated limits, our team will build a tailored plan and quote for you.</p>
+            <ul>
+              <li>Multi-branch &amp; multi-city</li>
+              <li>Custom staff &amp; storage limits</li>
+              <li>Negotiated pricing</li>
+              <li>Dedicated onboarding</li>
+            </ul>
+            {customPackages.length > 0 ? (
+              <div className="package-grid">
+                {customPackages.map((p) => {
+                  const isSel = selectedPackage === p._id;
+                  return (
+                    <button type="button" key={p._id} className={`package-card ${isSel ? "is-selected" : ""}`} onClick={() => setSelectedPackage(p._id)}>
+                      {p.badge && <span className="package-card__badge">{p.badge}</span>}
+                      <span className="package-card__name">{p.label}</span>
+                      {p.tagline && <span className="package-card__tagline">{p.tagline}</span>}
+                      <span className="package-card__price"><strong>Custom quote</strong></span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <a className="btn btn--secondary" href="mailto:sales@kaerogroup.com?subject=Custom%20plan%20enquiry">Talk to our team</a>
+            )}
+          </div>
+        )}
+
+        {/* Sticky configuration summary */}
+        <div className="modules-layout__summary">
+          <div className="config-summary">
+            <div className="config-summary__row">
+              <div>
+                <p className="config-summary__title">Your configuration</p>
+                <p className="config-summary__meta">{summaryMeta}</p>
+              </div>
+              <div className="billing-toggle" role="radiogroup" aria-label="Billing cycle">
+                <button type="button" className={`billing-toggle__option ${cycle === "monthly" ? "is-active" : ""}`} onClick={() => setCycle("monthly")}>Monthly</button>
+                <button type="button" className={`billing-toggle__option ${cycle === "yearly" ? "is-active" : ""}`} onClick={() => setCycle("yearly")}>Yearly <span className="billing-toggle__badge">2 months free</span></button>
+              </div>
+            </div>
+            <div className="config-summary__price">
+              <span className="config-summary__amount">{summaryAmount}</span>
+              {!isCustomSelection && <span className="config-summary__period">/ {cycle === "yearly" ? "year" : "month"}</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="screen__actions">
+          <button className="btn btn--secondary" type="button" onClick={onBack}>Back</button>
+          <button className="btn btn--primary" type="button" disabled={!canContinue} onClick={handleContinue}>
+            {isCustomSelection ? "Continue to quote" : "Continue"}
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }

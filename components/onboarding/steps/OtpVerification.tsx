@@ -1,15 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { VerifyOtpSchema, VerifyOtpFormValues } from "@/lib/validations/onboarding-schema";
+import { useEffect, useRef, useState } from "react";
 import { useVerifyOtpMutation, useResendOtpMutation } from "@/hooks/queries/useOnboarding";
 import { VerifyOtpResponse, ResendOtpResponse } from "@/lib/api/types/onboarding.types";
-import { Box, Typography, TextField, Button, Link, IconButton } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import { CircularProgress } from "@mui/material";
 import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
@@ -20,187 +13,128 @@ interface Props {
 }
 
 export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<VerifyOtpFormValues>({
-    resolver: zodResolver(VerifyOtpSchema),
-  });
-
-  const [otpArray, setOtpArray] = useState<string[]>(Array(6).fill(""));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  useEffect(() => {
-    register("otp");
-  }, [register]);
-
-  const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (value && !/^\d+$/.test(value)) return;
-
-    const newOtp = [...otpArray];
-    newOtp[index] = value.substring(value.length - 1);
-    setOtpArray(newOtp);
-    
-    setValue("otp", newOtp.join(""), { shouldValidate: true });
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Backspace" && !otpArray[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData("text").slice(0, 6).replace(/\D/g, "");
-    if (!pasteData) return;
-
-    const newOtp = [...otpArray];
-    for (let i = 0; i < pasteData.length; i++) {
-      if (i < 6) newOtp[i] = pasteData[i];
-    }
-    setOtpArray(newOtp);
-    setValue("otp", newOtp.join(""), { shouldValidate: true });
-
-    const focusIndex = Math.min(pasteData.length, 5);
-    inputRefs.current[focusIndex]?.focus();
-  };
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const [showError, setShowError] = useState(false);
+  const [cooldown, setCooldown] = useState(30);
 
   const { mutate: verifyOtp, isPending: verifying, error: verifyError } = useVerifyOtpMutation();
-  const { mutate: resendOtp, isPending: resending, error: resendError } = useResendOtpMutation();
+  const { mutate: resendOtp, isPending: resending } = useResendOtpMutation();
 
-  const handleResend = () => {
-    if (data.sessionId) {
-      resendOtp(
-        { sessionId: data.sessionId },
-        {
-          onSuccess: (res: ResendOtpResponse) => {
-            alert(res.message);
-          },
-        }
-      );
-    }
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const code = otp.join("");
+
+  const change = (i: number, v: string) => {
+    if (v && !/^\d$/.test(v)) return;
+    const next = [...otp];
+    next[i] = v.slice(-1);
+    setOtp(next);
+    setShowError(false);
+    if (v && i < 5) refs.current[i + 1]?.focus();
   };
 
-  const onSubmit = (values: VerifyOtpFormValues) => {
-    if (!data.sessionId) return;
+  const keydown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[i] && i > 0) refs.current[i - 1]?.focus();
+  };
+
+  const paste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const t = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!t) return;
+    const next = [...otp];
+    for (let j = 0; j < 6; j++) next[j] = t[j] || "";
+    setOtp(next);
+    refs.current[Math.min(t.length, 5)]?.focus();
+  };
+
+  const verify = () => {
+    if (code.length < 6 || !data.sessionId) {
+      setShowError(true);
+      return;
+    }
     verifyOtp(
-      { sessionId: data.sessionId, otp: values.otp },
+      { sessionId: data.sessionId, otp: code },
       {
         onSuccess: (res: VerifyOtpResponse) => {
           if (res.success || res.verified) {
             updateData({ verifiedToken: res.verifiedToken });
             onNext();
           } else {
-             console.log(res.message);
+            setShowError(true);
           }
+        },
+        onError: () => setShowError(true),
+      }
+    );
+  };
+
+  const resend = () => {
+    if (cooldown > 0 || !data.sessionId) return;
+    resendOtp(
+      { sessionId: data.sessionId },
+      {
+        onSuccess: (res: ResendOtpResponse) => {
+          setCooldown(30);
+          if (res.message) alert(res.message);
         },
       }
     );
   };
 
+  const err = showError || !!verifyError;
+
   return (
-    <Box className="animate-fade-up">
-      <Box mb={4}>
-        <Button
-          onClick={onBack}
-          startIcon={<ArrowBackIcon />}
-          sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}
-          size="small"
-        >
-          Back to Email
-        </Button>
-        <Typography variant="h4" color="text.primary" gutterBottom>
-          Check your email
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          We sent a 6-digit verification code to <Box component="span" fontWeight="500" color="text.primary">{data.email}</Box>.
-        </Typography>
-      </Box>
+    <section className="screen">
+      <div className="screen__container screen__container--narrow">
+        <p className="eyebrow">Step 2</p>
+        <h1 className="screen__title">Check your email</h1>
+        <p className="screen__subtitle">
+          We sent a 6-digit verification code to <strong>{data.email || "your email"}</strong>
+        </p>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Box mb={4}>
-          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 500, color: 'text.secondary', textAlign: 'center' }}>
-            Enter 6-Digit Code
-          </Typography>
-          <Box display="flex" gap={1} justifyContent="center" onPaste={handlePaste}>
-            {otpArray.map((digit, index) => (
-              <input
-                key={index}
-                type="text"
-                maxLength={1}
-                ref={(el: any) => { inputRefs.current[index] = el; }}
-                value={digit}
-                onChange={(e) => handleOtpChange(index, e)}
-                onKeyDown={(e) => handleKeyDown(index, e as any)}
-                disabled={verifying}
-                autoFocus={index === 0}
-                style={{
-                  width: '48px',
-                  height: '56px',
-                  textAlign: 'center',
-                  fontSize: '20px',
-                  fontWeight: 500,
-                  borderRadius: '8px',
-                  border: `0.5px solid ${(errors.otp || verifyError) ? '#ef4444' : 'rgba(255,255,255,0.15)'}`,
-                  backgroundColor: 'rgba(255,255,255,0.03)',
-                  color: '#fff',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = (errors.otp || verifyError) ? '#ef4444' : '#0F6E56'}
-                onBlur={(e) => e.target.style.borderColor = (errors.otp || verifyError) ? '#ef4444' : 'rgba(255,255,255,0.15)'}
-              />
-            ))}
-          </Box>
-          {(errors.otp || verifyError) && (
-            <Typography variant="caption" color="error" display="block" align="center" mt={1}>
-              {errors.otp?.message || verifyError?.message}
-            </Typography>
-          )}
-        </Box>
+        <div className="form">
+          <div className="field">
+            <label className="field__label">Verification code</label>
+            <div className="otp-group" onPaste={paste}>
+              {otp.map((d, i) => (
+                <input
+                  key={i}
+                  className={`otp-digit ${err ? "is-invalid" : ""}`}
+                  inputMode="numeric"
+                  maxLength={1}
+                  ref={(el) => { refs.current[i] = el; }}
+                  value={d}
+                  disabled={verifying}
+                  autoFocus={i === 0}
+                  onChange={(e) => change(i, e.target.value)}
+                  onKeyDown={(e) => keydown(i, e)}
+                  aria-label={`Digit ${i + 1}`}
+                />
+              ))}
+            </div>
+            {err && <p className="field__hint field__hint--error">That code didn&apos;t match. Check your email and try again.</p>}
+          </div>
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="large"
-          disabled={verifying}
-          endIcon={verifying ? <CircularProgress size={20} color="inherit" /> : <CheckCircleOutlineIcon />}
-          sx={{ mb: 3 }}
-        >
-          {verifying ? "Verifying..." : "Verify & Continue"}
-        </Button>
+          <div className="otp-meta">
+            <button className="link-btn" type="button" disabled={cooldown > 0 || resending} onClick={resend}>
+              {cooldown > 0 ? `Resend code in ${cooldown}s` : resending ? "Resending…" : "Resend code"}
+            </button>
+            <button className="link-btn" type="button" onClick={onBack}>Change email</button>
+          </div>
 
-        <Typography variant="body2" align="center" color="text.secondary">
-          Didn't receive the code?{" "}
-          <Link
-            component="button"
-            type="button"
-            variant="body2"
-            underline="hover"
-            onClick={handleResend}
-            disabled={resending}
-            sx={{ fontWeight: 500, ml: 1 }}
-          >
-            {resending ? "Resending..." : "Resend it"}
-          </Link>
-        </Typography>
-        {resendError && (
-          <Typography variant="caption" color="error" display="block" align="center" mt={1}>
-            {resendError.message}
-          </Typography>
-        )}
-      </form>
-    </Box>
+          <div className="screen__actions">
+            <button className="btn btn--secondary" type="button" onClick={onBack}>Back</button>
+            <button className="btn btn--primary" type="button" disabled={verifying} onClick={verify}>
+              {verifying ? <><span className="spinner" /> Verifying…</> : "Verify"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
