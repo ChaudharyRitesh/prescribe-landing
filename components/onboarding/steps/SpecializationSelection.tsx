@@ -31,7 +31,7 @@ export function SpecializationSelection({ onNext, onBack, updateData, data }: Pr
 
         <div className="option-grid option-grid--compact" role="radiogroup" aria-label="Specialization">
           {list.map((s) => {
-            const isSel = selected === s.label;
+            const isSel = selected === s.id;
             return (
               <button
                 type="button"
@@ -39,7 +39,7 @@ export function SpecializationSelection({ onNext, onBack, updateData, data }: Pr
                 role="radio"
                 aria-checked={isSel}
                 className={`option-card ${isSel ? "is-selected" : ""}`}
-                onClick={() => updateData({ specialization: s.label })}
+                onClick={() => updateData({ specialization: s.id })}
               >
                 <div className="option-card__header">
                   <div className="option-card__title">{s.label}</div>

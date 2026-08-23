@@ -3,7 +3,14 @@
 import { useMemo, useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { inr, moduleCountLabel, selectionHeaderName, useOrderPricing } from "../pricing";
-import { orgTypeName, ScreenId } from "../onboardingConfig";
+import { orgSubTypeLabel, orgTypeName, ScreenId } from "../onboardingConfig";
+import {
+  isValidIndianMobile,
+  isValidIndianPin,
+  normalizeAddressLine,
+  normalizeIndianMobile,
+  normalizePostalCode,
+} from "@/lib/validations/normalize";
 import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
@@ -20,9 +27,16 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
 
   const [address, setAddress] = useState(data.address?.street || "");
   const [city, setCity] = useState(data.address?.city || "");
-  const [pin, setPin] = useState(data.address?.postalCode || "");
-  const [phone, setPhone] = useState(data.contactPhone || "");
+  const [pin, setPin] = useState(normalizePostalCode(data.address?.postalCode || ""));
+  const [phone, setPhone] = useState(normalizeIndianMobile(data.contactPhone || ""));
   const [terms, setTerms] = useState(!!data.termsAccepted);
+  const [touched, setTouched] = useState<{ phone?: boolean; pin?: boolean }>({});
+
+  // Both optional (backend persists them only when present), but a non-empty value must be canonical.
+  const phoneValid = phone === "" || isValidIndianMobile(phone);
+  const pinValid = pin === "" || isValidIndianPin(pin);
+  const phoneError = touched.phone && !phoneValid;
+  const pinError = touched.pin && !pinValid;
 
   const pricing = useOrderPricing(data);
 
@@ -44,15 +58,24 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
     : selectionHeaderName(selectionLabels);
   const countLabel = moduleCountLabel(selectionLabels.length, isPackage);
 
-  const orgTypeLine = [orgTypeName(orgTypesRes?.data, data.facilityType), data.specialization].filter(Boolean).join(" · ");
+  const orgTypeLine = [
+    orgTypeName(orgTypesRes?.data, data.facilityType),
+    orgSubTypeLabel(orgTypesRes?.data, data.facilityType, data.specialization),
+  ].filter(Boolean).join(" · ");
 
-  const canContinue = terms && (pricing.isCustom || !!pricing.money);
+  const canContinue = terms && phoneValid && pinValid && (pricing.isCustom || !!pricing.money);
 
   const continueToPayment = () => {
-    if (!canContinue) return;
+    if (!terms || !(pricing.isCustom || !!pricing.money)) return;
+    if (!phoneValid || !pinValid) { setTouched({ phone: true, pin: true }); return; }
     updateData({
-      address: { ...(data.address || {}), street: address, city, postalCode: pin },
-      contactPhone: phone,
+      address: {
+        ...(data.address || {}),
+        street: normalizeAddressLine(address),
+        city: normalizeAddressLine(city),
+        postalCode: pin,
+      },
+      contactPhone: phone, // 10 national digits; backend normalizePhone canonicalizes to E.164
       termsAccepted: true,
       termsAcceptedAt: new Date().toISOString(),
     });
@@ -75,6 +98,11 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
               </div>
               <p className="review-card__primary">{data.orgName || "—"}</p>
               <p className="review-card__secondary">{orgTypeLine || "—"}</p>
+              {data.doctorsSelected && (
+                <p className="review-card__secondary">
+                  Owner role: <strong>{data.ownerPractitionerIntent ? "Practicing Doctor" : "Organization Administrator only"}</strong>
+                </p>
+              )}
             </div>
 
             <div className="review-card">
@@ -103,19 +131,46 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
               <div className="form form--grid form--compact" style={{ marginTop: 12 }}>
                 <div className="field field--span2">
                   <label className="field__label" htmlFor="addr">Address</label>
-                  <input id="addr" className="field__input" placeholder="Street, area" value={address} onChange={(e) => setAddress(e.target.value)} />
+                  <input id="addr" className="field__input" autoComplete="address-line1" maxLength={120} placeholder="Street, area" value={address} onChange={(e) => setAddress(e.target.value)} />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="city">City</label>
-                  <input id="city" className="field__input" placeholder="Kolkata" value={city} onChange={(e) => setCity(e.target.value)} />
+                  <input id="city" className="field__input" autoComplete="address-level2" maxLength={60} placeholder="Kolkata" value={city} onChange={(e) => setCity(e.target.value)} />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="pin">PIN code</label>
-                  <input id="pin" className="field__input" placeholder="700001" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
+                  <input
+                    id="pin"
+                    className={`field__input ${pinError ? "is-invalid" : ""}`}
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    maxLength={6}
+                    placeholder="700001"
+                    value={pin}
+                    aria-invalid={!!pinError}
+                    aria-describedby={pinError ? "pin-err" : undefined}
+                    onChange={(e) => setPin(normalizePostalCode(e.target.value))}
+                    onBlur={() => setTouched((t) => ({ ...t, pin: true }))}
+                  />
+                  {pinError && <p id="pin-err" className="field__hint field__hint--error">PIN code must contain 6 digits.</p>}
                 </div>
                 <div className="field field--span2">
                   <label className="field__label" htmlFor="phone">Contact phone</label>
-                  <input id="phone" className="field__input" type="tel" placeholder="+91 98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <input
+                    id="phone"
+                    className={`field__input ${phoneError ? "is-invalid" : ""}`}
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel-national"
+                    maxLength={10}
+                    placeholder="98765 43210"
+                    value={phone}
+                    aria-invalid={!!phoneError}
+                    aria-describedby={phoneError ? "phone-err" : undefined}
+                    onChange={(e) => setPhone(normalizeIndianMobile(e.target.value))}
+                    onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                  />
+                  {phoneError && <p id="phone-err" className="field__hint field__hint--error">Enter a 10-digit mobile number (starts 6–9).</p>}
                 </div>
               </div>
             </div>

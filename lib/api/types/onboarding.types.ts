@@ -1,15 +1,25 @@
 // --- Core Enums ---
 export type SelectionType = 'package' | 'individual';
 export type BillingCycle = 'monthly' | 'yearly';
-export type OnboardingStatus = 
-  | 'email_pending_otp' 
-  | 'otp_verified' 
-  | 'form_submitted' 
-  | 'pending_payment' 
-  | 'provisioning' 
-  | 'provisioned' 
+export type OnboardingStatus =
+  | 'email_pending_otp'
+  | 'otp_verified'
+  | 'form_submitted'
+  | 'pending_payment'
+  | 'provisioning'
+  | 'provisioned'
+  | 'practitioner_setup_required'
   | 'quote_pending'
   | 'failed';
+
+/** P5-DOC.ONB-A1 — minimal owner-Doctor professional details captured when the owner explicitly
+ *  intends to practice. Consumed server-side as the P5-C.2 LinkedDoctorInput. */
+export interface OwnerDoctorProfile {
+  name?: string;
+  specialization?: string;
+  registrationNumber?: string;
+  phone?: string;
+}
 
 
 // Free-form org-type slug from the live OrganizationTypeCatalog (super-admin managed) — no
@@ -249,12 +259,20 @@ export interface RegisterPayload {
   facilityType?: FacilityType;
   /** Org context sent to the backend (mirrors facilityType). */
   organizationType?: string;
+  /** Canonical subType.id for the chosen org type (e.g. 'general-medicine'), never the display
+   *  label. Optional; validated server-side against the live catalog. Absent when no subtype chosen. */
+  organizationSubType?: string;
   /** Explicit opt-in, only meaningful when the selected org type's catalog entry has
    *  multiBranchEligible:true. Validated server-side against the live catalog at registration. */
   multiBranchEnabled?: boolean;
   /** Consent audit metadata (HIPAA/DPDP) */
   termsAccepted?: boolean;
   consent?: ConsentMeta;
+  /** P5-DOC.ONB-A1 — explicit owner intent to personally practice as a Doctor. Only sent when the
+   *  doctors module is in the selection; honored server-side only when doctors is entitled. */
+  ownerPractitionerIntent?: boolean;
+  /** Minimal owner-Doctor details, sent only when ownerPractitionerIntent is true. */
+  ownerDoctorProfile?: OwnerDoctorProfile;
 }
 
 export interface RegisterResponse extends BaseResponse {

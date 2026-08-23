@@ -106,6 +106,7 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
                   key={i}
                   className={`otp-digit ${err ? "is-invalid" : ""}`}
                   inputMode="numeric"
+                  autoComplete={i === 0 ? "one-time-code" : "off"}
                   maxLength={1}
                   ref={(el) => { refs.current[i] = el; }}
                   value={d}

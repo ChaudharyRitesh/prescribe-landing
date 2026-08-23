@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
-import { orgTypeName } from "../onboardingConfig";
+import { orgSubTypeLabel, orgTypeName } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
@@ -97,11 +97,21 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
 
   const handleContinue = () => {
     if (!canContinue) return;
+    // Whether the doctors module is in the committed selection — drives the practitioner step.
+    const doctorsSelected =
+      mode === "individual"
+        ? selectedModules.includes("doctors")
+        : !!activePackage?.modules?.includes("doctors");
+    // D-4: if doctors is no longer selected, drop any previously-captured owner-practitioner state
+    // so the payload can't request owner-Doctor provisioning without the entitlement.
+    const clearedPractitioner = doctorsSelected
+      ? {}
+      : { ownerPractitionerIntent: undefined, ownerDoctorProfile: undefined };
     if (mode === "individual") {
-      updateData({ selectionType: "individual", selectedModules, packageId: undefined, subscriptionPlan: "individual", billingCycle: cycle });
+      updateData({ selectionType: "individual", selectedModules, packageId: undefined, subscriptionPlan: "individual", billingCycle: cycle, doctorsSelected, ...clearedPractitioner });
     } else {
       const pkg = activePackage;
-      updateData({ selectionType: "package", packageId: selectedPackage || undefined, selectedModules: undefined, subscriptionPlan: pkg?.slug, billingCycle: cycle });
+      updateData({ selectionType: "package", packageId: selectedPackage || undefined, selectedModules: undefined, subscriptionPlan: pkg?.slug, billingCycle: cycle, doctorsSelected, ...clearedPractitioner });
     }
     onNext();
   };
@@ -147,7 +157,7 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
           <>
             {recommended.length > 0 && (
               <div className="recommend-card">
-                <p className="recommend-card__context">Based on: <strong>{[orgTypeName(orgTypes, data.facilityType), data.specialization].filter(Boolean).join(" · ")}</strong></p>
+                <p className="recommend-card__context">Based on: <strong>{[orgTypeName(orgTypes, data.facilityType), orgSubTypeLabel(orgTypes, data.facilityType, data.specialization)].filter(Boolean).join(" · ")}</strong></p>
                 <p className="recommend-card__heading">Recommended setup</p>
                 <div className="recommend-card__modules">
                   {recommended.map((m) => <div key={m.slug} className="recommend-card__module">{m.label}</div>)}

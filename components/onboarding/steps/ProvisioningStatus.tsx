@@ -40,9 +40,10 @@ export function ProvisioningStatus({ data, updateData }: Props) {
   const { data: statusResp, isError } = useProvisioningStatusQuery(sessionId || "", !!sessionId);
   const status = statusResp?.status;
   const isProvisioned = status === "provisioned";
+  const isPractitionerSetup = status === "practitioner_setup_required";
   const isQuote = status === "quote_pending";
   const isFailed = status === "failed" || isError;
-  const inProgress = !!sessionId && !isProvisioned && !isQuote && !isFailed;
+  const inProgress = !!sessionId && !isProvisioned && !isPractitionerSetup && !isQuote && !isFailed;
 
   const clearStorage = () => {
     if (typeof window === "undefined") return;
@@ -59,15 +60,15 @@ export function ProvisioningStatus({ data, updateData }: Props) {
   };
 
   useEffect(() => {
-    if (isProvisioned || isQuote) {
+    if (isProvisioned || isPractitionerSetup || isQuote) {
       clearStorage();
-      updateData?.({ status: isProvisioned ? "provisioned" : "quote_pending" });
+      updateData?.({ status: isProvisioned ? "provisioned" : isPractitionerSetup ? "practitioner_setup_required" : "quote_pending" });
     } else if (isFailed) {
       if (typeof window !== "undefined") localStorage.removeItem("kaero_onboarding_session");
       updateData?.({ status: "failed" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isProvisioned, isQuote, isFailed]);
+  }, [isProvisioned, isPractitionerSetup, isQuote, isFailed]);
 
   useEffect(() => {
     if (!inProgress) return;
@@ -109,6 +110,23 @@ export function ProvisioningStatus({ data, updateData }: Props) {
               <div className="screen__actions screen__actions--center">
                 <button className="btn btn--primary" type="button" onClick={() => { clearStorage(); window.location.href = statusResp?.dashboardUrl || "#"; }}>
                   Open Kaero Prescribe
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isPractitionerSetup && (
+            <div className="provisioning__state">
+              <div className="result-icon result-icon--pending" aria-hidden>●</div>
+              <h1 className="screen__title">Your workspace is ready — one more step for your Doctor setup.</h1>
+              <p className="screen__subtitle">
+                Your organization and Admin account are set up and your login has been emailed. We couldn&apos;t
+                finish setting up your personal Doctor workspace automatically. Log in as Admin and use
+                <strong> &ldquo;I also practice as a Doctor&rdquo;</strong> in your profile to complete it — nothing was lost.
+              </p>
+              <div className="screen__actions screen__actions--center">
+                <button className="btn btn--primary" type="button" onClick={() => { clearStorage(); window.location.href = statusResp?.dashboardUrl || "#"; }}>
+                  Open Admin dashboard
                 </button>
               </div>
             </div>

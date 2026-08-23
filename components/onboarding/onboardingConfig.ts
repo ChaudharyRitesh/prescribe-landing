@@ -18,6 +18,36 @@ export function orgTypeName(orgTypes: OrgType[] | undefined, slug?: string | nul
   return findOrgType(orgTypes, slug)?.label || 'Your organization';
 }
 
+// data.specialization stores the canonical subType.id (e.g. 'general-medicine'), never the display
+// label — that id is what the backend contract validates and persists as Client.organizationSubType.
+// This resolves the human label for display; falls back to the raw stored value if the catalog
+// hasn't loaded (so display never blanks).
+export function orgSubTypeLabel(
+  orgTypes: OrgType[] | undefined,
+  slug: string | null | undefined,
+  subTypeId: string | null | undefined,
+): string | undefined {
+  if (!subTypeId) return undefined;
+  return findOrgType(orgTypes, slug)?.subTypes?.find((s) => s.id === subTypeId)?.label ?? subTypeId;
+}
+
+// Restore-time compatibility: a pre-canonical session may have stored the display label instead of
+// the subType.id. Map it back to the canonical id using the live catalog for the selected org type.
+// Returns the id when the value is already canonical or an exact unique label match; undefined when
+// there's no unique valid match (caller clears it so the user reselects).
+export function normalizeSubType(
+  orgTypes: OrgType[] | undefined,
+  slug: string | null | undefined,
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  const subTypes = findOrgType(orgTypes, slug)?.subTypes;
+  if (!subTypes || subTypes.length === 0) return undefined;
+  if (subTypes.some((s) => s.id === value)) return value; // already canonical id
+  const byLabel = subTypes.filter((s) => s.label === value);
+  return byLabel.length === 1 ? byLabel[0].id : undefined; // exact unique label match, else clear
+}
+
 // Conditional — only org types with multiBranchEligible:true show the branch-setup screen.
 export function isMultiBranchEligible(orgTypes: OrgType[] | undefined, slug?: string | null): boolean {
   return !!findOrgType(orgTypes, slug)?.multiBranchEligible;
@@ -25,10 +55,10 @@ export function isMultiBranchEligible(orgTypes: OrgType[] | undefined, slug?: st
 
 export type ScreenId =
   | 'facility' | 'specialization' | 'email' | 'otp'
-  | 'details' | 'branchSetup' | 'modules' | 'review' | 'payment' | 'provisioning';
+  | 'details' | 'branchSetup' | 'modules' | 'practitioner' | 'review' | 'payment' | 'provisioning';
 
 export const SCREEN_ORDER: ScreenId[] = [
-  'facility', 'specialization', 'email', 'otp', 'details', 'branchSetup', 'modules', 'review', 'payment', 'provisioning',
+  'facility', 'specialization', 'email', 'otp', 'details', 'branchSetup', 'modules', 'practitioner', 'review', 'payment', 'provisioning',
 ];
 
 export const RAIL_STEPS: { rail: number; label: string }[] = [
@@ -42,5 +72,5 @@ export const RAIL_STEPS: { rail: number; label: string }[] = [
 
 export const SCREEN_RAIL: Record<ScreenId, number> = {
   facility: 1, specialization: 1, email: 2, otp: 2,
-  details: 3, branchSetup: 3, modules: 4, review: 5, payment: 5, provisioning: 6,
+  details: 3, branchSetup: 3, modules: 4, practitioner: 4, review: 5, payment: 5, provisioning: 6,
 };

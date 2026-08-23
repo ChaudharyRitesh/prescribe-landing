@@ -57,6 +57,12 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
       referralCode: data.referralCode,
       facilityType: data.facilityType as FacilityType | undefined,
       organizationType: data.facilityType,
+      // Canonical subType.id (e.g. 'general-medicine'), omitted when no subtype was chosen.
+      organizationSubType: data.specialization || undefined,
+      // P5-DOC.ONB-A1 — only request owner-Doctor provisioning when doctors is actually selected.
+      ownerPractitionerIntent: data.doctorsSelected ? !!data.ownerPractitionerIntent : undefined,
+      ownerDoctorProfile:
+        data.doctorsSelected && data.ownerPractitionerIntent ? data.ownerDoctorProfile : undefined,
       multiBranchEnabled: !!data.multiBranchEnabled,
       termsAccepted: !!data.termsAccepted,
       consent: {

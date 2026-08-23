@@ -67,7 +67,9 @@ export const useProvisioningStatusQuery = (sessionId: string, enabled: boolean =
     enabled: !!sessionId && enabled,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      if (status === 'provisioned' || status === 'failed' || status === 'quote_pending') return false; // Stop polling
+      // Terminal states — stop polling. practitioner_setup_required is terminal for onboarding:
+      // the tenant is usable; the owner completes Doctor setup from the Admin dashboard.
+      if (status === 'provisioned' || status === 'failed' || status === 'quote_pending' || status === 'practitioner_setup_required') return false;
       return 3000; // Poll every 3 seconds
     },
     refetchIntervalInBackground: true,

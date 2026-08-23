@@ -9,6 +9,7 @@ import {
   ScreenId,
   hasSpecialization,
   isMultiBranchEligible,
+  normalizeSubType,
 } from "./onboardingConfig";
 import { FacilityTypeSelection } from "./steps/FacilityTypeSelection";
 import { SpecializationSelection } from "./steps/SpecializationSelection";
@@ -20,7 +21,8 @@ import { ModuleCatalogSelection } from "./steps/ModuleCatalogSelection";
 import { ReviewStep } from "./steps/ReviewStep";
 import { PaymentStep } from "./steps/PaymentStep";
 import { ProvisioningStatus } from "./steps/ProvisioningStatus";
-import { PricingSnapshot } from "@/lib/api/types/onboarding.types";
+import { OwnerDoctorProfile, PricingSnapshot } from "@/lib/api/types/onboarding.types";
+import { PractitionerIntent } from "./steps/PractitionerIntent";
 
 export type OnboardingData = {
   sessionId?: string;
@@ -33,7 +35,15 @@ export type OnboardingData = {
   referralCode?: string;
   gstNumber?: string;
   facilityType?: string;
+  /** Canonical subType.id (e.g. 'general-medicine'), never the display label — see orgSubTypeLabel. */
   specialization?: string;
+  /** Whether the doctors module is in the committed selection — drives the practitioner step gate
+   *  (P5-DOC.ONB-A1). Set by ModuleCatalogSelection; clears owner-practitioner state when false. */
+  doctorsSelected?: boolean;
+  /** Explicit owner intent to personally practice as a Doctor. Tri-state: undefined = not yet
+   *  chosen (Continue disabled), true/false = explicit choice. */
+  ownerPractitionerIntent?: boolean;
+  ownerDoctorProfile?: OwnerDoctorProfile;
   multiBranchEnabled?: boolean;
   selectionType?: 'package' | 'individual';
   packageId?: string;
@@ -86,6 +96,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     if (
       data.status === 'provisioned' ||
       data.status === 'provisioning' ||
+      data.status === 'practitioner_setup_required' ||
       data.status === 'quote_pending' ||
       data.status === 'failed'
     ) {
@@ -95,6 +106,16 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.sessionId, data.status]);
+
+  // Normalize a legacy display-label specialization (from a restored pre-canonical session) to the
+  // current canonical subType.id once the live catalog is available. No-op for canonical ids; clears
+  // the subtype when there's no unique valid match so the user reselects.
+  useEffect(() => {
+    if (!orgTypes || orgTypes.length === 0 || !data.specialization) return;
+    const normalized = normalizeSubType(orgTypes, data.facilityType, data.specialization);
+    if (normalized !== data.specialization) updateData({ specialization: normalized });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgTypes, data.facilityType, data.specialization]);
 
   const goTo = (s: ScreenId) => {
     setScreen(s);
@@ -108,6 +129,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
       const candidate = SCREEN_ORDER[idx];
       if (candidate === 'specialization' && !hasSpecialization(orgTypes, data.facilityType)) continue;
       if (candidate === 'branchSetup' && !isMultiBranchEligible(orgTypes, data.facilityType)) continue;
+      if (candidate === 'practitioner' && !data.doctorsSelected) continue;
       goTo(candidate);
       return;
     }
@@ -162,6 +184,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
         {screen === 'details' && <OrganizationDetails {...stepProps} />}
         {screen === 'branchSetup' && <BranchSetupSelection {...stepProps} />}
         {screen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
+        {screen === 'practitioner' && <PractitionerIntent {...stepProps} />}
         {screen === 'review' && <ReviewStep {...stepProps} goTo={goTo} />}
         {screen === 'payment' && <PaymentStep {...stepProps} />}
         {screen === 'provisioning' && <ProvisioningStatus data={data} updateData={updateData} />}
