@@ -23,6 +23,7 @@ import {
 } from "@/lib/validations/normalize";
 import { orgSubTypeLabel } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_SUBDOMAIN_RESERVATION_ERROR } from "../safeErrorMessages";
 
 const Schema = z.object({
   orgName: z.string().trim().min(2, "Organization name must be at least 2 characters").max(120, "Organization name is too long"),
@@ -149,13 +150,10 @@ export function OrganizationDetails({ onNext, onBack, updateData, data }: Props)
             onNext();
           } else {
             setSubStatus("taken");
-            alert(res.message || "This URL is no longer available. Please choose another one.");
+            alert(SAFE_SUBDOMAIN_RESERVATION_ERROR);
           }
         },
-        onError: (err: unknown) => {
-          const e = err as { response?: { data?: { message?: string } }; message?: string };
-          alert(e?.response?.data?.message || e?.message || "Failed to reserve the workspace URL.");
-        },
+        onError: () => alert(SAFE_SUBDOMAIN_RESERVATION_ERROR),
       }
     );
   };

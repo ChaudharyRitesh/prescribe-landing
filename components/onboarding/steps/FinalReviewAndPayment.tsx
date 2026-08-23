@@ -18,6 +18,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import { AddressInput } from "@/components/ui/google-places-input";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_WORKSPACE_SETUP_ERROR } from "../safeErrorMessages";
 import { useRegisterOrgMutation, useVerifyGstMutation, useCatalogQuery } from "@/hooks/queries/useOnboarding";
 import { loadRazorpayScript } from "@/lib/services/razorpay.service";
 import { Address } from "@/lib/api/types/onboarding.types";
@@ -237,13 +238,7 @@ export function FinalReviewAndPayment({ onNext, onBack, updateData, data }: Prop
             onNext();
           }
         },
-        onError: (err: any) => {
-          setErrorMsg(
-            err?.response?.data?.message ||
-            err.message ||
-            "Something went wrong. Please try again or contact support."
-          );
-        },
+        onError: () => setErrorMsg(SAFE_WORKSPACE_SETUP_ERROR),
       }
     );
   };

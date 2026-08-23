@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useProvisioningStatusQuery } from "@/hooks/queries/useOnboarding";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_WORKSPACE_SETUP_ERROR } from "../safeErrorMessages";
 
 interface Props {
   data: OnboardingData;
@@ -151,10 +152,7 @@ export function ProvisioningStatus({ data, updateData }: Props) {
             <div className="provisioning__state">
               <div className="result-icon result-icon--error" aria-hidden>!</div>
               <h1 className="screen__title">We couldn&apos;t finish setting up your workspace.</h1>
-              <p className="screen__subtitle">
-                {statusResp?.failureReason ||
-                  "Your payment was received, but something interrupted the setup. No charges were duplicated — you can safely try again."}
-              </p>
+              <p className="screen__subtitle">{SAFE_WORKSPACE_SETUP_ERROR}</p>
               <div className="screen__actions screen__actions--center">
                 <button className="btn btn--primary" type="button" onClick={() => { if (typeof window !== "undefined") localStorage.removeItem("kaero_onboarding_session"); window.location.href = "/onboarding"; }}>
                   Try again

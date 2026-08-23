@@ -7,6 +7,7 @@ import { TERMS_VERSION } from "@/lib/legal";
 import { FacilityType, RegisterPayload, RegisterResponse } from "@/lib/api/types/onboarding.types";
 import { inr, useOrderPricing } from "../pricing";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_WORKSPACE_SETUP_ERROR } from "../safeErrorMessages";
 
 interface Props {
   onNext: () => void;
@@ -144,10 +145,7 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
             onNext();
           }
         },
-        onError: (err: unknown) => {
-          const e = err as { response?: { data?: { message?: string } }; message?: string };
-          setErrorMsg(e?.response?.data?.message || e?.message || "Something went wrong. Please try again.");
-        },
+        onError: () => setErrorMsg(SAFE_WORKSPACE_SETUP_ERROR),
       }
     );
   };

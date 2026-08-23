@@ -7,6 +7,7 @@ import { useInitiateMutation } from "@/hooks/queries/useOnboarding";
 import { InitiateResponse } from "@/lib/api/types/onboarding.types";
 import { normalizeEmail } from "@/lib/validations/normalize";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_ONBOARDING_START_ERROR } from "../safeErrorMessages";
 
 interface Props {
   onNext: () => void;
@@ -34,7 +35,7 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
       {
         onSuccess: (res: InitiateResponse) => {
           if (res.onboarded) {
-            alert(res.message);
+            alert("Your workspace is already active. Taking you to your dashboard.");
             if (res.dashboardUrl) window.location.href = res.dashboardUrl;
           } else if (res.canResume) {
             updateData({ email, sessionId: res.sessionId, verifiedToken: res.verifiedToken });
@@ -48,7 +49,7 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
     );
   };
 
-  const serverError = error ? (error as Error).message : null;
+  const serverError = error ? SAFE_ONBOARDING_START_ERROR : null;
   const hasError = !!errors.email || !!serverError;
 
   return (

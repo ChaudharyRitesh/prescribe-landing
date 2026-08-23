@@ -80,7 +80,7 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
       {
         onSuccess: (res: ResendOtpResponse) => {
           setCooldown(30);
-          if (res.message) alert(res.message);
+          if (res.success) alert("A new verification code was sent.");
         },
       }
     );
