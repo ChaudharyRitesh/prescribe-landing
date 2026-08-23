@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { normalizeName } from "@/lib/validations/normalize";
-import { orgSubTypeLabel } from "../onboardingConfig";
+import { isDoctorProfessionalPractice, orgSubTypeLabel } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
@@ -18,9 +18,12 @@ interface Props {
 export function PractitionerIntent({ onNext, onBack, updateData, data }: Props) {
   const { data: orgTypesRes } = useOrgTypesQuery();
   const specializationSuggestion = orgSubTypeLabel(orgTypesRes?.data, data.facilityType, data.specialization);
+  const soloDoctorDefault = data.doctorsSelected && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
 
-  // Tri-state: undefined until the owner explicitly chooses.
-  const [intent, setIntent] = useState<boolean | undefined>(data.ownerPractitionerIntent);
+  // Canonical solo Doctor practice defaults to Yes; explicit true/false always wins.
+  const [intent, setIntent] = useState<boolean | undefined>(
+    data.ownerPractitionerIntent ?? (soloDoctorDefault ? true : undefined),
+  );
   const [name, setName] = useState(data.ownerDoctorProfile?.name ?? data.contactName ?? "");
   const [registrationNumber, setRegistrationNumber] = useState(data.ownerDoctorProfile?.registrationNumber ?? "");
   const [specialization, setSpecialization] = useState(

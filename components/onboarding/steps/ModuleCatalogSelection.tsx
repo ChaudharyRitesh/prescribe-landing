@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
-import { orgSubTypeLabel, orgTypeName } from "../onboardingConfig";
+import { isDoctorProfessionalPractice, orgSubTypeLabel, orgTypeName } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
+import { practitionerClearPatch, soloDoctorPractitionerDefault } from "../reviewEditNavigation";
 
 interface Props {
-  onNext: () => void;
+  onNext: (committedData?: Partial<OnboardingData>) => void;
   onBack: () => void;
   updateData: (data: Partial<OnboardingData>) => void;
   data: OnboardingData;
@@ -104,16 +105,19 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
         : !!activePackage?.modules?.includes("doctors");
     // D-4: if doctors is no longer selected, drop any previously-captured owner-practitioner state
     // so the payload can't request owner-Doctor provisioning without the entitlement.
-    const clearedPractitioner = doctorsSelected
-      ? {}
-      : { ownerPractitionerIntent: undefined, ownerDoctorProfile: undefined };
+    const clearedPractitioner = practitionerClearPatch(doctorsSelected);
+    const soloDoctorDefault = doctorsSelected && isDoctorProfessionalPractice(orgTypes, data.facilityType)
+      ? soloDoctorPractitionerDefault(data, orgSubTypeLabel(orgTypes, data.facilityType, data.specialization))
+      : {};
+    let committedData: Partial<OnboardingData>;
     if (mode === "individual") {
-      updateData({ selectionType: "individual", selectedModules, packageId: undefined, subscriptionPlan: "individual", billingCycle: cycle, doctorsSelected, ...clearedPractitioner });
+      committedData = { selectionType: "individual", selectedModules, packageId: undefined, subscriptionPlan: "individual", billingCycle: cycle, doctorsSelected, ...clearedPractitioner, ...soloDoctorDefault };
     } else {
       const pkg = activePackage;
-      updateData({ selectionType: "package", packageId: selectedPackage || undefined, selectedModules: undefined, subscriptionPlan: pkg?.slug, billingCycle: cycle, doctorsSelected, ...clearedPractitioner });
+      committedData = { selectionType: "package", packageId: selectedPackage || undefined, selectedModules: undefined, subscriptionPlan: pkg?.slug, billingCycle: cycle, doctorsSelected, ...clearedPractitioner, ...soloDoctorDefault };
     }
-    onNext();
+    updateData(committedData);
+    onNext(committedData);
   };
 
   if (isLoading) {

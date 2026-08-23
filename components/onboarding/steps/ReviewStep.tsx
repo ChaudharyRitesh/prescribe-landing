@@ -3,40 +3,47 @@
 import { useMemo, useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { inr, moduleCountLabel, selectionHeaderName, useOrderPricing } from "../pricing";
-import { orgSubTypeLabel, orgTypeName, ScreenId } from "../onboardingConfig";
+import { isDoctorProfessionalPractice, orgSubTypeLabel, orgTypeName, ScreenId } from "../onboardingConfig";
 import {
   isValidIndianMobile,
   isValidIndianPin,
   normalizeAddressLine,
   normalizeIndianMobile,
+  normalizeName,
   normalizePostalCode,
 } from "@/lib/validations/normalize";
-import { OnboardingData } from "../OnboardingWizard";
+import type { OnboardingData, ReviewEditTarget } from "../OnboardingWizard";
+import { soloDoctorIntentPatch } from "../reviewEditNavigation";
 
 interface Props {
   onNext: () => void;
   onBack: () => void;
   updateData: (data: Partial<OnboardingData>) => void;
   data: OnboardingData;
-  goTo?: (s: ScreenId) => void;
+  onEdit: (target: ReviewEditTarget, screen: ScreenId) => void;
 }
 
-export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
+export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) {
   const { data: catalog } = useCatalogQuery();
   const { data: orgTypesRes } = useOrgTypesQuery();
 
-  const [address, setAddress] = useState(data.address?.street || "");
-  const [city, setCity] = useState(data.address?.city || "");
-  const [pin, setPin] = useState(normalizePostalCode(data.address?.postalCode || ""));
-  const [phone, setPhone] = useState(normalizeIndianMobile(data.contactPhone || ""));
   const [terms, setTerms] = useState(!!data.termsAccepted);
   const [touched, setTouched] = useState<{ phone?: boolean; pin?: boolean }>({});
 
-  // Both optional (backend persists them only when present), but a non-empty value must be canonical.
-  const phoneValid = phone === "" || isValidIndianMobile(phone);
-  const pinValid = pin === "" || isValidIndianPin(pin);
-  const phoneError = touched.phone && !phoneValid;
-  const pinError = touched.pin && !pinValid;
+  const address = data.address?.street || "";
+  const city = data.address?.city || "";
+  const normalizedPhone = normalizeIndianMobile(data.contactPhone || "");
+  const normalizedPin = normalizePostalCode(data.address?.postalCode || "");
+  // Both remain optional under the existing contract, but restored non-empty values must be valid.
+  const contactDetailsValid =
+    (normalizedPhone === "" || isValidIndianMobile(normalizedPhone)) &&
+    (normalizedPin === "" || isValidIndianPin(normalizedPin));
+  const phoneError = touched.phone && normalizedPhone !== "" && !isValidIndianMobile(normalizedPhone);
+  const pinError = touched.pin && normalizedPin !== "" && !isValidIndianPin(normalizedPin);
+
+  const updateAddress = (patch: Partial<NonNullable<OnboardingData["address"]>>) => {
+    updateData({ address: { ...(data.address || {}), ...patch } });
+  };
 
   const pricing = useOrderPricing(data);
 
@@ -63,19 +70,57 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
     orgSubTypeLabel(orgTypesRes?.data, data.facilityType, data.specialization),
   ].filter(Boolean).join(" · ");
 
-  const canContinue = terms && phoneValid && pinValid && (pricing.isCustom || !!pricing.money);
+  const clinicalSetup = orgSubTypeLabel(
+    orgTypesRes?.data,
+    data.facilityType,
+    data.specialization,
+  ) || orgTypeName(orgTypesRes?.data, data.facilityType);
+
+  const soloDoctorDefaultApplies =
+    data.doctorsSelected &&
+    data.ownerPractitionerIntent === undefined &&
+    isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
+  const effectivePractitionerIntent = data.ownerPractitionerIntent ?? (soloDoctorDefaultApplies ? true : undefined);
+  const effectiveDoctorProfile = data.ownerDoctorProfile || (soloDoctorDefaultApplies ? {
+    name: data.contactName,
+    specialization: clinicalSetup,
+  } : undefined);
+  const showSoloDoctorControl = data.doctorsSelected && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
+  const professionalName = effectiveDoctorProfile?.name || "";
+  const professionalNameValid = normalizeName(professionalName).length >= 2;
+
+  const updateDoctorProfile = (patch: Partial<NonNullable<OnboardingData["ownerDoctorProfile"]>>) => {
+    updateData({
+      ownerDoctorProfile: {
+        ...(effectiveDoctorProfile || {}),
+        ...patch,
+      },
+    });
+  };
+
+  const setSoloDoctorIntent = (intent: boolean) => {
+    updateData(soloDoctorIntentPatch(data, intent, clinicalSetup));
+  };
+
+  const practitionerDecisionValid = !data.doctorsSelected || effectivePractitionerIntent !== undefined;
+  const practitionerProfileValid = effectivePractitionerIntent !== true || professionalNameValid;
+
+  const canContinue = terms && contactDetailsValid && practitionerDecisionValid && practitionerProfileValid && (pricing.isCustom || !!pricing.money);
 
   const continueToPayment = () => {
     if (!terms || !(pricing.isCustom || !!pricing.money)) return;
-    if (!phoneValid || !pinValid) { setTouched({ phone: true, pin: true }); return; }
+    if (!contactDetailsValid || !practitionerDecisionValid || !practitionerProfileValid) {
+      setTouched({ phone: true, pin: true });
+      return;
+    }
     updateData({
       address: {
         ...(data.address || {}),
         street: normalizeAddressLine(address),
         city: normalizeAddressLine(city),
-        postalCode: pin,
+        postalCode: normalizedPin,
       },
-      contactPhone: phone, // 10 national digits; backend normalizePhone canonicalizes to E.164
+      contactPhone: normalizedPhone,
       termsAccepted: true,
       termsAcceptedAt: new Date().toISOString(),
     });
@@ -94,21 +139,16 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
             <div className="review-card">
               <div className="review-card__header">
                 <h2 className="review-card__title">Organization</h2>
-                <button className="link-btn" type="button" onClick={() => goTo?.("facility")}>Edit</button>
+                <button className="link-btn" type="button" onClick={() => onEdit("organization", "facility")}>Change organization</button>
               </div>
               <p className="review-card__primary">{data.orgName || "—"}</p>
               <p className="review-card__secondary">{orgTypeLine || "—"}</p>
-              {data.doctorsSelected && (
-                <p className="review-card__secondary">
-                  Owner role: <strong>{data.ownerPractitionerIntent ? "Practicing Doctor" : "Organization Administrator only"}</strong>
-                </p>
-              )}
             </div>
 
             <div className="review-card">
               <div className="review-card__header">
                 <h2 className="review-card__title">Administrator</h2>
-                <button className="link-btn" type="button" onClick={() => goTo?.("details")}>Edit</button>
+                <button className="link-btn" type="button" onClick={() => onEdit("administrator", "details")}>Change administrator details</button>
               </div>
               <p className="review-card__primary">{data.contactName || "—"}</p>
               <p className="review-card__secondary">{data.email || "—"}</p>
@@ -116,8 +156,114 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
 
             <div className="review-card">
               <div className="review-card__header">
+                <h2 className="review-card__title">Owner &amp; clinical role</h2>
+                {data.doctorsSelected && !showSoloDoctorControl && (
+                  <button className="link-btn" type="button" onClick={() => onEdit("practitioner", "practitioner")}>Change role or professional details</button>
+                )}
+              </div>
+              {showSoloDoctorControl ? (
+                <>
+                  <div className="review-role__toggle-row">
+                    <div>
+                      <p className="review-card__primary">Practicing as a Doctor</p>
+                      <p className="review-card__secondary">
+                        {effectivePractitionerIntent
+                          ? "You'll receive both Admin and Doctor workspaces."
+                          : "You'll remain an Organization Administrator. You can enable your Doctor profile later."}
+                      </p>
+                    </div>
+                    <label className="toggle">
+                      <input
+                        type="checkbox"
+                        aria-label="Practicing as a Doctor"
+                        checked={effectivePractitionerIntent === true}
+                        onChange={(event) => setSoloDoctorIntent(event.target.checked)}
+                      />
+                      <span className="toggle__track" />
+                      <span className="toggle__thumb" />
+                    </label>
+                  </div>
+
+                  {effectivePractitionerIntent === true && (
+                    <div className="form form--grid form--compact review-role__fields">
+                      <div className="field">
+                        <label className="field__label" htmlFor="reviewDocName">Professional name</label>
+                        <input
+                          id="reviewDocName"
+                          className={`field__input ${!professionalNameValid ? "is-invalid" : ""}`}
+                          autoComplete="name"
+                          maxLength={80}
+                          value={professionalName}
+                          aria-invalid={!professionalNameValid}
+                          onChange={(event) => updateDoctorProfile({ name: event.target.value })}
+                          onBlur={() => updateDoctorProfile({ name: normalizeName(professionalName) })}
+                        />
+                        {!professionalNameValid && <p className="field__hint field__hint--error">Professional name is required.</p>}
+                      </div>
+                      <div className="field">
+                        <label className="field__label" htmlFor="reviewDocReg">
+                          Medical registration number <span className="field__optional">Optional</span>
+                        </label>
+                        <input
+                          id="reviewDocReg"
+                          className="field__input"
+                          maxLength={40}
+                          value={effectiveDoctorProfile?.registrationNumber || ""}
+                          onChange={(event) => updateDoctorProfile({ registrationNumber: event.target.value })}
+                          onBlur={() => updateDoctorProfile({ registrationNumber: effectiveDoctorProfile?.registrationNumber?.trim() || undefined })}
+                        />
+                      </div>
+                      <div className="field field--span2">
+                        <label className="field__label" htmlFor="reviewDocSpec">
+                          Specialization <span className="field__optional">Optional</span>
+                        </label>
+                        <input
+                          id="reviewDocSpec"
+                          className="field__input"
+                          maxLength={80}
+                          value={effectiveDoctorProfile?.specialization || ""}
+                          onChange={(event) => updateDoctorProfile({ specialization: event.target.value })}
+                          onBlur={() => updateDoctorProfile({ specialization: effectiveDoctorProfile?.specialization?.trim() || undefined })}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="review-card__secondary">Clinical setup: {clinicalSetup}</p>
+                  <p className="review-card__secondary">
+                    Workspace outcome: {effectivePractitionerIntent
+                      ? "Admin + Doctor workspace requested"
+                      : "Admin workspace only"}
+                  </p>
+                </>
+              ) : data.doctorsSelected && effectivePractitionerIntent === true ? (
+                <>
+                  <p className="review-card__primary">Role: Practicing Doctor</p>
+                  <p className="review-card__secondary">Professional name: {effectiveDoctorProfile?.name || "Not provided"}</p>
+                  <p className="review-card__secondary">Specialization: {effectiveDoctorProfile?.specialization || "Not provided"}</p>
+                  <p className="review-card__secondary">Medical registration: {effectiveDoctorProfile?.registrationNumber || "Not provided"}</p>
+                  <p className="review-card__secondary">Clinical setup: {clinicalSetup}</p>
+                  <p className="review-card__secondary">Workspace outcome: Admin + Doctor workspace requested</p>
+                </>
+              ) : data.doctorsSelected && effectivePractitionerIntent === undefined ? (
+                <>
+                  <p className="review-card__primary">Role decision required</p>
+                  <p className="review-card__secondary">Choose whether the owner will personally practice before continuing.</p>
+                </>
+              ) : (
+                <>
+                  <p className="review-card__primary">Role: Organization Administrator only</p>
+                  <p className="review-card__secondary">
+                    Doctor workspace: {data.doctorsSelected ? "Not created for the owner" : "Not requested for the owner"}
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="review-card">
+              <div className="review-card__header">
                 <h2 className="review-card__title">Modules</h2>
-                <button className="link-btn" type="button" onClick={() => goTo?.("modules")}>Edit</button>
+                <button className="link-btn" type="button" onClick={() => onEdit("modules", "modules")}>Change modules</button>
               </div>
               <ul className="review-list">
                 {selectionLabels.length
@@ -131,11 +277,29 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
               <div className="form form--grid form--compact" style={{ marginTop: 12 }}>
                 <div className="field field--span2">
                   <label className="field__label" htmlFor="addr">Address</label>
-                  <input id="addr" className="field__input" autoComplete="address-line1" maxLength={120} placeholder="Street, area" value={address} onChange={(e) => setAddress(e.target.value)} />
+                  <input
+                    id="addr"
+                    className="field__input"
+                    autoComplete="address-line1"
+                    maxLength={120}
+                    placeholder="Street, area"
+                    value={address}
+                    onChange={(event) => updateAddress({ street: event.target.value })}
+                    onBlur={() => updateAddress({ street: normalizeAddressLine(address) })}
+                  />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="city">City</label>
-                  <input id="city" className="field__input" autoComplete="address-level2" maxLength={60} placeholder="Kolkata" value={city} onChange={(e) => setCity(e.target.value)} />
+                  <input
+                    id="city"
+                    className="field__input"
+                    autoComplete="address-level2"
+                    maxLength={60}
+                    placeholder="Kolkata"
+                    value={city}
+                    onChange={(event) => updateAddress({ city: event.target.value })}
+                    onBlur={() => updateAddress({ city: normalizeAddressLine(city) })}
+                  />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="pin">PIN code</label>
@@ -146,11 +310,11 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
                     autoComplete="postal-code"
                     maxLength={6}
                     placeholder="700001"
-                    value={pin}
+                    value={normalizedPin}
                     aria-invalid={!!pinError}
                     aria-describedby={pinError ? "pin-err" : undefined}
-                    onChange={(e) => setPin(normalizePostalCode(e.target.value))}
-                    onBlur={() => setTouched((t) => ({ ...t, pin: true }))}
+                    onChange={(event) => updateAddress({ postalCode: normalizePostalCode(event.target.value) })}
+                    onBlur={() => setTouched((current) => ({ ...current, pin: true }))}
                   />
                   {pinError && <p id="pin-err" className="field__hint field__hint--error">PIN code must contain 6 digits.</p>}
                 </div>
@@ -164,11 +328,11 @@ export function ReviewStep({ onNext, onBack, updateData, data, goTo }: Props) {
                     autoComplete="tel-national"
                     maxLength={10}
                     placeholder="98765 43210"
-                    value={phone}
+                    value={normalizedPhone}
                     aria-invalid={!!phoneError}
                     aria-describedby={phoneError ? "phone-err" : undefined}
-                    onChange={(e) => setPhone(normalizeIndianMobile(e.target.value))}
-                    onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                    onChange={(event) => updateData({ contactPhone: normalizeIndianMobile(event.target.value) })}
+                    onBlur={() => setTouched((current) => ({ ...current, phone: true }))}
                   />
                   {phoneError && <p id="phone-err" className="field__hint field__hint--error">Enter a 10-digit mobile number (starts 6–9).</p>}
                 </div>

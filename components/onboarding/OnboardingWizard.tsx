@@ -8,8 +8,10 @@ import {
   SCREEN_RAIL,
   ScreenId,
   hasSpecialization,
+  isDoctorProfessionalPractice,
   isMultiBranchEligible,
   normalizeSubType,
+  orgSubTypeLabel,
 } from "./onboardingConfig";
 import { FacilityTypeSelection } from "./steps/FacilityTypeSelection";
 import { SpecializationSelection } from "./steps/SpecializationSelection";
@@ -23,6 +25,14 @@ import { PaymentStep } from "./steps/PaymentStep";
 import { ProvisioningStatus } from "./steps/ProvisioningStatus";
 import { OwnerDoctorProfile, PricingSnapshot } from "@/lib/api/types/onboarding.types";
 import { PractitionerIntent } from "./steps/PractitionerIntent";
+import { ReviewDetailsEdit } from "./steps/ReviewDetailsEdit";
+import {
+  moduleReviewDestination,
+  organizationReviewDestination,
+  soloDoctorPractitionerDefault,
+} from "./reviewEditNavigation";
+
+export type ReviewEditTarget = 'organization' | 'administrator' | 'modules' | 'practitioner';
 
 export type OnboardingData = {
   sessionId?: string;
@@ -87,6 +97,8 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     externalUpdateData || ((newData: Partial<OnboardingData>) => setLocalData((p) => ({ ...p, ...newData })));
 
   const [screen, setScreen] = useState<ScreenId>('facility');
+  const [reviewEditTarget, setReviewEditTarget] = useState<ReviewEditTarget>();
+  const [reviewSnapshot, setReviewSnapshot] = useState<OnboardingData>();
   const { data: orgTypesRes } = useOrgTypesQuery();
   const orgTypes = orgTypesRes?.data;
 
@@ -117,9 +129,59 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgTypes, data.facilityType, data.specialization]);
 
+  // Deterministic solo-practice default. Explicit true/false always wins; restored sessions with
+  // no decision receive the same default as new sessions and persist it through existing storage.
+  useEffect(() => {
+    if (
+      !data.doctorsSelected ||
+      data.ownerPractitionerIntent !== undefined ||
+      !isDoctorProfessionalPractice(orgTypes, data.facilityType)
+    ) return;
+    updateData(soloDoctorPractitionerDefault(
+      data,
+      orgSubTypeLabel(orgTypes, data.facilityType, data.specialization),
+    ));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgTypes, data.facilityType, data.specialization, data.doctorsSelected, data.ownerPractitionerIntent]);
+
   const goTo = (s: ScreenId) => {
     setScreen(s);
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const startReviewEdit = (target: ReviewEditTarget, destination: ScreenId) => {
+    setReviewSnapshot(data);
+    setReviewEditTarget(target);
+    goTo(destination);
+  };
+
+  const finishReviewEdit = () => {
+    setReviewEditTarget(undefined);
+    setReviewSnapshot(undefined);
+    goTo('review');
+  };
+
+  const cancelReviewEdit = () => {
+    if (reviewSnapshot) {
+      updateData({
+        facilityType: reviewSnapshot.facilityType,
+        specialization: reviewSnapshot.specialization,
+        orgName: reviewSnapshot.orgName,
+        contactName: reviewSnapshot.contactName,
+        selectionType: reviewSnapshot.selectionType,
+        selectedModules: reviewSnapshot.selectedModules,
+        packageId: reviewSnapshot.packageId,
+        subscriptionPlan: reviewSnapshot.subscriptionPlan,
+        billingCycle: reviewSnapshot.billingCycle,
+        doctorsSelected: reviewSnapshot.doctorsSelected,
+        ownerPractitionerIntent: reviewSnapshot.ownerPractitionerIntent,
+        ownerDoctorProfile: reviewSnapshot.ownerDoctorProfile,
+        multiBranchEnabled: reviewSnapshot.multiBranchEnabled,
+        contactPhone: reviewSnapshot.contactPhone,
+        address: reviewSnapshot.address,
+      });
+    }
+    finishReviewEdit();
   };
 
   const step = (dir: 1 | -1) => {
@@ -135,11 +197,50 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     }
   };
 
-  const onNext = () => step(1);
-  const onBack = () => step(-1);
+  const onNext = (committedData?: Partial<OnboardingData>) => {
+    if (!reviewEditTarget) {
+      if (screen === 'modules' && committedData) {
+        const nextData = { ...data, ...committedData };
+        goTo(nextData.doctorsSelected && nextData.ownerPractitionerIntent === undefined ? 'practitioner' : 'review');
+        return;
+      }
+      step(1);
+      return;
+    }
+
+    if (reviewEditTarget === 'organization') {
+      const destination = organizationReviewDestination(
+        screen as 'facility' | 'specialization' | 'details',
+        hasSpecialization(orgTypes, data.facilityType),
+      );
+      if (destination !== 'review') {
+        goTo(destination);
+        return;
+      }
+      if (!isMultiBranchEligible(orgTypes, data.facilityType)) {
+        updateData({ multiBranchEnabled: false });
+      }
+      finishReviewEdit();
+      return;
+    }
+
+    if (reviewEditTarget === 'modules') {
+      const nextData = { ...data, ...committedData };
+      const deterministicSoloDoctor = isDoctorProfessionalPractice(orgTypes, nextData.facilityType);
+      if (moduleReviewDestination(reviewSnapshot || {}, nextData, deterministicSoloDoctor) === 'practitioner') {
+        goTo('practitioner');
+        return;
+      }
+      finishReviewEdit();
+      return;
+    }
+
+    finishReviewEdit();
+  };
+  const onBack = () => reviewEditTarget ? cancelReviewEdit() : step(-1);
   const stepProps = { onNext, onBack, updateData, data };
 
-  const currentRail = SCREEN_RAIL[screen];
+  const currentRail = reviewEditTarget ? SCREEN_RAIL.review : SCREEN_RAIL[screen];
   const currentLabel = RAIL_STEPS.find((s) => s.rail === currentRail)?.label;
 
   return (
@@ -170,7 +271,9 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
           })}
         </div>
         <p className="step-rail__mobile">
-          Step {currentRail} of {RAIL_STEPS.length} — <strong>{currentLabel}</strong>
+          {reviewEditTarget
+            ? <><strong>Editing completed setup</strong> — return to Review after saving</>
+            : <>Step {currentRail} of {RAIL_STEPS.length} — <strong>{currentLabel}</strong></>}
         </p>
       </nav>
 
@@ -181,11 +284,13 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
         {screen === 'specialization' && <SpecializationSelection {...stepProps} />}
         {screen === 'email' && <EmailInitiation {...stepProps} />}
         {screen === 'otp' && <OtpVerification {...stepProps} />}
-        {screen === 'details' && <OrganizationDetails {...stepProps} />}
+        {screen === 'details' && reviewEditTarget && (reviewEditTarget === 'organization' || reviewEditTarget === 'administrator')
+          ? <ReviewDetailsEdit section={reviewEditTarget} {...stepProps} />
+          : screen === 'details' && <OrganizationDetails {...stepProps} />}
         {screen === 'branchSetup' && <BranchSetupSelection {...stepProps} />}
         {screen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
         {screen === 'practitioner' && <PractitionerIntent {...stepProps} />}
-        {screen === 'review' && <ReviewStep {...stepProps} goTo={goTo} />}
+        {screen === 'review' && <ReviewStep {...stepProps} onEdit={startReviewEdit} />}
         {screen === 'payment' && <PaymentStep {...stepProps} />}
         {screen === 'provisioning' && <ProvisioningStatus data={data} updateData={updateData} />}
       </main>

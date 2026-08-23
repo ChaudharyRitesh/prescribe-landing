@@ -53,6 +53,14 @@ export function isMultiBranchEligible(orgTypes: OrgType[] | undefined, slug?: st
   return !!findOrgType(orgTypes, slug)?.multiBranchEligible;
 }
 
+// Canonical deterministic owner-practitioner case. Keep this exact: clinic/hospital ownership is
+// ambiguous even when Doctors is selected, so those organization types must still ask explicitly.
+export function isDoctorProfessionalPractice(orgTypes: OrgType[] | undefined, slug?: string | null): boolean {
+  const orgType = findOrgType(orgTypes, slug);
+  const isCanonicalDoctor = slug === 'doctor' || orgType?.label.trim().toLowerCase() === 'doctor / professional practice';
+  return isCanonicalDoctor && orgType?.multiBranchEligible !== true;
+}
+
 export type ScreenId =
   | 'facility' | 'specialization' | 'email' | 'otp'
   | 'details' | 'branchSetup' | 'modules' | 'practitioner' | 'review' | 'payment' | 'provisioning';

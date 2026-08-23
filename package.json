@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "onboarding:self-check": "node scripts/onboarding-review-self-check.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
