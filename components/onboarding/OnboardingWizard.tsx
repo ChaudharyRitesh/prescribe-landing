@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
-import { useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
+import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import {
   RAIL_STEPS,
   SCREEN_ORDER,
@@ -27,8 +27,11 @@ import { OwnerDoctorProfile, PricingSnapshot } from "@/lib/api/types/onboarding.
 import { PractitionerIntent } from "./steps/PractitionerIntent";
 import { ReviewDetailsEdit } from "./steps/ReviewDetailsEdit";
 import {
+  effectiveDoctorsSelected,
   moduleReviewDestination,
+  normalizeDoctorsSelected,
   organizationReviewDestination,
+  practitionerClearPatch,
   soloDoctorPractitionerDefault,
 } from "./reviewEditNavigation";
 
@@ -65,6 +68,12 @@ export type OnboardingData = {
   /** Already-computed server pricing, present only when resuming a session that has
    *  already called register() once (pending_payment reload, or an approved custom quote). */
   pricingSnapshot?: PricingSnapshot;
+  /** The saved session exists, but its session-bound capability must be renewed through OTP. */
+  reverificationRequired?: boolean;
+  /** A paid unfinished session must use resume-provisioning rather than a new checkout. */
+  paidResumeRequired?: boolean;
+  /** Safe terminal recovery states; never contains raw server or database details. */
+  recoveryIssue?: 'not_resumable' | 'session_not_found';
   termsAccepted?: boolean;
   termsAcceptedAt?: string;
   customLimits?: {
@@ -88,9 +97,10 @@ export type OnboardingData = {
 interface OnboardingWizardProps {
   externalData?: OnboardingData;
   externalUpdateData?: (newData: Partial<OnboardingData>) => void;
+  onSessionReverified?: (verifiedToken: string) => Promise<boolean>;
 }
 
-export function OnboardingWizard({ externalData, externalUpdateData }: OnboardingWizardProps) {
+export function OnboardingWizard({ externalData, externalUpdateData, onSessionReverified }: OnboardingWizardProps) {
   const [localData, setLocalData] = useState<OnboardingData>({});
   const data = externalData || localData;
   const updateData =
@@ -100,12 +110,19 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
   const [reviewEditTarget, setReviewEditTarget] = useState<ReviewEditTarget>();
   const [reviewSnapshot, setReviewSnapshot] = useState<OnboardingData>();
   const { data: orgTypesRes } = useOrgTypesQuery();
+  const { data: catalog } = useCatalogQuery();
   const orgTypes = orgTypesRes?.data;
+  const packages = catalog?.packages;
+  const doctorEntitled = effectiveDoctorsSelected(data, packages);
 
   // Resume a mid-flight session to the correct screen.
   useEffect(() => {
     if (!data.sessionId) return;
-    if (
+    if (data.reverificationRequired) {
+      setScreen('otp');
+    } else if (data.recoveryIssue) {
+      setScreen('provisioning');
+    } else if (
       data.status === 'provisioned' ||
       data.status === 'provisioning' ||
       data.status === 'practitioner_setup_required' ||
@@ -113,6 +130,12 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
       data.status === 'failed'
     ) {
       setScreen('provisioning');
+    } else if (data.status === 'email_pending_otp') {
+      setScreen('otp');
+    } else if (data.status === 'otp_verified') {
+      setScreen('details');
+    } else if (data.status === 'form_submitted') {
+      setScreen('review');
     } else if (data.status === 'pending_payment') {
       setScreen('review');
     }
@@ -129,11 +152,26 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgTypes, data.facilityType, data.specialization]);
 
+  // Keep the compatibility boolean synchronized from the canonical commercial selection.
+  // Package state waits for the matching catalog entry instead of guessing from stale state.
+  useEffect(() => {
+    if (
+      data.selectionType === undefined ||
+      doctorEntitled === undefined ||
+      data.doctorsSelected === doctorEntitled
+    ) return;
+    updateData({
+      doctorsSelected: doctorEntitled,
+      ...practitionerClearPatch(doctorEntitled),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.selectionType, data.doctorsSelected, doctorEntitled]);
+
   // Deterministic solo-practice default. Explicit true/false always wins; restored sessions with
   // no decision receive the same default as new sessions and persist it through existing storage.
   useEffect(() => {
     if (
-      !data.doctorsSelected ||
+      doctorEntitled !== true ||
       data.ownerPractitionerIntent !== undefined ||
       !isDoctorProfessionalPractice(orgTypes, data.facilityType)
     ) return;
@@ -142,7 +180,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
       orgSubTypeLabel(orgTypes, data.facilityType, data.specialization),
     ));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgTypes, data.facilityType, data.specialization, data.doctorsSelected, data.ownerPractitionerIntent]);
+  }, [orgTypes, data.facilityType, data.specialization, doctorEntitled, data.ownerPractitionerIntent]);
 
   const goTo = (s: ScreenId) => {
     setScreen(s);
@@ -150,7 +188,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
   };
 
   const startReviewEdit = (target: ReviewEditTarget, destination: ScreenId) => {
-    setReviewSnapshot(data);
+    setReviewSnapshot(normalizeDoctorsSelected(data, packages));
     setReviewEditTarget(target);
     goTo(destination);
   };
@@ -163,22 +201,23 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
 
   const cancelReviewEdit = () => {
     if (reviewSnapshot) {
+      const restoredSelection = normalizeDoctorsSelected(reviewSnapshot, packages);
       updateData({
-        facilityType: reviewSnapshot.facilityType,
-        specialization: reviewSnapshot.specialization,
-        orgName: reviewSnapshot.orgName,
-        contactName: reviewSnapshot.contactName,
-        selectionType: reviewSnapshot.selectionType,
-        selectedModules: reviewSnapshot.selectedModules,
-        packageId: reviewSnapshot.packageId,
-        subscriptionPlan: reviewSnapshot.subscriptionPlan,
-        billingCycle: reviewSnapshot.billingCycle,
-        doctorsSelected: reviewSnapshot.doctorsSelected,
-        ownerPractitionerIntent: reviewSnapshot.ownerPractitionerIntent,
-        ownerDoctorProfile: reviewSnapshot.ownerDoctorProfile,
-        multiBranchEnabled: reviewSnapshot.multiBranchEnabled,
-        contactPhone: reviewSnapshot.contactPhone,
-        address: reviewSnapshot.address,
+        facilityType: restoredSelection.facilityType,
+        specialization: restoredSelection.specialization,
+        orgName: restoredSelection.orgName,
+        contactName: restoredSelection.contactName,
+        selectionType: restoredSelection.selectionType,
+        selectedModules: restoredSelection.selectedModules,
+        packageId: restoredSelection.packageId,
+        subscriptionPlan: restoredSelection.subscriptionPlan,
+        billingCycle: restoredSelection.billingCycle,
+        doctorsSelected: restoredSelection.doctorsSelected,
+        ownerPractitionerIntent: restoredSelection.ownerPractitionerIntent,
+        ownerDoctorProfile: restoredSelection.ownerDoctorProfile,
+        multiBranchEnabled: restoredSelection.multiBranchEnabled,
+        contactPhone: restoredSelection.contactPhone,
+        address: restoredSelection.address,
       });
     }
     finishReviewEdit();
@@ -191,7 +230,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
       const candidate = SCREEN_ORDER[idx];
       if (candidate === 'specialization' && !hasSpecialization(orgTypes, data.facilityType)) continue;
       if (candidate === 'branchSetup' && !isMultiBranchEligible(orgTypes, data.facilityType)) continue;
-      if (candidate === 'practitioner' && !data.doctorsSelected) continue;
+      if (candidate === 'practitioner' && doctorEntitled !== true) continue;
       goTo(candidate);
       return;
     }
@@ -201,7 +240,8 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     if (!reviewEditTarget) {
       if (screen === 'modules' && committedData) {
         const nextData = { ...data, ...committedData };
-        goTo(nextData.doctorsSelected && nextData.ownerPractitionerIntent === undefined ? 'practitioner' : 'review');
+        const nextDoctorEntitled = effectiveDoctorsSelected(nextData, packages);
+        goTo(nextDoctorEntitled === true && nextData.ownerPractitionerIntent === undefined ? 'practitioner' : 'review');
         return;
       }
       step(1);
@@ -227,7 +267,13 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
     if (reviewEditTarget === 'modules') {
       const nextData = { ...data, ...committedData };
       const deterministicSoloDoctor = isDoctorProfessionalPractice(orgTypes, nextData.facilityType);
-      if (moduleReviewDestination(reviewSnapshot || {}, nextData, deterministicSoloDoctor) === 'practitioner') {
+      const previousDoctorEntitled = effectiveDoctorsSelected(reviewSnapshot || {}, packages);
+      const nextDoctorEntitled = effectiveDoctorsSelected(nextData, packages);
+      if (moduleReviewDestination(
+        { ...(reviewSnapshot || {}), doctorsSelected: previousDoctorEntitled === true },
+        { ...nextData, doctorsSelected: nextDoctorEntitled === true },
+        deterministicSoloDoctor,
+      ) === 'practitioner') {
         goTo('practitioner');
         return;
       }
@@ -283,7 +329,7 @@ export function OnboardingWizard({ externalData, externalUpdateData }: Onboardin
         )}
         {screen === 'specialization' && <SpecializationSelection {...stepProps} />}
         {screen === 'email' && <EmailInitiation {...stepProps} />}
-        {screen === 'otp' && <OtpVerification {...stepProps} />}
+        {screen === 'otp' && <OtpVerification {...stepProps} onSessionReverified={onSessionReverified} />}
         {screen === 'details' && reviewEditTarget && (reviewEditTarget === 'organization' || reviewEditTarget === 'administrator')
           ? <ReviewDetailsEdit section={reviewEditTarget} {...stepProps} />
           : screen === 'details' && <OrganizationDetails {...stepProps} />}

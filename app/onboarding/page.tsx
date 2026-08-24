@@ -1,58 +1,135 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { OnboardingWizard, OnboardingData } from "@/components/onboarding/OnboardingWizard";
+import { normalizeDoctorsSelected } from "@/components/onboarding/reviewEditNavigation";
+import {
+  clearOnboardingCapability,
+  ONBOARDING_SESSION_KEY,
+  persistOnboardingCapability,
+  persistOnboardingSession,
+  readStoredOnboardingCapability,
+  readStoredOnboardingSession,
+} from "@/components/onboarding/onboardingSessionStorage";
+import { OnboardingService } from "@/lib/api/services/onboarding.service";
+import { FrontendApiError } from "@/lib/api/axios";
 import "@/components/onboarding/onboarding-v2.css";
 
-function OnboardingContent() {
+export function OnboardingContent() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("sessionId");
+  const urlSessionId = searchParams.get("sessionId");
   const packageParam = searchParams.get("package");
 
   const [data, setData] = useState<OnboardingData>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("kaero_onboarding_session");
-      const parsed = saved ? JSON.parse(saved) : {};
+      const saved = readStoredOnboardingSession<OnboardingData>() || {};
+      const parsed = urlSessionId && saved.sessionId !== urlSessionId
+        ? { sessionId: urlSessionId }
+        : { ...saved };
+      const capability = readStoredOnboardingCapability(parsed.sessionId);
+      if (capability) parsed.verifiedToken = capability.verifiedToken;
       if (packageParam && !parsed.sessionId) {
         parsed.subscriptionPlan = packageParam;
         parsed.selectionType = "package";
       }
-      return parsed;
+      return normalizeDoctorsSelected(parsed);
     }
     return {};
   });
-  const [loading, setLoading] = useState(!!sessionId);
+  const restoreSessionId = useRef(urlSessionId || data.sessionId).current;
+  const restoreStarted = useRef(false);
+  const [loading, setLoading] = useState(!!restoreSessionId);
 
-  // Persist to localStorage (never the JWT — kept in memory only, P1-2).
+  // Keep resumable state in localStorage, but keep the session-bound capability in sessionStorage.
+  // This survives a same-tab reload without putting the token in a URL or long-lived storage.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (data.status === "provisioned" || data.status === "quote_pending" || data.status === "failed") {
-      localStorage.removeItem("kaero_onboarding_session");
+    if (
+      data.status === "provisioned" ||
+      data.status === "practitioner_setup_required" ||
+      data.status === "quote_pending"
+    ) {
+      localStorage.removeItem(ONBOARDING_SESSION_KEY);
+      clearOnboardingCapability(data.sessionId);
     } else {
-      const persistable = { ...data };
-      delete persistable.verifiedToken;
-      localStorage.setItem("kaero_onboarding_session", JSON.stringify(persistable));
+      persistOnboardingSession(data);
+      if (data.sessionId && data.verifiedToken && !data.reverificationRequired) {
+        persistOnboardingCapability(data.sessionId, data.verifiedToken);
+      } else if (data.reverificationRequired) {
+        clearOnboardingCapability(data.sessionId);
+      }
     }
   }, [data]);
 
-  // Resume a session referenced in the URL (e.g. an approved custom quote link).
+  const restoreSession = useCallback(async (sessionId: string, verifiedToken?: string) => {
+    try {
+      const result = await OnboardingService.fetchSession(sessionId, verifiedToken);
+      if (result.code === "REVERIFICATION_REQUIRED") {
+        setData((previous) => normalizeDoctorsSelected({
+          ...previous,
+          sessionId,
+          status: result.data?.status || previous.status,
+          verifiedToken: undefined,
+          reverificationRequired: true,
+          recoveryIssue: undefined,
+        }));
+        return false;
+      }
+      if (result.success && result.data) {
+        const restored = result.data as OnboardingData;
+        setData(normalizeDoctorsSelected({
+          ...restored,
+          sessionId,
+          verifiedToken: restored.verifiedToken || verifiedToken,
+          reverificationRequired: false,
+          recoveryIssue: undefined,
+        }));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      const apiError = error as FrontendApiError;
+      if (apiError.status === 401) {
+        setData((previous) => ({
+          ...previous,
+          sessionId,
+          verifiedToken: undefined,
+          reverificationRequired: true,
+          recoveryIssue: undefined,
+        }));
+      } else if (apiError.status === 404) {
+        setData((previous) => ({
+          ...previous,
+          sessionId,
+          status: "failed",
+          reverificationRequired: false,
+          recoveryIssue: "session_not_found",
+        }));
+      }
+      return false;
+    }
+  }, []);
+
+  // Restore either an explicitly linked session or the same session saved by this browser.
   useEffect(() => {
-    if (!sessionId) return;
+    if (!restoreSessionId || restoreStarted.current) return;
+    restoreStarted.current = true;
     const fetchSession = async () => {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const res = await fetch(`${apiBase}/onboarding/session/${sessionId}`);
-        const result = await res.json();
-        if (result.success && result.data) setData(result.data);
-      } catch (err) {
-        console.error("Failed to load session:", err);
+        await restoreSession(restoreSessionId, data.verifiedToken);
       } finally {
         setLoading(false);
       }
     };
-    fetchSession();
-  }, [sessionId]);
+    void fetchSession();
+  }, [data.verifiedToken, restoreSession, restoreSessionId]);
+
+  const reverifySession = useCallback(async (verifiedToken: string) => {
+    if (!data.sessionId) return false;
+    persistOnboardingCapability(data.sessionId, verifiedToken);
+    return restoreSession(data.sessionId, verifiedToken);
+  }, [data.sessionId, restoreSession]);
 
   const updateData = (newData: Partial<OnboardingData>) => setData((prev) => ({ ...prev, ...newData }));
 
@@ -66,7 +143,13 @@ function OnboardingContent() {
     );
   }
 
-  return <OnboardingWizard externalData={data} externalUpdateData={updateData} />;
+  return (
+    <OnboardingWizard
+      externalData={data}
+      externalUpdateData={updateData}
+      onSessionReverified={reverifySession}
+    />
+  );
 }
 
 export default function OnboardingPage() {

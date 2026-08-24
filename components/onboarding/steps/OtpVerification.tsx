@@ -10,13 +10,15 @@ interface Props {
   onBack: () => void;
   updateData: (data: Partial<OnboardingData>) => void;
   data: OnboardingData;
+  onSessionReverified?: (verifiedToken: string) => Promise<boolean>;
 }
 
-export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
+export function OtpVerification({ onNext, onBack, updateData, data, onSessionReverified }: Props) {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const [showError, setShowError] = useState(false);
-  const [cooldown, setCooldown] = useState(30);
+  const [cooldown, setCooldown] = useState(data.reverificationRequired ? 0 : 30);
+  const [restoring, setRestoring] = useState(false);
 
   const { mutate: verifyOtp, isPending: verifying, error: verifyError } = useVerifyOtpMutation();
   const { mutate: resendOtp, isPending: resending } = useResendOtpMutation();
@@ -60,9 +62,20 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
     verifyOtp(
       { sessionId: data.sessionId, otp: code },
       {
-        onSuccess: (res: VerifyOtpResponse) => {
+        onSuccess: async (res: VerifyOtpResponse) => {
           if (res.success || res.verified) {
+            if (!res.verifiedToken) {
+              setShowError(true);
+              return;
+            }
             updateData({ verifiedToken: res.verifiedToken });
+            if (data.reverificationRequired && onSessionReverified) {
+              setRestoring(true);
+              const restored = await onSessionReverified(res.verifiedToken);
+              setRestoring(false);
+              if (!restored) setShowError(true);
+              return;
+            }
             onNext();
           } else {
             setShowError(true);
@@ -87,6 +100,7 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
   };
 
   const err = showError || !!verifyError;
+  const processing = verifying || restoring;
 
   return (
     <section className="screen">
@@ -94,7 +108,9 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
         <p className="eyebrow">Step 2</p>
         <h1 className="screen__title">Check your email</h1>
         <p className="screen__subtitle">
-          We sent a 6-digit verification code to <strong>{data.email || "your email"}</strong>
+          {data.reverificationRequired
+            ? "Request a new 6-digit code to verify the owner and resume this onboarding session."
+            : <>We sent a 6-digit verification code to <strong>{data.email || "your email"}</strong></>}
         </p>
 
         <div className="form">
@@ -110,7 +126,7 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
                   maxLength={1}
                   ref={(el) => { refs.current[i] = el; }}
                   value={d}
-                  disabled={verifying}
+                  disabled={processing}
                   autoFocus={i === 0}
                   onChange={(e) => change(i, e.target.value)}
                   onKeyDown={(e) => keydown(i, e)}
@@ -125,13 +141,17 @@ export function OtpVerification({ onNext, onBack, updateData, data }: Props) {
             <button className="link-btn" type="button" disabled={cooldown > 0 || resending} onClick={resend}>
               {cooldown > 0 ? `Resend code in ${cooldown}s` : resending ? "Resending…" : "Resend code"}
             </button>
-            <button className="link-btn" type="button" onClick={onBack}>Change email</button>
+            {!data.reverificationRequired && (
+              <button className="link-btn" type="button" onClick={onBack}>Change email</button>
+            )}
           </div>
 
           <div className="screen__actions">
-            <button className="btn btn--secondary" type="button" onClick={onBack}>Back</button>
-            <button className="btn btn--primary" type="button" disabled={verifying} onClick={verify}>
-              {verifying ? <><span className="spinner" /> Verifying…</> : "Verify"}
+            {!data.reverificationRequired && (
+              <button className="btn btn--secondary" type="button" onClick={onBack}>Back</button>
+            )}
+            <button className="btn btn--primary" type="button" disabled={processing} onClick={verify}>
+              {processing ? <><span className="spinner" /> {restoring ? "Restoring…" : "Verifying…"}</> : "Verify"}
             </button>
           </div>
         </div>

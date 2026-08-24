@@ -17,6 +17,8 @@ import {
   ReserveSubdomainResponse,
   RegisterPayload,
   RegisterResponse,
+  OnboardingSessionResponse,
+  ResumeProvisioningResponse,
   StatusResponse,
   SpecializedDeptResponse,
   VerifyMRResponse,
@@ -82,6 +84,20 @@ export const OnboardingService = {
 
   registerOrg: async (payload: RegisterPayload, token: string): Promise<RegisterResponse> => {
     return apiClient.post('/onboarding/register', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  fetchSession: async (sessionId: string, token?: string): Promise<OnboardingSessionResponse> => {
+    return apiClient.get(`/onboarding/session/${encodeURIComponent(sessionId)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+
+  resumeProvisioning: async (token: string): Promise<ResumeProvisioningResponse> => {
+    return apiClient.post('/onboarding/resume-provisioning', undefined, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

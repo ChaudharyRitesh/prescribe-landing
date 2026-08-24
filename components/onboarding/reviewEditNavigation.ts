@@ -4,6 +4,66 @@ export type ModuleReviewState = {
   ownerDoctorProfile?: { name?: string };
 };
 
+export type CanonicalModuleSelectionState = ModuleReviewState & {
+  selectionType?: 'individual' | 'package';
+  selectedModules?: string[];
+  packageId?: string;
+};
+
+export type CatalogPackageState = {
+  _id: string;
+  modules?: string[];
+};
+
+/** Canonical Doctor entitlement. Package state is unresolved until its catalog entry is available. */
+export function effectiveDoctorsSelected(
+  data: CanonicalModuleSelectionState,
+  packages?: CatalogPackageState[],
+): boolean | undefined {
+  if (data.selectionType === 'package') {
+    const selectedPackage = packages?.find((item) => item._id === data.packageId);
+    return selectedPackage ? !!selectedPackage.modules?.includes('doctors') : undefined;
+  }
+  return !!data.selectedModules?.includes('doctors');
+}
+
+/** Reconciles the compatibility boolean only when the canonical selection is fully known. */
+export function normalizeDoctorsSelected<T extends CanonicalModuleSelectionState>(
+  data: T,
+  packages?: CatalogPackageState[],
+): T {
+  if (data.selectionType !== 'individual' && data.selectionType !== 'package') return data;
+  const effective = effectiveDoctorsSelected(data, packages);
+  if (effective === undefined || data.doctorsSelected === effective) return data;
+  return {
+    ...data,
+    doctorsSelected: effective,
+    ...(effective ? {} : practitionerClearPatch(false)),
+  };
+}
+
+export function individualModuleSelectionPatch(selectedModules: string[]) {
+  const doctorsSelected = selectedModules.includes('doctors');
+  return {
+    selectionType: 'individual' as const,
+    packageId: undefined,
+    selectedModules,
+    doctorsSelected,
+    ...practitionerClearPatch(doctorsSelected),
+  };
+}
+
+export function packageModuleSelectionPatch(selectedPackage?: CatalogPackageState) {
+  const doctorsSelected = !!selectedPackage?.modules?.includes('doctors');
+  return {
+    selectionType: 'package' as const,
+    packageId: selectedPackage?._id,
+    selectedModules: undefined,
+    doctorsSelected,
+    ...practitionerClearPatch(doctorsSelected),
+  };
+}
+
 export type SoloDoctorDefaultState = Omit<ModuleReviewState, 'ownerDoctorProfile'> & {
   contactName?: string;
   contactPhone?: string;

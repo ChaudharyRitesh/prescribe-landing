@@ -288,6 +288,21 @@ export interface RegisterResponse extends BaseResponse {
   pollUrl?: string;
 }
 
+export interface OnboardingSessionResponse extends BaseResponse {
+  code?: 'REVERIFICATION_REQUIRED';
+  data?: Record<string, unknown> & {
+    sessionId: string;
+    status: OnboardingStatus;
+    verifiedToken?: string;
+  };
+}
+
+export interface ResumeProvisioningResponse extends BaseResponse {
+  status: 'provisioning' | 'provisioned';
+  sessionId: string;
+  dashboardUrl?: string;
+}
+
 // 8. GET /status/:sessionId
 export interface StatusResponse extends BaseResponse {
   status: OnboardingStatus;

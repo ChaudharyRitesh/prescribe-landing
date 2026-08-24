@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "onboarding:self-check": "node scripts/onboarding-review-self-check.mjs"
+    "onboarding:self-check": "node scripts/onboarding-review-self-check.mjs",
+    "onboarding:state-test": "node --test tests/onboarding-canonical-state.test.cjs",
+    "onboarding:recovery-test": "node --test tests/onboarding-recovery.test.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -96,6 +98,7 @@
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
     "@types/nodemailer": "^7.0.4",
-    "@types/three": "^0.184.1"
+    "@types/three": "^0.184.1",
+    "jsdom": "^23.2.0"
   }
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
+import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { normalizeName } from "@/lib/validations/normalize";
 import { isDoctorProfessionalPractice, orgSubTypeLabel } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
+import { effectiveDoctorsSelected } from "../reviewEditNavigation";
 
 interface Props {
   onNext: () => void;
@@ -17,8 +18,10 @@ interface Props {
 // only an explicit YES may trigger the frozen P5-C.2 owner-Doctor link at provisioning.
 export function PractitionerIntent({ onNext, onBack, updateData, data }: Props) {
   const { data: orgTypesRes } = useOrgTypesQuery();
+  const { data: catalog } = useCatalogQuery();
   const specializationSuggestion = orgSubTypeLabel(orgTypesRes?.data, data.facilityType, data.specialization);
-  const soloDoctorDefault = data.doctorsSelected && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
+  const doctorEntitled = effectiveDoctorsSelected(data, catalog?.packages) === true;
+  const soloDoctorDefault = doctorEntitled && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
 
   // Canonical solo Doctor practice defaults to Yes; explicit true/false always wins.
   const [intent, setIntent] = useState<boolean | undefined>(

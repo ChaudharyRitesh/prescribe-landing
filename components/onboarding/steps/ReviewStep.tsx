@@ -13,7 +13,7 @@ import {
   normalizePostalCode,
 } from "@/lib/validations/normalize";
 import type { OnboardingData, ReviewEditTarget } from "../OnboardingWizard";
-import { soloDoctorIntentPatch } from "../reviewEditNavigation";
+import { effectiveDoctorsSelected, soloDoctorIntentPatch } from "../reviewEditNavigation";
 
 interface Props {
   onNext: () => void;
@@ -53,6 +53,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
 
   const isPackage = data.selectionType === "package";
   const activePackage = isPackage ? packages.find((p) => p._id === data.packageId) : undefined;
+  const doctorEntitled = effectiveDoctorsSelected(data, packages) === true;
 
   const selectionLabels = useMemo(() => {
     if (isPackage) return (activePackage?.modules || []).map((slug) => ({ label: label(slug) }));
@@ -77,7 +78,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
   ) || orgTypeName(orgTypesRes?.data, data.facilityType);
 
   const soloDoctorDefaultApplies =
-    data.doctorsSelected &&
+    doctorEntitled &&
     data.ownerPractitionerIntent === undefined &&
     isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
   const effectivePractitionerIntent = data.ownerPractitionerIntent ?? (soloDoctorDefaultApplies ? true : undefined);
@@ -85,7 +86,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
     name: data.contactName,
     specialization: clinicalSetup,
   } : undefined);
-  const showSoloDoctorControl = data.doctorsSelected && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
+  const showSoloDoctorControl = doctorEntitled && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
   const professionalName = effectiveDoctorProfile?.name || "";
   const professionalNameValid = normalizeName(professionalName).length >= 2;
 
@@ -102,7 +103,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
     updateData(soloDoctorIntentPatch(data, intent, clinicalSetup));
   };
 
-  const practitionerDecisionValid = !data.doctorsSelected || effectivePractitionerIntent !== undefined;
+  const practitionerDecisionValid = !doctorEntitled || effectivePractitionerIntent !== undefined;
   const practitionerProfileValid = effectivePractitionerIntent !== true || professionalNameValid;
 
   const canContinue = terms && contactDetailsValid && practitionerDecisionValid && practitionerProfileValid && (pricing.isCustom || !!pricing.money);
@@ -157,7 +158,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
             <div className="review-card">
               <div className="review-card__header">
                 <h2 className="review-card__title">Owner &amp; clinical role</h2>
-                {data.doctorsSelected && !showSoloDoctorControl && (
+                {doctorEntitled && !showSoloDoctorControl && (
                   <button className="link-btn" type="button" onClick={() => onEdit("practitioner", "practitioner")}>Change role or professional details</button>
                 )}
               </div>
@@ -236,7 +237,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
                       : "Admin workspace only"}
                   </p>
                 </>
-              ) : data.doctorsSelected && effectivePractitionerIntent === true ? (
+              ) : doctorEntitled && effectivePractitionerIntent === true ? (
                 <>
                   <p className="review-card__primary">Role: Practicing Doctor</p>
                   <p className="review-card__secondary">Professional name: {effectiveDoctorProfile?.name || "Not provided"}</p>
@@ -245,7 +246,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
                   <p className="review-card__secondary">Clinical setup: {clinicalSetup}</p>
                   <p className="review-card__secondary">Workspace outcome: Admin + Doctor workspace requested</p>
                 </>
-              ) : data.doctorsSelected && effectivePractitionerIntent === undefined ? (
+              ) : doctorEntitled && effectivePractitionerIntent === undefined ? (
                 <>
                   <p className="review-card__primary">Role decision required</p>
                   <p className="review-card__secondary">Choose whether the owner will personally practice before continuing.</p>
@@ -254,7 +255,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
                 <>
                   <p className="review-card__primary">Role: Organization Administrator only</p>
                   <p className="review-card__secondary">
-                    Doctor workspace: {data.doctorsSelected ? "Not created for the owner" : "Not requested for the owner"}
+                    Doctor workspace: {doctorEntitled ? "Not created for the owner" : "Not requested for the owner"}
                   </p>
                 </>
               )}
@@ -374,7 +375,8 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
 
                   <div className="price-card__recurring">
                     <div className="price-card__row"><span>Recurring charge</span><span>{inr(pricing.money.total)} / {pricing.cycle === "yearly" ? "year" : "month"}</span></div>
-                    <div className="price-card__row"><span>Next billing date</span><span>Billing starts after successful payment</span></div>
+                    <div className="price-card__row"><span>Billing cycle</span><span>{pricing.cycle === "yearly" ? "Yearly" : "Monthly"}</span></div>
+                    <div className="price-card__row"><span>First renewal</span><span>{pricing.cycle === "yearly" ? "1 year" : "1 month"} after activation</span></div>
                   </div>
                 </>
               )}

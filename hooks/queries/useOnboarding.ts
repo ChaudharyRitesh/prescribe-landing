@@ -133,3 +133,9 @@ export const useRegisterOrgMutation = () => {
       OnboardingService.registerOrg(payload, token),
   });
 };
+
+export const useResumeProvisioningMutation = () => {
+  return useMutation({
+    mutationFn: (token: string) => OnboardingService.resumeProvisioning(token),
+  });
+};
