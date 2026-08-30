@@ -2,7 +2,7 @@ import * as z from 'zod';
 
 // Step 1: Initiate via Email
 export const InitiateSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  email: z.string().trim().max(254, { message: "Email is too long." }).email({ message: "Please enter a valid email address." }),
 });
 
 export type InitiateFormValues = z.infer<typeof InitiateSchema>;

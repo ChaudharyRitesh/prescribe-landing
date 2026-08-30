@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRegisterOrgMutation, useCatalogQuery } from "@/hooks/queries/useOnboarding";
+import { useCatalogQuery, useRegisterOrgMutation } from "@/hooks/queries/useOnboarding";
 import { loadRazorpayScript } from "@/lib/services/razorpay.service";
 import { TERMS_VERSION } from "@/lib/legal";
 import { FacilityType, RegisterPayload, RegisterResponse } from "@/lib/api/types/onboarding.types";
-import { computePricing, inr } from "../pricing";
+import { inr, useOrderPricing } from "../pricing";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_PAID_RECOVERY_ERROR, SAFE_WORKSPACE_SETUP_ERROR } from "../safeErrorMessages";
+import { effectiveDoctorsSelected } from "../reviewEditNavigation";
+import { FrontendApiError } from "@/lib/api/axios";
 
 interface Props {
   onNext: () => void;
@@ -28,16 +31,21 @@ interface RzpInstance {
 type RzpConstructor = new (options: Record<string, unknown>) => RzpInstance;
 
 export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
+  const pricing = useOrderPricing(data);
   const { data: catalog } = useCatalogQuery();
-  const pricing = computePricing(data, catalog);
   const { mutate: registerOrg, isPending: registering } = useRegisterOrgMutation();
   const [rzpLoading, setRzpLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [paidRecoveryUnavailable, setPaidRecoveryUnavailable] = useState(false);
 
   const processing = registering || rzpLoading;
+  const doctorEntitlement = effectiveDoctorsSelected(data, catalog?.packages);
+  const doctorEntitled = doctorEntitlement === true;
+  const doctorEntitlementResolved = doctorEntitlement !== undefined;
 
   const submit = () => {
     setErrorMsg(null);
+    if (paidRecoveryUnavailable) return;
     if (!data.verifiedToken || !data.orgName || !data.subdomain || !data.selectionType) {
       setErrorMsg("Missing core details. Please go back and complete the previous steps.");
       return;
@@ -58,6 +66,13 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
       referralCode: data.referralCode,
       facilityType: data.facilityType as FacilityType | undefined,
       organizationType: data.facilityType,
+      // Canonical subType.id (e.g. 'general-medicine'), omitted when no subtype was chosen.
+      organizationSubType: data.specialization || undefined,
+      // P5-DOC.ONB-A1 — only request owner-Doctor provisioning when doctors is actually selected.
+      ownerPractitionerIntent: doctorEntitled ? !!data.ownerPractitionerIntent : undefined,
+      ownerDoctorProfile:
+        doctorEntitled && data.ownerPractitionerIntent ? data.ownerDoctorProfile : undefined,
+      multiBranchEnabled: !!data.multiBranchEnabled,
       termsAccepted: !!data.termsAccepted,
       consent: {
         termsAccepted: !!data.termsAccepted,
@@ -138,9 +153,23 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
             onNext();
           }
         },
-        onError: (err: unknown) => {
-          const e = err as { response?: { data?: { message?: string } }; message?: string };
-          setErrorMsg(e?.response?.data?.message || e?.message || "Something went wrong. Please try again.");
+        onError: (error) => {
+          const apiError = error as FrontendApiError;
+          if (apiError.code === "PAID_ONBOARDING_RESUME_REQUIRED") {
+            if (data.sessionId && data.verifiedToken) {
+              updateData({
+                status: "failed",
+                paidResumeRequired: true,
+                recoveryIssue: undefined,
+              });
+              onNext();
+            } else {
+              setPaidRecoveryUnavailable(true);
+              setErrorMsg(SAFE_PAID_RECOVERY_ERROR);
+            }
+            return;
+          }
+          setErrorMsg(SAFE_WORKSPACE_SETUP_ERROR);
         },
       }
     );
@@ -160,10 +189,12 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
 
           <div className="payment-card__total">
             <span className="payment-card__total-label">{pricing.isCustom ? "Estimated" : "Total due today"}</span>
-            <span className="payment-card__total-amount">{pricing.isCustom ? "Custom quote" : inr(pricing.total)}</span>
+            <span className="payment-card__total-amount">
+              {pricing.isCustom ? "Custom quote" : pricing.money ? inr(pricing.money.total) : "—"}
+            </span>
           </div>
 
-          <button className="btn btn--primary btn--full" type="button" disabled={processing} onClick={submit}>
+          <button className="btn btn--primary btn--full" type="button" disabled={paidRecoveryUnavailable || processing || !doctorEntitlementResolved || (!pricing.isCustom && !pricing.money)} onClick={submit}>
             {processing
               ? <><span className="spinner" /> {rzpLoading ? "Finalising…" : "Processing…"}</>
               : pricing.isCustom ? "Submit quote request" : "Continue to secure payment"}
@@ -173,7 +204,9 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
           {errorMsg && <p className="payment-card__error">{errorMsg}</p>}
 
           <div className="screen__actions screen__actions--center" style={{ marginTop: 16 }}>
-            <button className="link-btn" type="button" onClick={onBack} disabled={processing}>Back to review</button>
+            {paidRecoveryUnavailable
+              ? <a className="link-btn" href="mailto:support@kaerogroup.com">Contact support</a>
+              : <button className="link-btn" type="button" onClick={onBack} disabled={processing}>Back to review</button>}
           </div>
         </div>
       </div>

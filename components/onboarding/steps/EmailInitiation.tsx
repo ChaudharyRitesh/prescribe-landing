@@ -5,7 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { InitiateSchema, InitiateFormValues } from "@/lib/validations/onboarding-schema";
 import { useInitiateMutation } from "@/hooks/queries/useOnboarding";
 import { InitiateResponse } from "@/lib/api/types/onboarding.types";
+import { normalizeEmail } from "@/lib/validations/normalize";
 import { OnboardingData } from "../OnboardingWizard";
+import { SAFE_ONBOARDING_START_ERROR } from "../safeErrorMessages";
 
 interface Props {
   onNext: () => void;
@@ -27,18 +29,19 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
   const { mutate, isPending, error } = useInitiateMutation();
 
   const onSubmit = (values: InitiateFormValues) => {
+    const email = normalizeEmail(values.email);
     mutate(
-      { email: values.email },
+      { email },
       {
         onSuccess: (res: InitiateResponse) => {
           if (res.onboarded) {
-            alert(res.message);
+            alert("Your workspace is already active. Taking you to your dashboard.");
             if (res.dashboardUrl) window.location.href = res.dashboardUrl;
           } else if (res.canResume) {
-            updateData({ email: values.email, sessionId: res.sessionId, verifiedToken: res.verifiedToken });
+            updateData({ email, sessionId: res.sessionId, verifiedToken: res.verifiedToken });
             onNext();
           } else {
-            updateData({ email: values.email, sessionId: res.sessionId });
+            updateData({ email, sessionId: res.sessionId });
             onNext();
           }
         },
@@ -46,7 +49,7 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
     );
   };
 
-  const serverError = error ? (error as Error).message : null;
+  const serverError = error ? SAFE_ONBOARDING_START_ERROR : null;
   const hasError = !!errors.email || !!serverError;
 
   return (
@@ -62,7 +65,9 @@ export function EmailInitiation({ onNext, onBack, updateData, data }: Props) {
             <input
               id="email"
               type="email"
+              inputMode="email"
               autoComplete="email"
+              maxLength={254}
               placeholder="admin@myclinic.com"
               className={`field__input ${hasError ? "is-invalid" : ""}`}
               disabled={isPending}

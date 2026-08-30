@@ -1,5 +1,11 @@
 import axios, { AxiosError } from 'axios';
 
+export type FrontendApiError = Error & {
+  status?: number;
+  code?: string;
+  field?: string;
+};
+
 // Get base URL from environment or use a default for development
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -17,6 +23,11 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
+      const explicitAuthorization = config.headers.get
+        ? config.headers.get('Authorization')
+        : config.headers['Authorization'];
+      if (explicitAuthorization) return config;
+
       let token = localStorage.getItem('partner_token');
       
       // Fallback: Check cookies for partner_token if localStorage is empty or out-of-sync
@@ -36,7 +47,9 @@ apiClient.interceptors.request.use(
         config.url.includes('/resend-2fa-otp') ||
         config.url.includes('/resend-verification-otp') ||
         config.url.includes('/onboarding/initiate') ||
+        config.url.includes('/onboarding/session/') ||
         config.url.includes('/onboarding/catalog') ||
+        config.url.includes('/onboarding/org-types') ||
         config.url.includes('/onboarding/check-subdomain') ||
         config.url.includes('/onboarding/verify-mr') ||
         config.url.includes('/onboarding/verify-gst')
@@ -65,7 +78,7 @@ apiClient.interceptors.response.use(
   (response) => {
     return response.data;
   },
-  (error: AxiosError<{ message?: string, error?: string }>) => {
+  (error: AxiosError<{ message?: string, error?: string, code?: string, field?: string }>) => {
     // Handle global errors here (e.g. logging out on 401, showing toasts)
     const serverMessage = error.response?.data?.message;
     const serverError = error.response?.data?.error;
@@ -75,7 +88,12 @@ apiClient.interceptors.response.use(
       || error.message 
       || 'An unexpected error occurred';
     
-    // Convert to a standardized error 
-    return Promise.reject(new Error(message));
+    // Preserve machine-readable response metadata for bounded frontend recovery flows while
+    // continuing to expose only the existing safe Error message to generic consumers.
+    const frontendError = new Error(message) as FrontendApiError;
+    frontendError.status = error.response?.status;
+    frontendError.code = error.response?.data?.code;
+    frontendError.field = error.response?.data?.field;
+    return Promise.reject(frontendError);
   }
 );

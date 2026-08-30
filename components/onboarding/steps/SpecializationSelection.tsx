@@ -1,6 +1,7 @@
 "use client";
 
-import { SPECIALIZATIONS, orgTypeName } from "../onboardingConfig";
+import { useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
+import { findOrgType, orgTypeName } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
 
 interface Props {
@@ -11,7 +12,9 @@ interface Props {
 }
 
 export function SpecializationSelection({ onNext, onBack, updateData, data }: Props) {
-  const list = SPECIALIZATIONS[data.facilityType || ""] || [];
+  const { data: orgTypesRes } = useOrgTypesQuery();
+  const orgTypes = orgTypesRes?.data;
+  const list = findOrgType(orgTypes, data.facilityType)?.subTypes || [];
   const isDiagnostic = data.facilityType === "diagnostic";
   const selected = data.specialization;
 
@@ -23,23 +26,23 @@ export function SpecializationSelection({ onNext, onBack, updateData, data }: Pr
           {isDiagnostic ? "Which services do you offer?" : "What's your specialization?"}
         </h1>
         <p className="screen__subtitle">
-          This helps us tailor the modules and terminology for your {orgTypeName(data.facilityType).toLowerCase()}.
+          This helps us tailor the modules and terminology for your {orgTypeName(orgTypes, data.facilityType).toLowerCase()}.
         </p>
 
         <div className="option-grid option-grid--compact" role="radiogroup" aria-label="Specialization">
           {list.map((s) => {
-            const isSel = selected === s;
+            const isSel = selected === s.id;
             return (
               <button
                 type="button"
-                key={s}
+                key={s.id}
                 role="radio"
                 aria-checked={isSel}
                 className={`option-card ${isSel ? "is-selected" : ""}`}
-                onClick={() => updateData({ specialization: s })}
+                onClick={() => updateData({ specialization: s.id })}
               >
                 <div className="option-card__header">
-                  <div className="option-card__title">{s}</div>
+                  <div className="option-card__title">{s.label}</div>
                   <div className="option-card__check">✓</div>
                 </div>
               </button>

@@ -29,7 +29,7 @@ const STEPS = [
     "Open the app and sign in with your Kaero account",
 ];
 
-const APK_URL = "https://pub-cb9254a2fac64ceb96d2a7118124cd3b.r2.dev/kaero-one-v1.0.2.apk";
+const APK_URL = "https://pub-cb9254a2fac64ceb96d2a7118124cd3b.r2.dev/kaero-builds/kaero-one-v1.0.0.5apk";
 
 export default function DownloadPage() {
     const stamp = new Date().toLocaleDateString("en-US", {
@@ -200,7 +200,7 @@ export default function DownloadPage() {
                             style={{ fontFamily: "IBM Plex Mono", color: c.muted, letterSpacing: "0.12em" }}
                             className="mt-4 text-center text-xs"
                         >
-                            Internal build · {stamp} · v1.0.2
+                            Internal build · {stamp} · v1.0.0.5
                         </p>
                     </div>
                 </div>

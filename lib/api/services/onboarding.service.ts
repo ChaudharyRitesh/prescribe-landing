@@ -1,6 +1,9 @@
 import { apiClient } from '../axios';
 import {
   CatalogResponse,
+  OrgTypesResponse,
+  PricePreviewPayload,
+  PricePreviewResponse,
   InitiatePayload,
   InitiateResponse,
   VerifyOtpPayload,
@@ -14,6 +17,8 @@ import {
   ReserveSubdomainResponse,
   RegisterPayload,
   RegisterResponse,
+  OnboardingSessionResponse,
+  ResumeProvisioningResponse,
   StatusResponse,
   SpecializedDeptResponse,
   VerifyMRResponse,
@@ -24,6 +29,14 @@ export const OnboardingService = {
   fetchCatalog: async (specialty?: string): Promise<CatalogResponse> => {
     const url = specialty ? `/onboarding/catalog?specialty=${specialty}` : '/onboarding/catalog';
     return apiClient.get(url);
+  },
+
+  fetchOrgTypes: async (): Promise<OrgTypesResponse> => {
+    return apiClient.get('/onboarding/org-types');
+  },
+
+  previewPrice: async (payload: PricePreviewPayload): Promise<PricePreviewResponse> => {
+    return apiClient.post('/onboarding/price-preview', payload);
   },
 
   fetchSpecializedDepartments: async (specialty: string): Promise<SpecializedDeptResponse> => {
@@ -71,6 +84,20 @@ export const OnboardingService = {
 
   registerOrg: async (payload: RegisterPayload, token: string): Promise<RegisterResponse> => {
     return apiClient.post('/onboarding/register', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  fetchSession: async (sessionId: string, token?: string): Promise<OnboardingSessionResponse> => {
+    return apiClient.get(`/onboarding/session/${encodeURIComponent(sessionId)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+
+  resumeProvisioning: async (token: string): Promise<ResumeProvisioningResponse> => {
+    return apiClient.post('/onboarding/resume-provisioning', undefined, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

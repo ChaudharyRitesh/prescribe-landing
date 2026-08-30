@@ -1,20 +1,30 @@
 // --- Core Enums ---
 export type SelectionType = 'package' | 'individual';
 export type BillingCycle = 'monthly' | 'yearly';
-export type OnboardingStatus = 
-  | 'email_pending_otp' 
-  | 'otp_verified' 
-  | 'form_submitted' 
-  | 'pending_payment' 
-  | 'provisioning' 
-  | 'provisioned' 
+export type OnboardingStatus =
+  | 'email_pending_otp'
+  | 'otp_verified'
+  | 'form_submitted'
+  | 'pending_payment'
+  | 'provisioning'
+  | 'provisioned'
+  | 'practitioner_setup_required'
   | 'quote_pending'
   | 'failed';
 
+/** P5-DOC.ONB-A1 — minimal owner-Doctor professional details captured when the owner explicitly
+ *  intends to practice. Consumed server-side as the P5-C.2 LinkedDoctorInput. */
+export interface OwnerDoctorProfile {
+  name?: string;
+  specialization?: string;
+  registrationNumber?: string;
+  phone?: string;
+}
 
-export type FacilityType =
-  | 'hospital' | 'clinic' | 'eye' | 'dental' | 'diagnostic'
-  | 'doctor' | 'pharmacy' | 'other';
+
+// Free-form org-type slug from the live OrganizationTypeCatalog (super-admin managed) — no
+// longer a fixed union, see OrgType/useOrgTypesQuery.
+export type FacilityType = string;
 
 // --- Base Response Interface ---
 export interface BaseResponse {
@@ -81,6 +91,68 @@ export interface PackageItem {
 export interface CatalogResponse extends BaseResponse {
   modules: ModuleItem[];
   packages: PackageItem[];
+}
+
+// --- Price Preview (server-authoritative, non-mutating) ---
+export interface PricePreviewPayload {
+  organizationType?: string;
+  selectionType: SelectionType;
+  packageId?: string;
+  selectedModules?: string[];
+  billingCycle?: BillingCycle;
+}
+
+export interface PricePreviewLineItem {
+  slug: string;
+  label: string;
+  unitPrice: number;
+}
+
+export interface PricePreviewData {
+  isCustom: boolean;
+  packageLabel?: string;
+  billingCycle?: BillingCycle;
+  currency?: string;
+  catalogVersion?: number;
+  lineItems?: PricePreviewLineItem[];
+  subtotal?: number;
+  gstRate?: number;
+  gst?: number;
+  total?: number;
+}
+
+export interface PricePreviewResponse extends BaseResponse {
+  data: PricePreviewData;
+}
+
+/** Already-computed pricing stored on a session at register() time (rupees). */
+export interface PricingSnapshot {
+  subtotal: number;
+  gstRate: number;
+  gst: number;
+  total: number;
+  currency: string;
+}
+
+// --- Organization Type Catalog ---
+export interface OrgSubType {
+  id: string;
+  label: string;
+}
+
+export interface OrgType {
+  _id: string;
+  slug: string;
+  label: string;
+  description?: string;
+  subTypes?: OrgSubType[];
+  multiBranchEligible: boolean;
+  isActive: boolean;
+  order: number;
+}
+
+export interface OrgTypesResponse extends BaseResponse {
+  data: OrgType[];
 }
 
 // --- Endpoint Payloads & Responses ---
@@ -187,9 +259,20 @@ export interface RegisterPayload {
   facilityType?: FacilityType;
   /** Org context sent to the backend (mirrors facilityType). */
   organizationType?: string;
+  /** Canonical subType.id for the chosen org type (e.g. 'general-medicine'), never the display
+   *  label. Optional; validated server-side against the live catalog. Absent when no subtype chosen. */
+  organizationSubType?: string;
+  /** Explicit opt-in, only meaningful when the selected org type's catalog entry has
+   *  multiBranchEligible:true. Validated server-side against the live catalog at registration. */
+  multiBranchEnabled?: boolean;
   /** Consent audit metadata (HIPAA/DPDP) */
   termsAccepted?: boolean;
   consent?: ConsentMeta;
+  /** P5-DOC.ONB-A1 — explicit owner intent to personally practice as a Doctor. Only sent when the
+   *  doctors module is in the selection; honored server-side only when doctors is entitled. */
+  ownerPractitionerIntent?: boolean;
+  /** Minimal owner-Doctor details, sent only when ownerPractitionerIntent is true. */
+  ownerDoctorProfile?: OwnerDoctorProfile;
 }
 
 export interface RegisterResponse extends BaseResponse {
@@ -203,6 +286,21 @@ export interface RegisterResponse extends BaseResponse {
   keyId?: string;
   // If provisioning started
   pollUrl?: string;
+}
+
+export interface OnboardingSessionResponse extends BaseResponse {
+  code?: 'REVERIFICATION_REQUIRED';
+  data?: Record<string, unknown> & {
+    sessionId: string;
+    status: OnboardingStatus;
+    verifiedToken?: string;
+  };
+}
+
+export interface ResumeProvisioningResponse extends BaseResponse {
+  status: 'provisioning' | 'provisioned';
+  sessionId: string;
+  dashboardUrl?: string;
 }
 
 // 8. GET /status/:sessionId

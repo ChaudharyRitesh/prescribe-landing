@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "onboarding:self-check": "node scripts/onboarding-review-self-check.mjs",
+    "onboarding:state-test": "node --test tests/onboarding-canonical-state.test.cjs",
+    "onboarding:recovery-test": "node --test tests/onboarding-recovery.test.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -71,6 +74,7 @@
     "next-themes": "^0.3.0",
     "nodemailer": "^7.0.12",
     "postcss": "8.4.30",
+    "qrcode": "^1.5.4",
     "react": "^19.2.4",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.2.4",
@@ -95,6 +99,7 @@
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
     "@types/nodemailer": "^7.0.4",
-    "@types/three": "^0.184.1"
+    "@types/three": "^0.184.1",
+    "jsdom": "^23.2.0"
   }
 }

@@ -1,49 +1,72 @@
-// Onboarding v2 — UI context constants (NOT commercial data).
-// Org types + specializations are interaction/context per the mock; real
-// modules/packages/prices/recommendations come from the live catalog.
+// Onboarding v2 — UI flow constants (NOT commercial data).
+// Org types + sub-types are super-admin managed (OrganizationTypeCatalog) and fetched live via
+// useOrgTypesQuery — see lib/api/types/onboarding.types.ts for the OrgType/OrgSubType shape.
 
-export type OrgTypeId =
-  | 'doctor' | 'clinic' | 'hospital' | 'dental' | 'diagnostic' | 'pharmacy' | 'other';
+import { OrgType } from '@/lib/api/types/onboarding.types';
 
-export interface OrgType {
-  id: OrgTypeId;
-  name: string;
-  desc: string;
+export function findOrgType(orgTypes: OrgType[] | undefined, slug?: string | null): OrgType | undefined {
+  return orgTypes?.find((o) => o.slug === slug);
 }
 
-export const ORG_TYPES: OrgType[] = [
-  { id: 'doctor', name: 'Doctor / Professional Practice', desc: 'Independent doctor or healthcare professional' },
-  { id: 'clinic', name: 'Clinic / Practice', desc: 'Outpatient healthcare practice' },
-  { id: 'hospital', name: 'Hospital', desc: 'Multi-specialty healthcare organization' },
-  { id: 'dental', name: 'Dental Practice', desc: 'Dental care and orthodontics' },
-  { id: 'diagnostic', name: 'Diagnostic / Pathology Lab', desc: 'Pathology, radiology, or imaging services' },
-  { id: 'pharmacy', name: 'Pharmacy', desc: 'Pharmacy and medication operations' },
-  { id: 'other', name: 'Other Healthcare Organization', desc: 'Anything else in healthcare delivery' },
-];
-
-// Conditional — only these org types show a specialization screen.
-export const SPECIALIZATIONS: Record<string, string[]> = {
-  doctor: ['General Medicine', 'Cardiology', 'Dermatology', 'Pediatrics', 'Orthopedics', 'Other'],
-  clinic: ['General Medicine', 'Pediatrics', 'Dermatology', 'Multi-specialty', 'Other'],
-  hospital: ['Multi-specialty', 'General Medicine', 'Other'],
-  dental: ['General Dentistry', 'Orthodontics', 'Oral Surgery', 'Other'],
-  diagnostic: ['Pathology', 'Radiology', 'Pathology & Radiology'],
-};
-
-export function hasSpecialization(orgType?: string | null): boolean {
-  return !!orgType && Array.isArray(SPECIALIZATIONS[orgType]);
+// Conditional — only org types with subTypes show a specialization screen.
+export function hasSpecialization(orgTypes: OrgType[] | undefined, slug?: string | null): boolean {
+  const orgType = findOrgType(orgTypes, slug);
+  return !!orgType?.subTypes && orgType.subTypes.length > 0;
 }
 
-export function orgTypeName(id?: string | null): string {
-  return ORG_TYPES.find((o) => o.id === id)?.name || 'Your organization';
+export function orgTypeName(orgTypes: OrgType[] | undefined, slug?: string | null): string {
+  return findOrgType(orgTypes, slug)?.label || 'Your organization';
+}
+
+// data.specialization stores the canonical subType.id (e.g. 'general-medicine'), never the display
+// label — that id is what the backend contract validates and persists as Client.organizationSubType.
+// This resolves the human label for display; falls back to the raw stored value if the catalog
+// hasn't loaded (so display never blanks).
+export function orgSubTypeLabel(
+  orgTypes: OrgType[] | undefined,
+  slug: string | null | undefined,
+  subTypeId: string | null | undefined,
+): string | undefined {
+  if (!subTypeId) return undefined;
+  return findOrgType(orgTypes, slug)?.subTypes?.find((s) => s.id === subTypeId)?.label ?? subTypeId;
+}
+
+// Restore-time compatibility: a pre-canonical session may have stored the display label instead of
+// the subType.id. Map it back to the canonical id using the live catalog for the selected org type.
+// Returns the id when the value is already canonical or an exact unique label match; undefined when
+// there's no unique valid match (caller clears it so the user reselects).
+export function normalizeSubType(
+  orgTypes: OrgType[] | undefined,
+  slug: string | null | undefined,
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  const subTypes = findOrgType(orgTypes, slug)?.subTypes;
+  if (!subTypes || subTypes.length === 0) return undefined;
+  if (subTypes.some((s) => s.id === value)) return value; // already canonical id
+  const byLabel = subTypes.filter((s) => s.label === value);
+  return byLabel.length === 1 ? byLabel[0].id : undefined; // exact unique label match, else clear
+}
+
+// Conditional — only org types with multiBranchEligible:true show the branch-setup screen.
+export function isMultiBranchEligible(orgTypes: OrgType[] | undefined, slug?: string | null): boolean {
+  return !!findOrgType(orgTypes, slug)?.multiBranchEligible;
+}
+
+// Canonical deterministic owner-practitioner case. Keep this exact: clinic/hospital ownership is
+// ambiguous even when Doctors is selected, so those organization types must still ask explicitly.
+export function isDoctorProfessionalPractice(orgTypes: OrgType[] | undefined, slug?: string | null): boolean {
+  const orgType = findOrgType(orgTypes, slug);
+  const isCanonicalDoctor = slug === 'doctor' || orgType?.label.trim().toLowerCase() === 'doctor / professional practice';
+  return isCanonicalDoctor && orgType?.multiBranchEligible !== true;
 }
 
 export type ScreenId =
   | 'facility' | 'specialization' | 'email' | 'otp'
-  | 'details' | 'modules' | 'review' | 'payment' | 'provisioning';
+  | 'details' | 'branchSetup' | 'modules' | 'practitioner' | 'review' | 'payment' | 'provisioning';
 
 export const SCREEN_ORDER: ScreenId[] = [
-  'facility', 'specialization', 'email', 'otp', 'details', 'modules', 'review', 'payment', 'provisioning',
+  'facility', 'specialization', 'email', 'otp', 'details', 'branchSetup', 'modules', 'practitioner', 'review', 'payment', 'provisioning',
 ];
 
 export const RAIL_STEPS: { rail: number; label: string }[] = [
@@ -57,5 +80,5 @@ export const RAIL_STEPS: { rail: number; label: string }[] = [
 
 export const SCREEN_RAIL: Record<ScreenId, number> = {
   facility: 1, specialization: 1, email: 2, otp: 2,
-  details: 3, modules: 4, review: 5, payment: 5, provisioning: 6,
+  details: 3, branchSetup: 3, modules: 4, practitioner: 4, review: 5, payment: 5, provisioning: 6,
 };
