@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { ModuleItem, PackageItem } from "@/lib/api/types/onboarding.types";
-import { isDoctorProfessionalPractice, orgSubTypeLabel, orgTypeName } from "../onboardingConfig";
+import { isDoctorProfessionalPractice, isSoloDoctorOnboarding, orgSubTypeLabel, orgTypeName } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
 import {
   individualModuleSelectionPatch,
@@ -175,7 +175,9 @@ export function ModuleCatalogSelection({ onNext, onBack, updateData, data }: Pro
     // D-4: if doctors is no longer selected, drop any previously-captured owner-practitioner state
     // so the payload can't request owner-Doctor provisioning without the entitlement.
     const clearedPractitioner = practitionerClearPatch(doctorsSelected);
-    const soloDoctorDefault = doctorsSelected && isDoctorProfessionalPractice(orgTypes, data.facilityType)
+    // Only the standalone Doctor path gets a pre-filled practitioner answer; every other
+    // organization purchase leaves owner-practitioner state cleared (see isSoloDoctorOnboarding).
+    const soloDoctorDefault = isSoloDoctorOnboarding(orgTypes, { ...data, ...selectionPatch }, catalog?.packages) === true
       ? soloDoctorPractitionerDefault(data, orgSubTypeLabel(orgTypes, data.facilityType, data.specialization))
       : {};
     let committedData: Partial<OnboardingData>;

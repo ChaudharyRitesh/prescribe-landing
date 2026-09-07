@@ -7,9 +7,10 @@ import {
   SCREEN_ORDER,
   SCREEN_RAIL,
   ScreenId,
+  guardedScreen,
   hasSpecialization,
-  isDoctorProfessionalPractice,
   isMultiBranchEligible,
+  isSoloDoctorOnboarding,
   normalizeSubType,
   orgSubTypeLabel,
 } from "./onboardingConfig";
@@ -114,6 +115,9 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
   const orgTypes = orgTypesRes?.data;
   const packages = catalog?.packages;
   const doctorEntitled = effectiveDoctorsSelected(data, packages);
+  // The one gate for the solo-practitioner screen — never doctorEntitled on its own.
+  const soloDoctorOnboarding = isSoloDoctorOnboarding(orgTypes, data, packages);
+  const activeScreen = guardedScreen(screen, soloDoctorOnboarding);
 
   // Resume a mid-flight session to the correct screen.
   useEffect(() => {
@@ -170,17 +174,22 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
   // Deterministic solo-practice default. Explicit true/false always wins; restored sessions with
   // no decision receive the same default as new sessions and persist it through existing storage.
   useEffect(() => {
-    if (
-      doctorEntitled !== true ||
-      data.ownerPractitionerIntent !== undefined ||
-      !isDoctorProfessionalPractice(orgTypes, data.facilityType)
-    ) return;
+    if (soloDoctorOnboarding !== true || data.ownerPractitionerIntent !== undefined) return;
     updateData(soloDoctorPractitionerDefault(
       data,
       orgSubTypeLabel(orgTypes, data.facilityType, data.specialization),
     ));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgTypes, data.facilityType, data.specialization, doctorEntitled, data.ownerPractitionerIntent]);
+  }, [orgTypes, data.facilityType, data.specialization, soloDoctorOnboarding, data.ownerPractitionerIntent]);
+
+  // Route protection: keep wizard state in sync with the guard so Back/Continue from a redirected
+  // screen behave as if the ineligible screen was never entered.
+  useEffect(() => {
+    if (activeScreen === screen) return;
+    setReviewEditTarget(undefined);
+    setReviewSnapshot(undefined);
+    setScreen(activeScreen);
+  }, [activeScreen, screen]);
 
   const goTo = (s: ScreenId) => {
     setScreen(s);
@@ -230,7 +239,7 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
       const candidate = SCREEN_ORDER[idx];
       if (candidate === 'specialization' && !hasSpecialization(orgTypes, data.facilityType)) continue;
       if (candidate === 'branchSetup' && !isMultiBranchEligible(orgTypes, data.facilityType)) continue;
-      if (candidate === 'practitioner' && doctorEntitled !== true) continue;
+      if (candidate === 'practitioner' && soloDoctorOnboarding !== true) continue;
       goTo(candidate);
       return;
     }
@@ -240,8 +249,10 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
     if (!reviewEditTarget) {
       if (screen === 'modules' && committedData) {
         const nextData = { ...data, ...committedData };
-        const nextDoctorEntitled = effectiveDoctorsSelected(nextData, packages);
-        goTo(nextDoctorEntitled === true && nextData.ownerPractitionerIntent === undefined ? 'practitioner' : 'review');
+        goTo(moduleReviewDestination(
+          nextData,
+          isSoloDoctorOnboarding(orgTypes, nextData, packages) === true,
+        ));
         return;
       }
       step(1);
@@ -266,13 +277,9 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
 
     if (reviewEditTarget === 'modules') {
       const nextData = { ...data, ...committedData };
-      const deterministicSoloDoctor = isDoctorProfessionalPractice(orgTypes, nextData.facilityType);
-      const previousDoctorEntitled = effectiveDoctorsSelected(reviewSnapshot || {}, packages);
-      const nextDoctorEntitled = effectiveDoctorsSelected(nextData, packages);
       if (moduleReviewDestination(
-        { ...(reviewSnapshot || {}), doctorsSelected: previousDoctorEntitled === true },
-        { ...nextData, doctorsSelected: nextDoctorEntitled === true },
-        deterministicSoloDoctor,
+        nextData,
+        isSoloDoctorOnboarding(orgTypes, nextData, packages) === true,
       ) === 'practitioner') {
         goTo('practitioner');
         return;
@@ -286,7 +293,7 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
   const onBack = () => reviewEditTarget ? cancelReviewEdit() : step(-1);
   const stepProps = { onNext, onBack, updateData, data };
 
-  const currentRail = reviewEditTarget ? SCREEN_RAIL.review : SCREEN_RAIL[screen];
+  const currentRail = reviewEditTarget ? SCREEN_RAIL.review : SCREEN_RAIL[activeScreen];
   const currentLabel = RAIL_STEPS.find((s) => s.rail === currentRail)?.label;
 
   return (
@@ -324,21 +331,21 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
       </nav>
 
       <main className="onboarding">
-        {screen === 'facility' && (
+        {activeScreen === 'facility' && (
           <FacilityTypeSelection onNext={onNext} updateData={updateData} data={data} />
         )}
-        {screen === 'specialization' && <SpecializationSelection {...stepProps} />}
-        {screen === 'email' && <EmailInitiation {...stepProps} />}
-        {screen === 'otp' && <OtpVerification {...stepProps} onSessionReverified={onSessionReverified} />}
-        {screen === 'details' && reviewEditTarget && (reviewEditTarget === 'organization' || reviewEditTarget === 'administrator')
+        {activeScreen === 'specialization' && <SpecializationSelection {...stepProps} />}
+        {activeScreen === 'email' && <EmailInitiation {...stepProps} />}
+        {activeScreen === 'otp' && <OtpVerification {...stepProps} onSessionReverified={onSessionReverified} />}
+        {activeScreen === 'details' && reviewEditTarget && (reviewEditTarget === 'organization' || reviewEditTarget === 'administrator')
           ? <ReviewDetailsEdit section={reviewEditTarget} {...stepProps} />
-          : screen === 'details' && <OrganizationDetails {...stepProps} />}
-        {screen === 'branchSetup' && <BranchSetupSelection {...stepProps} />}
-        {screen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
-        {screen === 'practitioner' && <PractitionerIntent {...stepProps} />}
-        {screen === 'review' && <ReviewStep {...stepProps} onEdit={startReviewEdit} />}
-        {screen === 'payment' && <PaymentStep {...stepProps} />}
-        {screen === 'provisioning' && <ProvisioningStatus data={data} updateData={updateData} />}
+          : activeScreen === 'details' && <OrganizationDetails {...stepProps} />}
+        {activeScreen === 'branchSetup' && <BranchSetupSelection {...stepProps} />}
+        {activeScreen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
+        {activeScreen === 'practitioner' && <PractitionerIntent {...stepProps} />}
+        {activeScreen === 'review' && <ReviewStep {...stepProps} onEdit={startReviewEdit} />}
+        {activeScreen === 'payment' && <PaymentStep {...stepProps} />}
+        {activeScreen === 'provisioning' && <ProvisioningStatus data={data} updateData={updateData} />}
       </main>
     </div>
   );

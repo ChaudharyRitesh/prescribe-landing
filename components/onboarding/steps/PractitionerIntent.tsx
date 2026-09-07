@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { normalizeName } from "@/lib/validations/normalize";
-import { isDoctorProfessionalPractice, orgSubTypeLabel } from "../onboardingConfig";
+import { isSoloDoctorOnboarding, orgSubTypeLabel } from "../onboardingConfig";
 import { OnboardingData } from "../OnboardingWizard";
-import { effectiveDoctorsSelected } from "../reviewEditNavigation";
 
 interface Props {
   onNext: () => void;
@@ -20,8 +19,9 @@ export function PractitionerIntent({ onNext, onBack, updateData, data }: Props) 
   const { data: orgTypesRes } = useOrgTypesQuery();
   const { data: catalog } = useCatalogQuery();
   const specializationSuggestion = orgSubTypeLabel(orgTypesRes?.data, data.facilityType, data.specialization);
-  const doctorEntitled = effectiveDoctorsSelected(data, catalog?.packages) === true;
-  const soloDoctorDefault = doctorEntitled && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
+  // This screen is only reachable on the standalone Doctor path (see isSoloDoctorOnboarding and
+  // the wizard's guardedScreen route protection), so the default answer is the solo-practice Yes.
+  const soloDoctorDefault = isSoloDoctorOnboarding(orgTypesRes?.data, data, catalog?.packages) === true;
 
   // Canonical solo Doctor practice defaults to Yes; explicit true/false always wins.
   const [intent, setIntent] = useState<boolean | undefined>(

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCatalogQuery, useOrgTypesQuery } from "@/hooks/queries/useOnboarding";
 import { inr, moduleCountLabel, selectionHeaderName, useOrderPricing } from "../pricing";
-import { isDoctorProfessionalPractice, orgSubTypeLabel, orgTypeName, ScreenId } from "../onboardingConfig";
+import { isSoloDoctorOnboarding, orgSubTypeLabel, orgTypeName, ScreenId } from "../onboardingConfig";
 import {
   isValidIndianMobile,
   isValidIndianPin,
@@ -77,16 +77,15 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
     data.specialization,
   ) || orgTypeName(orgTypesRes?.data, data.facilityType);
 
-  const soloDoctorDefaultApplies =
-    doctorEntitled &&
-    data.ownerPractitionerIntent === undefined &&
-    isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
+  // LOCKED ROUTING RULE — the owner-practitioner question belongs to the standalone Doctor path
+  // only; see isSoloDoctorOnboarding. Every other organization purchase reviews as Admin-only.
+  const showSoloDoctorControl = isSoloDoctorOnboarding(orgTypesRes?.data, data, packages) === true;
+  const soloDoctorDefaultApplies = showSoloDoctorControl && data.ownerPractitionerIntent === undefined;
   const effectivePractitionerIntent = data.ownerPractitionerIntent ?? (soloDoctorDefaultApplies ? true : undefined);
   const effectiveDoctorProfile = data.ownerDoctorProfile || (soloDoctorDefaultApplies ? {
     name: data.contactName,
     specialization: clinicalSetup,
   } : undefined);
-  const showSoloDoctorControl = doctorEntitled && isDoctorProfessionalPractice(orgTypesRes?.data, data.facilityType);
   const professionalName = effectiveDoctorProfile?.name || "";
   const professionalNameValid = normalizeName(professionalName).length >= 2;
 
@@ -103,7 +102,7 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
     updateData(soloDoctorIntentPatch(data, intent, clinicalSetup));
   };
 
-  const practitionerDecisionValid = !doctorEntitled || effectivePractitionerIntent !== undefined;
+  const practitionerDecisionValid = !showSoloDoctorControl || effectivePractitionerIntent !== undefined;
   const practitionerProfileValid = effectivePractitionerIntent !== true || professionalNameValid;
 
   const canContinue = terms && contactDetailsValid && practitionerDecisionValid && practitionerProfileValid && (pricing.isCustom || !!pricing.money);
@@ -158,9 +157,6 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
             <div className="review-card">
               <div className="review-card__header">
                 <h2 className="review-card__title">Owner &amp; clinical role</h2>
-                {doctorEntitled && !showSoloDoctorControl && (
-                  <button className="link-btn" type="button" onClick={() => onEdit("practitioner", "practitioner")}>Change role or professional details</button>
-                )}
               </div>
               {showSoloDoctorControl ? (
                 <>
@@ -245,11 +241,6 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
                   <p className="review-card__secondary">Medical registration: {effectiveDoctorProfile?.registrationNumber || "Not provided"}</p>
                   <p className="review-card__secondary">Clinical setup: {clinicalSetup}</p>
                   <p className="review-card__secondary">Workspace outcome: Admin + Doctor workspace requested</p>
-                </>
-              ) : doctorEntitled && effectivePractitionerIntent === undefined ? (
-                <>
-                  <p className="review-card__primary">Role decision required</p>
-                  <p className="review-card__secondary">Choose whether the owner will personally practice before continuing.</p>
                 </>
               ) : (
                 <>

@@ -3,6 +3,11 @@
 // useOrgTypesQuery — see lib/api/types/onboarding.types.ts for the OrgType/OrgSubType shape.
 
 import { OrgType } from '@/lib/api/types/onboarding.types';
+import {
+  CanonicalModuleSelectionState,
+  CatalogPackageState,
+  effectiveDoctorsSelected,
+} from './reviewEditNavigation';
 
 export function findOrgType(orgTypes: OrgType[] | undefined, slug?: string | null): OrgType | undefined {
   return orgTypes?.find((o) => o.slug === slug);
@@ -61,6 +66,29 @@ export function isDoctorProfessionalPractice(orgTypes: OrgType[] | undefined, sl
   return isCanonicalDoctor && orgType?.multiBranchEligible !== true;
 }
 
+export type SoloDoctorOnboardingContext = CanonicalModuleSelectionState & {
+  facilityType?: string | null;
+};
+
+// LOCKED ROUTING RULE — the single canonical eligibility predicate for the solo-practitioner
+// ("Will you personally practice as a Doctor?") step. TRUE only on the explicit standalone Doctor
+// onboarding path: the organization type IS Doctor / Professional Practice AND the Doctors module
+// is actually part of the committed purchase. Doctors bought as one module inside a hospital,
+// clinic/polyclinic, pharmacy, pathology-lab or any multi-module organization purchase is NOT
+// eligible — those owners link a Doctor profile after provisioning, never mid-onboarding.
+// Returns undefined while the org-type catalog or a selected package's module list is still
+// unresolved, so no caller routes — or redirects — on unknown state.
+export function isSoloDoctorOnboarding(
+  orgTypes: OrgType[] | undefined,
+  context: SoloDoctorOnboardingContext,
+  packages?: CatalogPackageState[],
+): boolean | undefined {
+  if (!orgTypes || orgTypes.length === 0) return undefined;
+  const doctorsEntitled = effectiveDoctorsSelected(context, packages);
+  if (doctorsEntitled === undefined) return undefined;
+  return doctorsEntitled && isDoctorProfessionalPractice(orgTypes, context.facilityType);
+}
+
 export type ScreenId =
   | 'facility' | 'specialization' | 'email' | 'otp'
   | 'details' | 'branchSetup' | 'modules' | 'practitioner' | 'review' | 'payment' | 'provisioning';
@@ -68,6 +96,15 @@ export type ScreenId =
 export const SCREEN_ORDER: ScreenId[] = [
   'facility', 'specialization', 'email', 'otp', 'details', 'branchSetup', 'modules', 'practitioner', 'review', 'payment', 'provisioning',
 ];
+
+// Route protection for the solo-practitioner screen. A session that lands there any other way than
+// the standalone Doctor path (restored state, a selection changed after the fact, a hand-forced
+// screen) is sent to its real next step — Review — instead of rendering the page. Only a PROVEN
+// non-eligible session (false, never undefined) is redirected, so a solo Doctor is never bounced
+// while the catalog is still loading.
+export function guardedScreen(screen: ScreenId, soloDoctorOnboarding: boolean | undefined): ScreenId {
+  return screen === 'practitioner' && soloDoctorOnboarding === false ? 'review' : screen;
+}
 
 export const RAIL_STEPS: { rail: number; label: string }[] = [
   { rail: 1, label: 'Setup' },

@@ -80,15 +80,15 @@ export function practitionerStateIsValid(data: ModuleReviewState): boolean {
     (data.ownerPractitionerIntent === true && (data.ownerDoctorProfile?.name?.trim().length || 0) >= 2);
 }
 
+// Where the Modules/pricing step goes next — both on the forward path and when returning from a
+// Review edit. LOCKED ROUTING RULE: 'practitioner' is reachable ONLY when the caller has proven the
+// standalone Doctor path via isSoloDoctorOnboarding. Doctors entitlement alone is NOT a reason to
+// ask — that is what leaked the step into hospital/clinic/pharmacy/pathlab/multi-module flows.
 export function moduleReviewDestination(
-  previous: ModuleReviewState,
   next: ModuleReviewState,
-  deterministicSoloDoctor = false,
+  soloDoctorOnboarding: boolean,
 ): 'practitioner' | 'review' {
-  const doctorsNewlyAdded = previous.doctorsSelected !== true && next.doctorsSelected === true;
-  return next.doctorsSelected && ((!deterministicSoloDoctor && doctorsNewlyAdded) || !practitionerStateIsValid(next))
-    ? 'practitioner'
-    : 'review';
+  return soloDoctorOnboarding && !practitionerStateIsValid(next) ? 'practitioner' : 'review';
 }
 
 export function soloDoctorPractitionerDefault(
