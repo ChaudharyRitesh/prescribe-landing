@@ -91,10 +91,10 @@ export function isSoloDoctorOnboarding(
 
 export type ScreenId =
   | 'facility' | 'specialization' | 'email' | 'otp'
-  | 'details' | 'branchSetup' | 'modules' | 'practitioner' | 'review' | 'payment' | 'provisioning';
+  | 'details' | 'branchSetup' | 'modules' | 'customPlan' | 'practitioner' | 'review' | 'payment' | 'provisioning';
 
 export const SCREEN_ORDER: ScreenId[] = [
-  'facility', 'specialization', 'email', 'otp', 'details', 'branchSetup', 'modules', 'practitioner', 'review', 'payment', 'provisioning',
+  'facility', 'specialization', 'email', 'otp', 'details', 'branchSetup', 'modules', 'customPlan', 'practitioner', 'review', 'payment', 'provisioning',
 ];
 
 // Route protection for the solo-practitioner screen. A session that lands there any other way than
@@ -117,5 +117,5 @@ export const RAIL_STEPS: { rail: number; label: string }[] = [
 
 export const SCREEN_RAIL: Record<ScreenId, number> = {
   facility: 1, specialization: 1, email: 2, otp: 2,
-  details: 3, branchSetup: 3, modules: 4, practitioner: 4, review: 5, payment: 5, provisioning: 6,
+  details: 3, branchSetup: 3, modules: 4, customPlan: 4, practitioner: 4, review: 5, payment: 5, provisioning: 6,
 };

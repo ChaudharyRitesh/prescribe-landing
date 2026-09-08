@@ -14,6 +14,7 @@ import {
 } from "@/lib/validations/normalize";
 import type { OnboardingData, ReviewEditTarget } from "../OnboardingWizard";
 import { effectiveDoctorsSelected, soloDoctorIntentPatch } from "../reviewEditNavigation";
+import { buildRequirementSummary } from "../customPlanRequest";
 
 interface Props {
   onNext: () => void;
@@ -60,6 +61,16 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
     return (data.selectedModules || []).map((slug) => ({ label: label(slug) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPackage, activePackage, data.selectedModules, modules]);
+
+  // Derived from the same helper the register payload uses, so the customer reviews exactly what is
+  // sent. Null for every non-custom path, which leaves the standard flow untouched.
+  const requirementSummary = useMemo(
+    () => buildRequirementSummary(
+      data.customPlanRequest,
+      Object.fromEntries((modules ?? []).map((m) => [m.slug, m.label])),
+    ),
+    [data.customPlanRequest, modules],
+  );
 
   const headerName = isPackage
     ? (activePackage?.label || "Package")
@@ -153,6 +164,45 @@ export function ReviewStep({ onNext, onBack, updateData, data, onEdit }: Props) 
               <p className="review-card__primary">{data.contactName || "—"}</p>
               <p className="review-card__secondary">{data.email || "—"}</p>
             </div>
+
+            {requirementSummary && (
+              /* CUSTOM PLAN: what the customer ASKED FOR. Titled "Your requirements" on purpose —
+                 never "your plan", "your limits" or "your entitlements", because none of these
+                 numbers are binding until the sales team issues a quote. */
+              <div className="review-card">
+                <div className="review-card__header">
+                  <h2 className="review-card__title">Your requirements</h2>
+                </div>
+                {requirementSummary.modules.length > 0 && (
+                  <>
+                    <p className="review-card__secondary">Areas you need</p>
+                    <p className="review-card__primary">{requirementSummary.modules.join(", ")}</p>
+                  </>
+                )}
+                {requirementSummary.setup.length > 0 && (
+                  <>
+                    <p className="review-card__secondary">Expected setup</p>
+                    <p className="review-card__primary">{requirementSummary.setup.join(" · ")}</p>
+                  </>
+                )}
+                {requirementSummary.billing && (
+                  <>
+                    <p className="review-card__secondary">Preferred billing</p>
+                    <p className="review-card__primary">{requirementSummary.billing}</p>
+                  </>
+                )}
+                {requirementSummary.note && (
+                  <>
+                    <p className="review-card__secondary">Notes</p>
+                    <p className="review-card__primary">{requirementSummary.note}</p>
+                  </>
+                )}
+                <p className="review-card__secondary">
+                  Our team will review these requirements and send you a custom quote. Final pricing
+                  and limits may differ from this request.
+                </p>
+              </div>
+            )}
 
             <div className="review-card">
               <div className="review-card__header">

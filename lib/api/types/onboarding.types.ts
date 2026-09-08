@@ -265,6 +265,25 @@ export interface RegisterPayload {
   /** Explicit opt-in, only meaningful when the selected org type's catalog entry has
    *  multiBranchEligible:true. Validated server-side against the live catalog at registration. */
   multiBranchEnabled?: boolean;
+  /**
+   * CUSTOM PLAN requirement intake. Everything here is what the customer ASKED FOR — provenance for
+   * the sales conversation, never entitlement. Stored on OnboardingRequest.customPlanRequest; only an
+   * approved Super Admin quote resolves into an actual contract.
+   */
+  customPlanRequest?: {
+    requestedModules?: string[];
+    requestedLimits?: {
+      branches?: number;
+      doctors?: number;
+      receptionists?: number;
+      pharmacists?: number;
+      labTechs?: number;
+      admins?: number;
+    };
+    multiBranchRequested?: boolean;
+    preferredBillingCycle?: BillingCycle;
+    customerRequirementNote?: string;
+  };
   /** Consent audit metadata (HIPAA/DPDP) */
   termsAccepted?: boolean;
   consent?: ConsentMeta;

@@ -26,6 +26,8 @@ import { PaymentStep } from "./steps/PaymentStep";
 import { ProvisioningStatus } from "./steps/ProvisioningStatus";
 import { OwnerDoctorProfile, PricingSnapshot } from "@/lib/api/types/onboarding.types";
 import { PractitionerIntent } from "./steps/PractitionerIntent";
+import { CustomPlanRequirements } from "./steps/CustomPlanRequirements";
+import { isCustomPlanSelection, type CustomPlanRequest } from "./customPlanRequest";
 import { ReviewDetailsEdit } from "./steps/ReviewDetailsEdit";
 import {
   effectiveDoctorsSelected,
@@ -59,6 +61,9 @@ export type OnboardingData = {
   ownerPractitionerIntent?: boolean;
   ownerDoctorProfile?: OwnerDoctorProfile;
   multiBranchEnabled?: boolean;
+  /** CUSTOM PLAN requirement intake — what the customer ASKED FOR. Never an entitlement; the Super
+   *  Admin composes the actual contract from it. See components/onboarding/customPlanRequest.ts. */
+  customPlanRequest?: CustomPlanRequest;
   selectionType?: 'package' | 'individual';
   packageId?: string;
   selectedModules?: string[];
@@ -117,6 +122,8 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
   const doctorEntitled = effectiveDoctorsSelected(data, packages);
   // The one gate for the solo-practitioner screen — never doctorEntitled on its own.
   const soloDoctorOnboarding = isSoloDoctorOnboarding(orgTypes, data, packages);
+  // Custom plans are quoted, not priced — the requirement step exists only on that path.
+  const customPlanOnboarding = isCustomPlanSelection(packages, data);
   const activeScreen = guardedScreen(screen, soloDoctorOnboarding);
 
   // Resume a mid-flight session to the correct screen.
@@ -239,6 +246,7 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
       const candidate = SCREEN_ORDER[idx];
       if (candidate === 'specialization' && !hasSpecialization(orgTypes, data.facilityType)) continue;
       if (candidate === 'branchSetup' && !isMultiBranchEligible(orgTypes, data.facilityType)) continue;
+      if (candidate === 'customPlan' && !customPlanOnboarding) continue;
       if (candidate === 'practitioner' && soloDoctorOnboarding !== true) continue;
       goTo(candidate);
       return;
@@ -252,6 +260,7 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
         goTo(moduleReviewDestination(
           nextData,
           isSoloDoctorOnboarding(orgTypes, nextData, packages) === true,
+          isCustomPlanSelection(packages, nextData),
         ));
         return;
       }
@@ -342,6 +351,9 @@ export function OnboardingWizard({ externalData, externalUpdateData, onSessionRe
           : activeScreen === 'details' && <OrganizationDetails {...stepProps} />}
         {activeScreen === 'branchSetup' && <BranchSetupSelection {...stepProps} />}
         {activeScreen === 'modules' && <ModuleCatalogSelection {...stepProps} />}
+        {activeScreen === 'customPlan' && (
+          <CustomPlanRequirements {...stepProps} modules={catalog?.modules ?? []} />
+        )}
         {activeScreen === 'practitioner' && <PractitionerIntent {...stepProps} />}
         {activeScreen === 'review' && <ReviewStep {...stepProps} onEdit={startReviewEdit} />}
         {activeScreen === 'payment' && <PaymentStep {...stepProps} />}

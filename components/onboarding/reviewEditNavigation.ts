@@ -84,10 +84,18 @@ export function practitionerStateIsValid(data: ModuleReviewState): boolean {
 // Review edit. LOCKED ROUTING RULE: 'practitioner' is reachable ONLY when the caller has proven the
 // standalone Doctor path via isSoloDoctorOnboarding. Doctors entitlement alone is NOT a reason to
 // ask — that is what leaked the step into hospital/clinic/pharmacy/pathlab/multi-module flows.
+/**
+ * Where leaving the modules screen goes. `customPlanOnboarding` is checked FIRST because a custom
+ * plan is quoted, not priced: the customer must state their requirements before review, and there is
+ * no payment step to fall back on. Extended here rather than branched in the wizard so this stays the
+ * single navigation authority the review-edit flow also uses.
+ */
 export function moduleReviewDestination(
   next: ModuleReviewState,
   soloDoctorOnboarding: boolean,
-): 'practitioner' | 'review' {
+  customPlanOnboarding = false,
+): 'customPlan' | 'practitioner' | 'review' {
+  if (customPlanOnboarding) return 'customPlan';
   return soloDoctorOnboarding && !practitionerStateIsValid(next) ? 'practitioner' : 'review';
 }
 

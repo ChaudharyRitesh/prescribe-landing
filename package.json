@@ -11,7 +11,8 @@
     "onboarding:self-check": "node scripts/onboarding-review-self-check.mjs",
     "onboarding:state-test": "node --test tests/onboarding-canonical-state.test.cjs",
     "onboarding:recovery-test": "node --test tests/onboarding-recovery.test.cjs",
-    "onboarding:routing-test": "node --test tests/onboarding-solo-doctor-routing.test.cjs"
+    "onboarding:routing-test": "node --test tests/onboarding-solo-doctor-routing.test.cjs",
+    "onboarding:custom-plan-test": "node --test tests/onboarding-custom-plan-request.test.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

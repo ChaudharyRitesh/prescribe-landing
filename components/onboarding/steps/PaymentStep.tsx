@@ -10,6 +10,7 @@ import { OnboardingData } from "../OnboardingWizard";
 import { SAFE_PAID_RECOVERY_ERROR, SAFE_WORKSPACE_SETUP_ERROR } from "../safeErrorMessages";
 import { effectiveDoctorsSelected } from "../reviewEditNavigation";
 import { FrontendApiError } from "@/lib/api/axios";
+import { buildCustomPlanRequestPayload } from "../customPlanRequest";
 
 interface Props {
   onNext: () => void;
@@ -73,6 +74,9 @@ export function PaymentStep({ onNext, onBack, updateData, data }: Props) {
       ownerDoctorProfile:
         doctorEntitled && data.ownerPractitionerIntent ? data.ownerDoctorProfile : undefined,
       multiBranchEnabled: !!data.multiBranchEnabled,
+      // CUSTOM PLAN requirement intake — provenance for the sales quote. The backend stores this on
+      // OnboardingRequest.customPlanRequest and never derives entitlement from it.
+      customPlanRequest: buildCustomPlanRequestPayload(data.customPlanRequest),
       termsAccepted: !!data.termsAccepted,
       consent: {
         termsAccepted: !!data.termsAccepted,
